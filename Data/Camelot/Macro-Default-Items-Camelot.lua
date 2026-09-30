@@ -10,7 +10,7 @@ local _, ns = ...
 ]]
 
 --[[
-    Source: Validate Data on the WoW Forever client (1.60.1, build 69977).
+    Source: Validate Data on the WoW Forever client (1.60.1, build 70124).
 ]]
 -- [macroType] = itemID, -- Item Name
 ns.MACRO_DEFAULT_ITEM_IDS = {

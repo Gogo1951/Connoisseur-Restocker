@@ -222,5 +222,5 @@ ns.PET_FOOD_DATA = {
 	[8948] = { 55, 6, 200, nil }, -- Dried King Bolete
 	[27859] = { 65, 6, 280, nil }, -- Zangar Caps
 	[29453] = { 75, 6, 400, nil }, -- Sporeggar Mushroom
-	[28112] = { 100, 6, 0, nil }, -- Underspore Pod
+	-- Underspore Pod (28112) is deliberately absent; it sells for nothing, so Feed Pet would spend it before ordinary food.
 }

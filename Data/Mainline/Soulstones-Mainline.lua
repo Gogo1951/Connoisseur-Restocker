@@ -3,7 +3,7 @@ local _, ns = ...
 -- TODO: Add SQL Query
 --[[
     Source: copied from Data/Wrath/Soulstones-Wrath.lua: the rows a Wrath
-    client loaded from the pre-split shared tables, until a Standard TOC ships
+    client loaded from the pre-split shared tables, until a Mainline TOC ships
     and Validate Data runs there.
 
     Rank Value: the stone's resurrection health, used as a sortable
@@ -23,7 +23,7 @@ ns.SOULSTONES = {
 
 --[[
     No soulstone rows in ns.CONJURED_ITEM_IDS_BY_SPELL, on purpose (see
-    Conjured-Items-Standard.lua): soulstones share a 30-minute use cooldown that
+    Conjured-Items-Mainline.lua): soulstones share a 30-minute use cooldown that
     matches the buff duration, so only one stone can ever be deployed at
     a time — conjuring a lower rank while holding the best one would
     just waste a soul shard. The Soulstone resolver therefore runs with
@@ -33,7 +33,7 @@ ns.SOULSTONES = {
 --[[
     The Soulstone RESURRECTION auras — what a stone leaves on whoever it was
     used on. Distinct from the Create Soulstone spells in ns.CONJURE_SPELLS
-    (Conjure-Spells-Standard.lua), which are what a warlock casts to MAKE one,
+    (Conjure-Spells-Mainline.lua), which are what a warlock casts to MAKE one,
     and distinct again from the item ids above, which are the stones sitting in
     a bag.
 

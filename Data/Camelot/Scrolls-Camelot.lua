@@ -6,7 +6,15 @@ local _, ns = ...
 
 --[[
     Source: copied from Data/Vanilla/Scrolls-Vanilla.lua until Validate Data
-    passes on this client.
+    passes on this client. The Power Word: Fortitude and Prayer of Fortitude
+    amounts come from WoW Forever's own tables on wago.tools (build
+    1.60.1.70124), pending Validate Data.
+
+    The three Mage familiar scrolls come from Validate Data (build
+    1.60.1.70124). Each one's buff is its use spell, which summons the familiar
+    and puts the Intellect aura on the caster (wago.tools, same build). Whether
+    that aura stacks with Scroll of Intellect or Arcane Intellect is unchecked
+    in game; counting them as one Intellect buff never builds a line that fails.
 ]]
 -- TODO: Add SQL Query
 -- [scrollType] = { items = { ... }, conflictSpells = { ... } }
@@ -24,16 +32,19 @@ ns.SCROLL_DATA = {
 		conflictSpells = {},
 	},
 	Intellect = {
-		-- {itemID, buffID, requiredLevel, amount}, -- Name
+		-- {itemID, buffID, requiredLevel, amount, class token or nil}, -- Name
 		items = {
 			{ 10308, 12176, 50, 16 }, -- Scroll of Intellect IV
 			{ 4419, 8098, 35, 12 }, -- Scroll of Intellect III
+			{ 277493, 1302303, 25, 12, "MAGE" }, -- Scroll of Cat Familiar
 			{ 2290, 8097, 20, 8 }, -- Scroll of Intellect II
+			{ 277483, 1302285, 16, 6, "MAGE" }, -- Scroll of Frog Familiar
 			{ 955, 8096, 5, 4 }, -- Scroll of Intellect
+			{ 275069, 1296202, 5, 2, "MAGE" }, -- Scroll of Rat Familiar
 		},
 		-- [spellID] = amount, -- Name
 		conflictSpells = {
-			[23028] = 31, -- Arcane Brilliance (Rank 1)
+			[23028] = 31, -- Arcane Brilliance
 			[10157] = 31, -- Arcane Intellect (Rank 5)
 			[10156] = 22, -- Arcane Intellect (Rank 4)
 			[1461] = 15, -- Arcane Intellect (Rank 3)
@@ -63,14 +74,14 @@ ns.SCROLL_DATA = {
 		},
 		-- [spellID] = amount, -- Name
 		conflictSpells = {
-			[10938] = 54, -- Power Word: Fortitude (Rank 6)
-			[21564] = 54, -- Prayer of Fortitude (Rank 2)
-			[10937] = 43, -- Power Word: Fortitude (Rank 5)
-			[21562] = 43, -- Prayer of Fortitude (Rank 1)
-			[2791] = 32, -- Power Word: Fortitude (Rank 4)
-			[1245] = 20, -- Power Word: Fortitude (Rank 3)
-			[1244] = 8, -- Power Word: Fortitude (Rank 2)
-			[1243] = 3, -- Power Word: Fortitude (Rank 1)
+			[10938] = 70, -- Power Word: Fortitude (Rank 6)
+			[21564] = 70, -- Prayer of Fortitude (Rank 2)
+			[10937] = 56, -- Power Word: Fortitude (Rank 5)
+			[21562] = 56, -- Prayer of Fortitude (Rank 1)
+			[2791] = 42, -- Power Word: Fortitude (Rank 4)
+			[1245] = 26, -- Power Word: Fortitude (Rank 3)
+			[1244] = 10, -- Power Word: Fortitude (Rank 2)
+			[1243] = 4, -- Power Word: Fortitude (Rank 1)
 		},
 	},
 	Spirit = {

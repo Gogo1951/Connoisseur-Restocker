@@ -33,10 +33,10 @@ local _, ns = ...
 ]]
 -- [ID] = {Mana Amount}, -- Name
 ns.MANA_GEMS = {
-	[8008] = { 1073 }, -- Mana Ruby
-	[8007] = { 829 }, -- Mana Citrine
-	[5513] = { 585 }, -- Mana Jade
-	[5514] = { 390 }, -- Mana Agate
+	[8008] = { 1000 }, -- Mana Ruby
+	[8007] = { 775 }, -- Mana Citrine
+	[5513] = { 550 }, -- Mana Jade
+	[5514] = { 375 }, -- Mana Agate
 }
 
 -- TODO: Add SQL Query

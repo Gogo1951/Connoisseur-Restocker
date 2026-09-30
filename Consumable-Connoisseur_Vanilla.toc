@@ -23,8 +23,7 @@
 ## X-Curse-Project-ID: 1416865
 ## X-Wago-ID: aN0XyQNj
 
-# MIGRATION (remove after 2026-09-29): only ", ConnoisseurRestockerDB" on the line below, never ConnoisseurDB; it is the Restock List's old table, declared so Features/Restocker/Restocker-Saved-Migration.lua can read it back
-## SavedVariables: ConnoisseurDB, ConnoisseurRestockerDB
+## SavedVariables: ConnoisseurDB
 
 # Includes
 Includes/Libraries/LibStub/LibStub.lua
@@ -100,6 +99,10 @@ Data/Default-Settings.lua
 Features/Core.lua
 Features/Utilities.lua
 Features/Announcements.lua
+# MIGRATION (remove after 2026-10-30)
+Features/Default-Profile-Migration.lua
+# MIGRATION (remove after 2026-10-30)
+Features/Character-Key-Migration.lua
 Features/Item-Cache.lua
 Features/Scanner-Character.lua
 Features/Scanner-Auras.lua
@@ -128,6 +131,7 @@ Features/Action-Button-Text.lua
 Features/Readiness-Report-Probes.lua
 Features/Readiness-Report.lua
 Features/Ignore-List.lua
+Features/Inventory-Report.lua
 Features/Restocker/Restocker-List.lua
 Features/Restocker/Restocker-Saved-Lists.lua
 Features/Restocker/Restocker-Saved-Format.lua
@@ -143,6 +147,8 @@ Features/Restocker/Restocker-Window-Columns.lua
 Features/Restocker/Restocker-Window-Filter.lua
 Features/Restocker/Restocker-Window-Rows.lua
 Features/Restocker/Restocker-Window-Categories.lua
+Features/Restocker/Restocker-Window-List-Bar.lua
+Features/Restocker/Restocker-Window-Bag-Menu.lua
 Features/Restocker/Restocker-Window-Footer.lua
 Features/Restocker/Restocker-Starter-List.lua
 Features/Restocker/Restocker-Reminders.lua
@@ -162,5 +168,5 @@ Options/Options-Diagnostics.lua
 Options/Options.lua
 
 # Feedback Welcome! (=
-# Connoisseur on GitHub // https://github.com/Gogo1951/Connoisseur
+# Connoisseur on GitHub // https://github.com/Gogo1951/Connoisseur-Restocker
 # Connoisseur on Discord // https://discord.gg/eh8hKq992Q

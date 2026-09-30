@@ -2,7 +2,10 @@ local _, ns = ...
 
 --[[
     Source: copied from Data/Vanilla/Explosives-Vanilla.lua until Validate Data
-    passes on this client.
+    passes on this client. The SAF-T, EZ-Thro, Tru-Trigger and Holy Hand Grenade
+    rows come from WoW Forever's own tables on wago.tools (build 1.60.1.70124;
+    damage is the base points times one plus or minus half the variance,
+    rounded), pending Validate Data.
 
     SELECT CONCAT(
         '[', entry, '] = {',
@@ -57,4 +60,16 @@ ns.EXPLOSIVES = {
 	[10507] = { 213, 287, 175 }, -- Solid Dynamite
 	[10586] = { 340, 460, 225 }, -- The Big One
 	[15993] = { 300, 500, 260 }, -- Thorium Grenade
+	[260792] = { 26, 34, 0 }, -- SAF-T Dynamite
+	[260793] = { 22, 28, 0 }, -- SAF-T Copper Bomb
+	[260795] = { 43, 57, 0 }, -- EZ-Thro Copper Bomb XL
+	[260797] = { 73, 97, 0 }, -- SAF-T Bronze Bomb
+	[260798] = { 128, 172, 0 }, -- SAF-T Jumbo Dynamite
+	[260803] = { 213, 287, 0 }, -- EZ-Thro Grenade
+	[260805] = { 149, 201, 0 }, -- SAF-T Bomb
+	[260809] = { 149, 201, 0 }, -- Tru-Trigger Frag Bomb
+	[260814] = { 340, 460, 0 }, -- SAF-T Clever Dynamite
+	[260816] = { 300, 500, 0 }, -- EZ-Thro Thorium Grenade
+	[260817] = { 225, 675, 0 }, -- EZ-Thro Dark Bomb
+	[284868] = { 300, 500, 0 }, -- Holy Hand Grenade of Alterac
 }

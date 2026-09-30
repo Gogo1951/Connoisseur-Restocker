@@ -39,6 +39,11 @@ local _, ns = ...
 
 --[[
     Source: Validate Data on the WoW Forever client (1.60.1, build 69977).
+    The buffs of WoW Forever's own elixirs and flasks (IDs above 1240000) are
+    each item's use spell in WoW Forever's own tables on wago.tools (build
+    1.60.1.70124), pending Validate Data. Flask of Petrification (17624) comes
+    from Validate Data (build 1.60.1.70124), whose text for it says only one
+    flask works at a time.
 
     SELECT se.mask, se.entry AS buffSpellId, it.name
     FROM spell_elixir se
@@ -49,8 +54,13 @@ local _, ns = ...
 ns.FLASK_BUFF_IDS = {
 	[17629] = true, -- Flask of Chromatic Resistance
 	[17627] = true, -- Flask of Distilled Wisdom
+	[17624] = true, -- Flask of Petrification
 	[17628] = true, -- Flask of Supreme Power
 	[17626] = true, -- Flask of the Titans
+	[1293740] = true, -- Flask of Natural Accuracy
+	[1293741] = true, -- Flask of Natural Aggression
+	[1293742] = true, -- Flask of Natural Precision
+	[1293743] = true, -- Flask of Natural Swiftness
 }
 
 -- { [buffSpellID] = true }, -- Elixir Name
@@ -61,30 +71,30 @@ ns.ELIXIR_BUFF_IDS = {
 	[10692] = true, -- Cerebral Cortex Compound
 	[15231] = true, -- Crystal Force
 	[15233] = true, -- Crystal Ward
-	[11328] = true, -- Deprecated Alchemy Elixir Template
+	[11328] = true, -- Elixir of Agility
 	[17537] = true, -- Elixir of Brute Force
-	[3220] = true, -- Elixir of Defense
-	[11406] = true, -- Elixir of Demonslaying
-	[7844] = true, -- Elixir of Firepower
-	[3593] = true, -- Elixir of Fortitude
+	[3220] = true, -- Elixir of Lesser Defense
+	[11406] = true, -- Potion of Demon Slaying
+	[7844] = true, -- Elixir of Fire Power
+	[3593] = true, -- Elixir of Lesser Fortitude
 	[21920] = true, -- Elixir of Frost Power
 	[8212] = true, -- Elixir of Giant Growth
-	[11405] = true, -- Elixir of Giants
+	[11405] = true, -- Elixir of Greater Strength
 	[11334] = true, -- Elixir of Greater Agility
-	[11349] = true, -- Elixir of Greater Defense
-	[26276] = true, -- Elixir of Greater Firepower
+	[11349] = true, -- Elixir of Defense
+	[26276] = true, -- Greater Firepower (no Forever item grants it: Elixir of Greater Firepower became Elixir of Holy Power)
 	[11396] = true, -- Elixir of Greater Intellect
 	[3160] = true, -- Elixir of Lesser Agility
-	[2367] = true, -- Elixir of Lion's Strength
+	[2367] = true, -- Elixir of Minor Strength
 	[2374] = true, -- Elixir of Minor Agility
 	[673] = true, -- Elixir of Minor Defense
 	[2378] = true, -- Elixir of Minor Fortitude
-	[3164] = true, -- Elixir of Ogre's Strength
+	[3164] = true, -- Elixir of Ogre Strength
 	[11474] = true, -- Elixir of Shadow Power
-	[11348] = true, -- Elixir of Superior Defense
+	[11348] = true, -- Elixir of Greater Defense
 	[17538] = true, -- Elixir of the Mongoose
 	[17535] = true, -- Elixir of the Sages
-	[11319] = true, -- Elixir of Water Walking
+	[11319] = true, -- Draught of Water Walking
 	[3166] = true, -- Elixir of Wisdom
 	[11371] = true, -- Gift of Arthas
 	[10693] = true, -- Gizzard Gum
@@ -100,14 +110,43 @@ ns.ELIXIR_BUFF_IDS = {
 	[10668] = true, -- Lung Juice Cocktail
 	[24363] = true, -- Mageblood Elixir
 	[11364] = true, -- Magic Resistance Potion
-	[3223] = true, -- Major Troll's Blood Elixir
-	[24361] = true, -- Mighty Troll's Blood Elixir
+	[3223] = true, -- Troll's Blood Elixir
+	[24361] = true, -- Major Troll's Blood Elixir
 	[2380] = true, -- Minor Magic Resistance Potion
 	[10667] = true, -- R.O.I.D.S.
 	[24417] = true, -- Sheen of Zanza
 	[24382] = true, -- Spirit of Zanza
-	[3222] = true, -- Strong Troll's Blood Elixir
+	[3222] = true, -- Lesser Troll's Blood Elixir
 	[24383] = true, -- Swiftness of Zanza
-	[3219] = true, -- Weak Troll's Blood Elixir
+	[3219] = true, -- Minor Troll's Blood Elixir
 	[17038] = true, -- Winterfall Firewater
+	[1245244] = true, -- Minor Arcane Elixir
+	[1245249] = true, -- Elixir of Minor Force
+	[1250918] = true, -- Elixir of Cunning
+	[1250920] = true, -- Elixir of the Phalanx
+	[1250922] = true, -- Minor Cleric's Elixir
+	[1250924] = true, -- Lesser Cleric's Elixir
+	[1250925] = true, -- Cleric's Elixir
+	[1250926] = true, -- Greater Cleric's Elixir
+	[1250928] = true, -- Elixir of Fortitude
+	[1250931] = true, -- Elixir of Greater Fortitude
+	[1250932] = true, -- Elixir of Wicked Regeneration
+	[1250940] = true, -- Elixir of the Owl
+	[1250941] = true, -- Elixir of Sages
+	[1250942] = true, -- Minor Mageblood Elixir
+	[1250944] = true, -- Lesser Mageblood Elixir
+	[1250948] = true, -- Greater Mageblood Elixir
+	[1250971] = true, -- Lesser Arcane Elixir
+	[1250972] = true, -- Elixir of Nature Power
+	[1250974] = true, -- Elixir of Minor Spirit
+	[1250976] = true, -- Elixir of Lesser Spirit
+	[1250978] = true, -- Elixir of Spirit
+	[1250979] = true, -- Elixir of Greater Spirit
+	[1250981] = true, -- Elixir of the Whale
+	[1250984] = true, -- Elixir of Strength
+	[1250985] = true, -- Elixir of Ferocity
+	[1250986] = true, -- Elixir of the Grizzly
+	[1250988] = true, -- Elixir of Lesser Intellect
+	[1250989] = true, -- Elixir of Intellect
+	[1310077] = true, -- Elixir of Holy Power
 }

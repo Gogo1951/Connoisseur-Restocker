@@ -12,7 +12,7 @@ local _, ns = ...
     each Mana Gem spell makes exactly one item: Forever has no Improved
     Healthstone talent, whose ranks made two stronger copies of each stone.
 
-    Source: Validate Data on the WoW Forever client (1.60.1, build 69977).
+    Source: Validate Data on the WoW Forever client (1.60.1, build 70124).
 ]]
 -- TODO: Add SQL Query
 -- [conjureSpellID] = { itemID, ... }, -- Conjured item

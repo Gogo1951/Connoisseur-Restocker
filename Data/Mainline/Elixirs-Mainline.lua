@@ -40,7 +40,7 @@ local _, ns = ...
 
 --[[
     Source: copied from Data/Wrath/Elixirs-Wrath.lua: the rows a Wrath
-    client loaded from the pre-split shared tables, until a Standard TOC ships
+    client loaded from the pre-split shared tables, until a Mainline TOC ships
     and Validate Data runs there.
 
     SELECT se.mask, se.entry AS buffSpellId, it.name
