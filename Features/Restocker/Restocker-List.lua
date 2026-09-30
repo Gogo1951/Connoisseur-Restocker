@@ -19,11 +19,16 @@ local L = ns.L
     Deliberately a plain field on ns rather than anything under settings: this is
     view state for one sitting and must never reach SavedVariables. A selected
     New category goes with the items, or the window would show an empty list.
+
+    The offer to undo the last removal (ns.restockLastRemoved, in
+    Restocker-Window-Rows.lua) is the same kind of note and ends at the same
+    moments, so it is dropped here with the flags.
 ]]
 ns.restockNewItems = {}
 
 function ns.ClearRestockNewItems()
 	wipe(ns.restockNewItems)
+	ns.restockLastRemoved = nil
 	if ns.restockSelectedGroup == L["RESTOCKER_GROUP_NEW"] then
 		ns.ClearRestockGroupSelection()
 	end
@@ -128,9 +133,13 @@ function ns.AddRestockItem(text)
 		text = tonumber(text)
 	end
 
-	-- A typed ID with no item behind it is never answered, so parking it below would hold the event all session.
+	--[[
+	    A typed ID with no item behind it is never answered, so parking it below
+	    would hold the event all session. Said in the add box while the window is
+	    open, and in chat otherwise (ns.ShowRestockAddNotice).
+	]]
 	if type(text) == "number" and not C_Item.DoesItemExistByID(text) then
-		ns.PrintMessage(string.format(L["RESTOCKER_UNKNOWN_ITEM"], text))
+		ns.ShowRestockAddNotice(string.format(L["RESTOCKER_UNKNOWN_ITEM"], text))
 		return
 	end
 
@@ -143,13 +152,16 @@ function ns.AddRestockItem(text)
 		    hands in) would never be found again and the item would silently never
 		    arrive. Input carrying no itemID is dropped rather than parked: no answer
 		    can ever clear its key, and a parked key would hold GET_ITEM_INFO_RECEIVED
-		    registered for the rest of the session.
+		    registered for the rest of the session. It is answered, though: a typed
+		    name the client cannot place used to do nothing at all, which read as
+		    the box being broken.
 		]]
 		local waitKey = text
 		if type(text) == "string" then
 			waitKey = tonumber(text:match("item:(%d+)"))
 		end
 		if waitKey == nil then
+			ns.ShowRestockAddNotice(L["RESTOCKER_ADD_NOT_FOUND"])
 			return
 		end
 		ns.restockItemWait[waitKey] = true

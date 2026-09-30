@@ -879,11 +879,35 @@ ns.DIAGNOSTIC_API_CHECKS = {
 			return type(C_Secrets) == "table" and type(C_Secrets.CanCompareUnitTokens) == "function"
 		end,
 	},
+	{
+		"C_Secrets.ShouldCooldownsBeSecret",
+		function()
+			return type(C_Secrets) == "table" and type(C_Secrets.ShouldCooldownsBeSecret) == "function"
+		end,
+	},
 	-- Behind ns.IsSecretValue, which answers false where it FAILs (Era and TBC).
 	{
 		"issecretvalue",
 		function()
 			return type(issecretvalue) == "function"
+		end,
+	},
+	--[[
+	    Behind ns.GetPlayerFullName, which a character is saved and shown under.
+	    RegionalUniqueNamesEnabled is Forever's alone: where it FAILs (Era and
+	    TBC) a character has the one name and UnitNameUnmodified is never asked.
+	    A FAIL on Forever means characters are keyed by first name only again.
+	]]
+	{
+		"RegionalUniqueNamesEnabled",
+		function()
+			return type(RegionalUniqueNamesEnabled) == "function"
+		end,
+	},
+	{
+		"UnitNameUnmodified",
+		function()
+			return type(UnitNameUnmodified) == "function"
 		end,
 	},
 	--[[
@@ -939,6 +963,12 @@ ns.DIAGNOSTIC_API_CHECKS = {
 			return type(UnitIsPVP) == "function"
 		end,
 	},
+	{
+		"C_Container.GetItemCooldown",
+		function()
+			return type(C_Container) == "table" and type(C_Container.GetItemCooldown) == "function"
+		end,
+	},
 	-- Not the report's alone: every feature reads spell names through this.
 	{
 		"C_Spell.GetSpellName",
@@ -969,12 +999,6 @@ ns.DIAGNOSTIC_API_CHECKS = {
 		"C_Spell.RequestLoadSpellData",
 		function()
 			return type(C_Spell) == "table" and type(C_Spell.RequestLoadSpellData) == "function"
-		end,
-	},
-	{
-		"C_Spell.IsSpellDataCached",
-		function()
-			return type(C_Spell) == "table" and type(C_Spell.IsSpellDataCached) == "function"
 		end,
 	},
 	{
@@ -2175,8 +2199,14 @@ local function RequestRowData(row)
 	end
 end
 
+--[[
+    Only the text counts: on WoW Forever C_Spell.IsSpellDataCached turns true
+    before the description has any, and the description is nil, not "", until
+    the spell loads.
+]]
 local function IsSpellTextLoaded(spellID)
-	return C_Spell.IsSpellDataCached(spellID) or C_Spell.GetSpellDescription(spellID) ~= ""
+	local text = C_Spell.GetSpellDescription(spellID)
+	return text ~= nil and text ~= ""
 end
 
 -- A tooltip whose item is still loading shows only the retrieving line.

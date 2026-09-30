@@ -25,7 +25,7 @@ end
 local NAME = L["RESTOCKER_HELP_NAME_PLACEHOLDER"]
 
 local RESTOCKER_COMMANDS = {
-	show = SlashHelpLine("show", L["RESTOCKER_HELP_SHOW"]),
+	show = SlashHelpLine("show", L["RESTOCKER_COMMAND_DESCRIPTION"]),
 	config = SlashHelpLine("config", L["OPTIONS_COMMAND_DESCRIPTION"]),
 	profile = {
 		add = SlashHelpLine("profile add " .. NAME, L["RESTOCKER_HELP_PROFILE_ADD"]),

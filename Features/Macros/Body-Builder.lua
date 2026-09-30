@@ -17,8 +17,28 @@ local _, ns = ...
     macro. The helper name carries the distinctive Connoisseur prefix to keep
     collision risk with other add-ons negligible.
 ]]
-local function StateWriteLine(itemID)
+local function StateWriteLine(itemID, outOfCombatID)
+	if outOfCombatID then
+		return "/run ConnoisseurFire(" .. itemID .. "," .. outOfCombatID .. ")\n"
+	end
 	return "/run ConnoisseurFire(" .. itemID .. ")\n"
+end
+
+--[[
+    Food or water out of combat (the potion macros' outOfCombatTypeName, behind
+    potionsUseFoodAndWater): the body eats or drinks and stops there while the
+    player is out of combat, and only a press in combat reaches the lines
+    below. A /stopmacro costs fewer bytes than a [combat] guard on each of up
+    to six /use lines, and leaves those lines, and the trim that sheds them,
+    as they are without it.
+]]
+function ns.OutOfCombatBlock(outOfCombatID)
+	return "/use [nocombat] item:" .. outOfCombatID .. "\n/stopmacro [nocombat]\n"
+end
+
+-- The tooltip line of a body with an out-of-combat item: the potion in combat, the food or water out of it.
+function ns.OutOfCombatTooltipLine(itemID, outOfCombatID)
+	return "#showtooltip [combat] item:" .. itemID .. "; item:" .. outOfCombatID
 end
 
 --[[
@@ -134,26 +154,44 @@ end
                                  types, else this plain single /use
       /use item:<stackID>     -- definition.getStackIDs ids appended below the main
                                  block (Health Potion's healthstone stacking)
+      /use [nocombat] item:<id>  -- definition.outOfCombatTypeName's best item with
+      /stopmacro [nocombat]      its stop, above the action (the potion macros'
+                                 food or water, behind potionsUseFoodAndWater);
+                                 the tooltip line then shows it out of combat
+                                 and ConnoisseurFire takes it as a second id
       <appended block>        -- definition.appendBlock text (Water's Shadowmeld line)
 
     With no item in bags the action line becomes /run ConnoisseurTip("<noItemMiss>")
-    when the class can learn the conjure, else /run ConnoisseurNoItem("<typeName>").
+    when the class can learn the conjure, else /run ConnoisseurNoItem("<typeName>");
+    an out-of-combat item still goes above it, so that line is only reached in
+    combat.
     Ends with the macro-length trim, which sheds stacked healthstone lines and
     then ranked fallback /use lines from the bottom up.
 ]]
-function ns.BuildStandardBody(definition, itemID, useIDs, stackIDs, conjureInfo, appendText)
+function ns.BuildStandardBody(definition, itemID, useIDs, stackIDs, conjureInfo, appendText, outOfCombatID)
 	local tooltipLine, actionBlock
+
+	-- Everything above the /use lines; the macro-length trim rebuilds only what follows it.
+	local actionHead = ""
+	if itemID then
+		actionHead = StateWriteLine(itemID, outOfCombatID)
+	elseif outOfCombatID then
+		actionHead = StateWriteLine(outOfCombatID)
+	end
+	if outOfCombatID then
+		actionHead = actionHead .. ns.OutOfCombatBlock(outOfCombatID)
+	end
 
 	if itemID then
 		tooltipLine = "#showtooltip item:" .. itemID .. "\n"
 
 		local customLine = definition.buildUseLine and definition.buildUseLine(itemID) or nil
 		if customLine then
-			actionBlock = StateWriteLine(itemID) .. customLine
+			actionBlock = actionHead .. customLine
 		elseif useIDs then
-			actionBlock = StateWriteLine(itemID) .. BuildUseBlock(useIDs)
+			actionBlock = actionHead .. BuildUseBlock(useIDs)
 		else
-			actionBlock = StateWriteLine(itemID) .. "/use item:" .. itemID
+			actionBlock = actionHead .. "/use item:" .. itemID
 		end
 
 		-- Append the stacked ranked lines (Health Potion stacking).
@@ -169,10 +207,15 @@ function ns.BuildStandardBody(definition, itemID, useIDs, stackIDs, conjureInfo,
 		    level.
 		]]
 		tooltipLine = "#showtooltip item:" .. ns.MACRO_DEFAULT_ITEM_IDS[definition.typeName] .. "\n"
-		actionBlock = '/run ConnoisseurTip("' .. conjureInfo.noItemMiss .. '")'
+		actionBlock = actionHead .. '/run ConnoisseurTip("' .. conjureInfo.noItemMiss .. '")'
 	else
 		tooltipLine = "#showtooltip item:" .. ns.MACRO_DEFAULT_ITEM_IDS[definition.typeName] .. "\n"
-		actionBlock = '/run ConnoisseurNoItem("' .. definition.typeName .. '")'
+		actionBlock = actionHead .. '/run ConnoisseurNoItem("' .. definition.typeName .. '")'
+	end
+
+	if outOfCombatID then
+		tooltipLine = ns.OutOfCombatTooltipLine(itemID or ns.MACRO_DEFAULT_ITEM_IDS[definition.typeName], outOfCombatID)
+			.. "\n"
 	end
 
 	local conjureBlock = ""
@@ -208,7 +251,7 @@ function ns.BuildStandardBody(definition, itemID, useIDs, stackIDs, conjureInfo,
 			for rank = 1, keepUse do
 				trimmed[rank] = useIDs[rank]
 			end
-			actionBlock = StateWriteLine(itemID) .. BuildUseBlock(trimmed)
+			actionBlock = actionHead .. BuildUseBlock(trimmed)
 			if keepStack > 0 then
 				local stackTrimmed = {}
 				for rank = 1, keepStack do
@@ -230,20 +273,21 @@ end
 --[[
     State encoding — captures every input that affects the written body.
     Format:
-      ITEMIDS(+HS:stackIDs)?(_C(_M:mid)?(_R:rid)?(_MR:key)?(_MM:key)?(_NI:key)?)?(_EX:mode)?(_SM|_SE)?
+      ITEMIDS(+HS:stackIDs)?(_C(_M:mid)?(_R:rid)?(_MR:key)?(_MM:key)?(_NI:key)?)?(_EX:mode)?(_SM|_SE)?(_OOC:id)?
     where ITEMIDS is the single itemID, or a comma-joined ranked list for
     multi-use types so a change in any fallback rank also triggers a
     rewrite. +HS: carries the stacked Healthstone ids (Health Potion's
     getStackIDs hook). _EX:mode comes from Explosive's stateExtras hook (its
     click layout), so flipping the dropdown rewrites the macro; _SM and _SE
     are the append-block flags (Water's Shadowmeld line and Food's Stealth
-    Eating line). Mode overrides use their own prefix
+    Eating line). _OOC:id is the food or water a potion macro uses out of
+    combat. Mode overrides use their own prefix
     ("SCROLLS:...") instead, so the key spaces never collide and a
     transition between modes always triggers a rewrite. Every input that
     affects the body MUST appear in the key — a lossy key causes stale
     macros.
 ]]
-function ns.BuildStateKey(definition, itemID, useIDs, stackIDs, conjureInfo, appendFlag)
+function ns.BuildStateKey(definition, itemID, useIDs, stackIDs, conjureInfo, appendFlag, outOfCombatID)
 	local itemKey = itemID and tostring(itemID) or "none"
 	if useIDs then
 		itemKey = table.concat(useIDs, ",")
@@ -284,6 +328,9 @@ function ns.BuildStateKey(definition, itemID, useIDs, stackIDs, conjureInfo, app
 	end
 	if appendFlag then
 		stateParts[#stateParts + 1] = appendFlag
+	end
+	if outOfCombatID then
+		stateParts[#stateParts + 1] = "OOC:" .. outOfCombatID
 	end
 	return table.concat(stateParts, "_")
 end

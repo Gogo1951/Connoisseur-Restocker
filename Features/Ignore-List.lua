@@ -9,11 +9,13 @@ local AceConfigRegistry = LibStub("AceConfigRegistry-3.0")
 --[[
     Two ignore lists, and ignoring is additive: an item on either one is
     invisible to every macro's item selection -- food, water, potions, pet food,
-    scrolls, all of it. The per-character list is profile-scoped -- each
+    scrolls, all of it. The character's own list is profile-scoped -- each
     character has its own AceDB profile (ns.db is created without the
-    shared-Default flag, so a fresh character lands on its own "Name - Realm"
-    profile), so it lives directly in the profile as a flat table. The
-    account-wide list is its mirror in global, shared by every character.
+    shared-Default flag, so a fresh character lands on a profile named for
+    it), so it lives directly in the profile as a flat table. Two characters
+    the player put on one profile share that list with the rest of its
+    settings. The Global list is its mirror in global, shared by every
+    character whatever profile it is on.
 
     Both are declared in ns.DATABASE_DEFAULTS, so a brand-new character simply
     starts empty, and both return nil only before the database exists.
@@ -62,8 +64,8 @@ end
     The mini-map button's Right-Click (ignore the food it is currently offering)
     and Middle-Click (clear) act on the current character's list only, which is
     exactly what the mini-map tooltip's Ignore List section shows -- so both
-    keep meaning what the player just read. The account-wide list is edited from
-    the Ignore List panel instead, through ns.SetIgnoredInScope below.
+    keep meaning what the player just read. The Global list is edited from the
+    Ignore List panel instead, through ns.SetIgnoredInScope below.
 
     Both repaint that panel as well. It is registered as a builder function, so
     a repaint rebuilds its rows straight off the live lists -- but something has
@@ -155,11 +157,11 @@ end
 
 --[[
     Drop one item from every character's list. Called when the item joins the
-    account-wide list, which already hides it everywhere: ignoring is additive,
-    so a per-character entry for a globally ignored item can no longer change
-    any outcome, and all it does is clutter that character's pane with a row
-    that does nothing. Clearing them is what makes "add to Global" mean the
-    item lives in exactly one place.
+    Global list, which already hides it everywhere: ignoring is additive, so a
+    character's entry for a globally ignored item can no longer change any
+    outcome, and all it does is clutter that character's pane with a row that
+    does nothing. Clearing them is what makes "add to Global" mean the item
+    lives in exactly one place.
 
     The live table behind ns.db.profile is the same table as its sv.profiles
     entry, so the loop covers the current character too -- but only once AceDB
@@ -183,13 +185,12 @@ end
 
 --[[
     Add or remove one item in one scope. The macro refresh runs for every scope,
-    not just the current character's: an edit to the account-wide list changes
-    what this character's macros may pick, and an edit to another character's
-    list is cheap enough that checking which scope it was is not worth the
-    branch.
+    not just the current character's: an edit to the Global list changes what
+    this character's macros may pick, and an edit to another character's list
+    is cheap enough that checking which scope it was is not worth the branch.
 
-    Removing from the account-wide list deliberately does not put the item back
-    on anyone: there is no record of who held it, and re-adding to a list the
+    Removing from the Global list deliberately does not put the item back on
+    anyone: there is no record of who held it, and re-adding to a list the
     player did not ask for would be a surprise.
 ]]
 function ns.SetIgnoredInScope(scopeKey, itemID, isIgnored)
@@ -219,26 +220,25 @@ end
     On logout, drop entries that can no longer hide anything, so neither list
     accumulates stale item IDs. Routed from Core's PLAYER_LOGOUT handler.
 
-    The current character's list keeps only items this client's macro data
-    recognizes (e.g. the data changed between versions); other characters'
-    lists are pruned when they log out, against their own data. The
-    account-wide list is shared by characters that load different data
-    folders -- Classic Era and Season of Discovery share one saved-variables
-    file -- so it drops only items this client does not know at all: pruning
-    it against one folder's data would erase the other folder's entries.
+    Both lists drop only items this client does not know at all. Classic Era
+    and Season of Discovery characters share one saved-variables file, and so
+    the Global list and any profile the player put characters from both on,
+    while their realms build different data folders -- so pruning against one
+    folder's consumable data would erase the other folder's entries. Another
+    character's list is pruned when that character logs out.
 ]]
-local function PruneOneList(ignoreList, isKept)
+local function PruneOneList(ignoreList)
 	if not ignoreList then
 		return
 	end
 	for itemID in pairs(ignoreList) do
-		if not isKept(itemID) then
+		if not C_Item.DoesItemExistByID(itemID) then
 			ignoreList[itemID] = nil
 		end
 	end
 end
 
 function ns.OnIgnoreListPlayerLogout()
-	PruneOneList(ns.GetIgnoreList(), ns.IsKnownConsumable)
-	PruneOneList(ns.GetGlobalIgnoreList(), C_Item.DoesItemExistByID)
+	PruneOneList(ns.GetIgnoreList())
+	PruneOneList(ns.GetGlobalIgnoreList())
 end

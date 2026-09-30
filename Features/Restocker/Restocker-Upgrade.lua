@@ -34,11 +34,15 @@ for _, chain in ipairs(ns.CONSUMABLE_UPGRADE_CHAINS) do
 end
 
 --[[
-    Is this item on a ladder at all? Everything else shows a disabled Upgrade
-    button.
+    Is this item on a ladder with somewhere to go? Everything else shows a
+    disabled Upgrade cell: an item on no ladder, and an item on a ladder of one
+    tier (the Hearthstone, Arcane Powder, the mage runes), which the Starter List
+    offers but which has no later tier to move to. A live tick there would be a
+    switch that can never do anything.
 ]]
 function ns.CanUpgradeRestockItem(itemID)
-	return itemID ~= nil and UPGRADE_INDEX[itemID] ~= nil
+	local entry = itemID ~= nil and UPGRADE_INDEX[itemID]
+	return (entry and #entry.chain.tiers > 1) or false
 end
 
 --[[

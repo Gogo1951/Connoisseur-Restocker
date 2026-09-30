@@ -81,16 +81,23 @@ end
   owes, sending a chunk only while the run's budget covers it, and adds what it sent to the
   order; returns the units and the calls for the checks. budget models the run's own:
   money, unitPrice, and claim(chunk) standing in for ns.ClaimBagSpace. Left out, it is
-  unlimited.
+  unlimited. slot is what the merchant reports about the slot besides its stock; left out,
+  it sells for gold to anyone. One the character cannot buy from, or one that costs
+  something besides gold, is passed over whole.
 ]]
 ---@param buyItem table { amount, remaining, bought, buyExtra }
 ---@param merchantAvailable number
 ---@param stackCount number
 ---@param budget table|nil { money, unitPrice, claim }
-local function purchaseMerchantItem(buyItem, merchantAvailable, stackCount, budget)
+---@param slot table|nil { isPurchasable, hasExtendedCost }
+local function purchaseMerchantItem(buyItem, merchantAvailable, stackCount, budget, slot)
 	budget = budget or { money = math.huge, unitPrice = 0 }
+	slot = slot or { isPurchasable = true, hasExtendedCost = false }
 	local calls = {}
 	local unitsOrdered = 0
+	if not slot.isPurchasable or slot.hasExtendedCost then
+		return unitsOrdered, calls
+	end
 	if stackCount < 1 then
 		stackCount = 1
 	end
@@ -236,6 +243,30 @@ do
 	local units, calls = purchaseMerchantItem(order, 12, 5, { money = 7, unitPrice = 1 })
 	assert(units == 5 and #calls == 1, ("money runs out: want 5 units in 1 call, got %d in %d"):format(units, #calls))
 	print(("  ok  %-52s -> %3d units (%d call)"):format("on,  need 0, limited 12, stack 5, money for 7", units, #calls))
+	pass = pass + 1
+end
+
+--[[
+  A slot priced in honor, tokens or items besides gold is passed over, and so is one the
+  character cannot buy from (a reputation item without the standing): nothing is sent and
+  nothing counted, so the order stays open for a slot that sells for gold.
+]]
+do
+	local order = newOrder({ amount = 20 })
+	local tokenUnits = purchaseMerchantItem(order, -1, 20, nil, { isPurchasable = true, hasExtendedCost = true })
+	local refusedUnits = purchaseMerchantItem(order, -1, 20, nil, { isPurchasable = false, hasExtendedCost = false })
+	assert(tokenUnits == 0, ("a token slot bought %d, must buy 0"):format(tokenUnits))
+	assert(refusedUnits == 0, ("a slot the character cannot buy from bought %d, must buy 0"):format(refusedUnits))
+	assert(not orderFilled(order), "a passed-over slot must not report a fill")
+	local goldUnits = purchaseMerchantItem(order, -1, 20)
+	assert(goldUnits == 20 and orderFilled(order), ("then a gold slot: want 20 and filled, got %d"):format(goldUnits))
+	print(
+		("  ok  %-52s -> %3d units, then %d from gold"):format(
+			"off, need 20, token slot and refused slot",
+			0,
+			goldUnits
+		)
+	)
 	pass = pass + 1
 end
 

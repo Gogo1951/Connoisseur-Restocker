@@ -52,15 +52,50 @@ ns.Version = GetVersion()
 
 local sessionConstantsInitialized = false
 
+--[[
+    AceDB reads the character's name once, as the library loads, and keeps the
+    character's profile choice under it. The newest AceDB among the enabled
+    add-ons is the one that loads, and when that happens before the client has
+    named the character, the name it read is the client's placeholder. Every
+    such login would then share one profile, and with it another character's
+    settings and Restock List. By PLAYER_LOGIN the name is known, so the
+    character is put on the profile saved under its real name, or on its own.
+    The logout half saves the session's choice under the real name and drops
+    the placeholder's entry. An AceDB older than the vendored one, which on
+    Forever reads a first name and no surname, is caught the same way.
+]]
+local realProfileKey
+
+local function UseOwnProfileWhenUnnamed()
+	local profileKey = ns.db.keys.char
+	local ownProfileKey = ns.GetCharacterProfileName()
+	if not ownProfileKey or profileKey == ownProfileKey or ns.SplitCharacterProfileName(profileKey) then
+		return
+	end
+	realProfileKey = ownProfileKey
+	ns.db:SetProfile(ns.db.sv.profileKeys[ownProfileKey] or ownProfileKey)
+end
+
+local function SaveProfileChoiceWhenUnnamed()
+	if not realProfileKey then
+		return
+	end
+	local profileKeys = ns.db.sv.profileKeys
+	profileKeys[realProfileKey] = ns.db:GetCurrentProfile()
+	profileKeys[ns.db.keys.char] = nil
+end
+
 local function InitializeSavedVariables()
 	if not ns.db then
 		--[[
 		    One account-wide SavedVariable managed by AceDB-3.0. AceDB:New's
 		    third argument (defaultProfile) is deliberately omitted, so every
-		    character lands on its own "Name - Realm" profile -- and that is
-		    where the settings live, so each character configures its own
-		    consumables. The account-wide keys live on ns.db.global instead,
-		    each with its reason (see Data/Default-Settings.lua).
+		    character lands on a profile of its own, named as AceDB names the
+		    character: its first name and surname on WoW Forever, "Name - Realm"
+		    on Era and TBC. That is where the settings live, so each character
+		    configures its own consumables (the maintainer's ruling,
+		    README-Notes.md). The account-wide keys live on ns.db.global
+		    instead, each with its reason (see Data/Default-Settings.lua).
 		    AceDB applies ns.DATABASE_DEFAULTS itself -- no hand-merge. It
 		    copies scalar and table defaults into the saved table (rawset)
 		    when a scope is first accessed; only */** wildcard defaults
@@ -68,19 +103,74 @@ local function InitializeSavedVariables()
 		]]
 
 		ns.db = LibStub("AceDB-3.0"):New("ConnoisseurDB", ns.DATABASE_DEFAULTS)
+		UseOwnProfileWhenUnnamed()
+
+		-- MIGRATION (remove after 2026-10-18)
+		--[[
+		    The Restocker's saved keys were renamed (profiles to lists, framePos
+		    to framePosition, and so on). This runs before anything reads the
+		    new names. Its section of
+		    Features/Restocker/Restocker-Saved-Migration.lua lists the pieces
+		    that come out together.
+		]]
+		ns.RenameRestockerSavedKeys()
+
+		-- MIGRATION (remove after 2026-10-18)
+		--[[
+		    A wrong itemID on the Blinding Powder ladder saved the Starter
+		    List's Blinding Powder as Infantry Gauntlets; this moves those rows
+		    onto the real item. After the rename, so a list still saved under
+		    an old name is repaired in the same login, and before
+		    ns.InitializeRestocker unpacks the lists, where the moved row gets
+		    its name or starts waiting for it. Its section of
+		    Features/Restocker/Restocker-Saved-Migration.lua has the rest.
+		]]
+		ns.RepairBlindingPowderRows()
+
+		-- MIGRATION (remove after 2026-10-30)
+		--[[
+		    A Forever character is keyed by its first name and surname now,
+		    where releases through 2026.09.24.A used the first name alone. This
+		    moves each character's list choice, staples answer and Inventory
+		    Report record to its new key. After the rename above, so a
+		    listsByCharacter still saved under its old name is re-keyed in the
+		    same login, and before the step below, which looks a character's
+		    list choice up under its whole name. Deliberately not guarded on
+		    the function existing: skipped quietly, a fresh, empty list is what
+		    the player gets. Features/Character-Key-Migration.lua lists the
+		    pieces that come out together.
+		]]
+		ns.RekeyCharactersByFullName()
+
+		-- MIGRATION (remove after 2026-10-30)
+		--[[
+		    Releases before 2026-07-25 put every character on the shared
+		    Default profile, where AceDB has kept them since, and releases
+		    through 2026.09.24.A kept the list a character uses in a table of
+		    its own. This gives each character still on Default a profile of
+		    its own and moves every list choice onto its character's profile.
+		    It runs before the callbacks below are wired, so its profile switch
+		    fires no handler halfway through login, and before
+		    ns.InitializeRestocker, which reads the choice off the profile.
+		    Features/Default-Profile-Migration.lua lists the pieces that come
+		    out together.
+		]]
+		ns.MoveCharactersOntoOwnProfiles()
 
 		--[[
 		    Switching, copying, or resetting a profile swaps the settings
-		    themselves as well as the Ignore List, so the macro bodies and aura
-		    tracking must rebuild. Which macros exist does NOT change --
-		    enabledMacros is account-wide, like the macros themselves. The
-		    account-wide keys survive untouched, but the two applied
-		    imperatively (minimap visibility, macro-name text) have to be pushed
-		    again from global because nothing else re-reads them, and an open
-		    options panel has to be told to redraw.
+		    themselves as well as the character's Ignore List and the Restock
+		    List in use, so the macro bodies and aura tracking must rebuild.
+		    Which macros exist does NOT change -- enabledMacros is
+		    account-wide, like the macros themselves. The account-wide keys
+		    survive untouched, but the two applied imperatively (minimap
+		    visibility, macro-name text) have to be pushed again from global
+		    because nothing else re-reads them, and an open options panel has
+		    to be told to redraw.
 		]]
 		local function OnProfileChange()
 			ns.EnsureItemCache()
+			ns.ApplyProfileRestockList()
 			ns.ResetMacroState()
 			ns.UpdateAuraTracking()
 			ns.ApplyMacroNameVisibility()
@@ -106,86 +196,12 @@ local function InitializeSavedVariables()
 		ns.RegisterOptionsPanels()
 	end
 
-	-- MIGRATION (remove after 2026-09-29)
-	--[[
-	    The Restock List used to live in a saved variable of its own,
-	    ConnoisseurRestockerDB, rather than under ns.db.global. Move it in before
-	    anything reads the new home -- an upgrading player's lists are still over
-	    there, and WoW drops that table from the saved file at the first logout of
-	    a build that no longer declares it. Deliberately not guarded on the
-	    function existing: this failing quietly is how the lists get lost.
-	    Features/Restocker/Restocker-Saved-Migration.lua lists the pieces that
-	    come out together.
-	]]
-	ns.AdoptStandaloneRestockerDB()
-
-	-- MIGRATION (remove after 2026-10-18)
-	--[[
-	    The Restocker's saved keys were renamed (profiles to lists, framePos to
-	    framePosition, and so on). Immediately after the adoption, so a legacy
-	    table adopted under the old names is renamed in the same login, and
-	    before anything reads the new names. Its section of
-	    Features/Restocker/Restocker-Saved-Migration.lua lists the pieces that
-	    come out together.
-	]]
-	ns.RenameRestockerSavedKeys()
-
-	-- MIGRATION (remove after 2026-10-18)
-	--[[
-	    A wrong itemID on the Blinding Powder ladder saved the Starter List's
-	    Blinding Powder as Infantry Gauntlets; this moves those rows onto the real
-	    item. After the rename, so a list still saved under an old name is repaired
-	    in the same login, and before ns.InitializeRestocker unpacks the lists,
-	    where the moved row gets its name or starts waiting for it. Its section of
-	    Features/Restocker/Restocker-Saved-Migration.lua has the rest.
-	]]
-	ns.RepairBlindingPowderRows()
-
-	-- MIGRATION (remove after 2026-09-29)
-	--[[
-	    Retired keys, cleared explicitly so they do not sit in saved files.
-	    debugMessages was the Restocker's own persisted debug switch; that trace
-	    is now gated on the runtime-only diagnostics flag instead, so nothing can
-	    leave it on across sessions -- the adoption above leaves it behind rather
-	    than carrying it, so this only has to catch files that already took a
-	    copy. adoptedLegacyData was the stamp an earlier, since-retired copy step
-	    wrote.
-
-	    The report keys are the Ready Check report's own switches, retired when
-	    it became the Readiness Report (its sections were re-cut rather than
-	    renamed, so nothing maps onto a new key), and readinessReport, the
-	    Readiness Report's first master switch, retired when the report became
-	    opt-in. That one is cleared rather than reused: AceDB strips a value equal
-	    to its default at logout, but a value the player set stays in the saved
-	    file after its key leaves the defaults, so a reused name would read back
-	    a choice made under its old meaning.
-	]]
-	ns.db.global.restocker.debugMessages = nil
-	ns.db.global.restocker.adoptedLegacyData = nil
-	local RETIRED_READY_CHECK_KEYS = {
-		"readyCheckReport",
-		"readyCheckHealthstone",
-		"readyCheckHealthPotion",
-		"readyCheckManaPotion",
-		"readyCheckScrolls",
-		"readyCheckWellFed",
-		"readyCheckPetFood",
-		"readyCheckBuffTimes",
-		"readyCheckSoulstone",
-		"readyCheckManaGem",
-		"readyCheckBandage",
-		"readinessReport",
-	}
-	for _, key in ipairs(RETIRED_READY_CHECK_KEYS) do
-		ns.db.global[key] = nil
-	end
-
 	ns.EnsureItemCache()
 
 	--[[
-	    Session-constant work runs once; the SavedVariables work above it is
-	    idempotent, so the whole function is safe to call twice on the login
-	    path even though nothing does.
+	    Session-constant work runs once, and so does the database block above,
+	    so the whole function is safe to call twice on the login path even
+	    though nothing does.
 	]]
 	if not sessionConstantsInitialized then
 		sessionConstantsInitialized = true
@@ -307,6 +323,19 @@ frame:SetScript("OnEvent", function(_, event, ...)
 		    saved-variable and frame setup, none of it protected.
 		]]
 		ns.InitializeRestocker()
+		--[[
+		    After the Restocker, whose settings the report reads for a list
+		    item's Keep amount. Only binds this character's saved entry and hooks
+		    the tooltips, so it is as safe here as the Restocker is.
+
+		    Tested for, here and in the dispatcher below: the client reads a
+		    TOC's file list only at startup, so a player who updates with the
+		    game running and reloads gets this file without Inventory-Report.lua
+		    until the next restart. The report just stays off until then.
+		]]
+		if ns.InitializeInventoryReport then
+			ns.InitializeInventoryReport()
+		end
 		RefreshArrivalState()
 		return
 	end
@@ -321,6 +350,17 @@ frame:SetScript("OnEvent", function(_, event, ...)
 	local restockerHandler = ns.restockerEventHandlers[event]
 	if restockerHandler then
 		restockerHandler(...)
+	end
+
+	--[[
+	    The Inventory Report's recorders, ahead of the guard for the same
+	    reasons: they only read containers and write saved variables, and a
+	    logout mid-combat must still save this character's bags. BAG_UPDATE_DELAYED
+	    continues past here to the macro rebuild below as before.
+	]]
+	local inventoryHandler = ns.inventoryEventHandlers and ns.inventoryEventHandlers[event]
+	if inventoryHandler then
+		inventoryHandler(...)
 	end
 
 	--[[
@@ -399,10 +439,12 @@ frame:SetScript("OnEvent", function(_, event, ...)
 	    PLAYER_LOGOUT runs ahead of the lockdown guard too: a /reload issued
 	    mid-combat still fires it, and the guard below would swallow the prune
 	    and leave stale entries on the Ignore List. Pruning only reads and
-	    rewrites SavedVariables, so it touches nothing protected.
+	    rewrites SavedVariables, so it touches nothing protected, and neither
+	    does saving the profile choice of a character AceDB could not name.
 	]]
 	if event == "PLAYER_LOGOUT" then
 		ns.OnIgnoreListPlayerLogout()
+		SaveProfileChoiceWhenUnnamed()
 		return
 	end
 
@@ -439,6 +481,24 @@ frame:SetScript("OnEvent", function(_, event, ...)
 
 	if event == "GROUP_ROSTER_UPDATE" then
 		if ns.GroupSignatureChanged() then
+			ns.RequestUpdate()
+		end
+		return
+	end
+
+	--[[
+	    A cast is sorted ahead of the lockdown guard as well, which would
+	    otherwise take every cast in a fight as a reason to rebuild. Only the
+	    conjure spells in ns.spellCache change what the macros hold, and
+	    ns.RequestUpdate leaves that rebuild pending until combat drops.
+	]]
+	if event == "UNIT_SPELLCAST_SUCCEEDED" then
+		local _, _, spellID = ...
+		-- A secret spellID (Forever, while casts are restricted) errors as a table key.
+		if ns.IsSecretValue(spellID) then
+			return
+		end
+		if ns.spellCache and ns.spellCache[spellID] then
 			ns.RequestUpdate()
 		end
 		return
@@ -502,15 +562,6 @@ frame:SetScript("OnEvent", function(_, event, ...)
 		ns.RequestUpdate()
 	elseif event == "UNIT_AURA" then
 		ns.OnUnitAura(...)
-	elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
-		local _, _, spellID = ...
-		-- A secret spellID (Forever, while casts are restricted) errors as a table key.
-		if ns.IsSecretValue(spellID) then
-			return
-		end
-		if ns.spellCache and ns.spellCache[spellID] then
-			ns.RequestUpdate()
-		end
 	end
 end)
 

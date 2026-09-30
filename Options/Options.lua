@@ -48,7 +48,7 @@ function ns.RegisterOptionsPanels()
 
 	--[[
 	    Widen the Ignore List tree. AceGUI defaults it to 175px, which truncates
-	    the longer "Name - Realm" scope keys, and its SetStatusTable fills
+	    a long character name, and its SetStatusTable fills
 	    treewidth in only when the key is absent -- so seeding it here wins,
 	    while a player dragging the splitter still overwrites it from then on.
 	]]

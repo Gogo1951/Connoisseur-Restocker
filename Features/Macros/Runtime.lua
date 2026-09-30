@@ -34,8 +34,16 @@ local macroFireState = {}
     Records the firing item with `/run ConnoisseurFire(itemID)` instead of inlining a
     longer snippet: every standard body with an item in bags carries the call, so the
     saved bytes count against the 255 macro-body ceiling in every consumable macro.
+
+    A potion body that eats or drinks out of combat (Body-Builder's
+    OutOfCombatBlock) passes that food or water as outOfCombatID, and the same
+    [combat] test the body's own lines use picks which of the two the press
+    fires. With no potion in bags the body passes the food alone.
 ]]
-function ConnoisseurFire(itemID)
+function ConnoisseurFire(itemID, outOfCombatID)
+	if outOfCombatID and not UnitAffectingCombat("player") then
+		itemID = outOfCombatID
+	end
 	macroFireState.lastID = itemID
 	macroFireState.lastTime = GetTime()
 end

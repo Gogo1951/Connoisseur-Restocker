@@ -28,14 +28,16 @@ local pass = 0
 --[[
   CraftingPurchaseOrder, as shipped after the fix: bags only, no threshold, reagents
   already held come off the order and never go negative, and a row with Buy off
-  orders nothing.
+  orders nothing. A reagent the list also keeps with Buy on counts only the bags past
+  that row's Keep, since the row orders its Keep against the same bags.
 ]]
 ---@param wanted number List amount for the crafted item
 ---@param inBags number Crafted items in BAGS
 ---@param _inBank number Crafted items in the BANK (must not affect the result)
 ---@param reagentsInBags table<string, number>
 ---@param buyFromMerchant boolean|nil The row's Buy toggle (nil means on)
-local function craftingPurchaseOrder(wanted, inBags, _inBank, reagentsInBags, buyFromMerchant)
+---@param listKeeps table<string, number>|nil Keep amounts of the list's own Buy-on rows for the reagents
+local function craftingPurchaseOrder(wanted, inBags, _inBank, reagentsInBags, buyFromMerchant, listKeeps)
 	local order = {}
 	if buyFromMerchant == false then
 		return order
@@ -47,7 +49,7 @@ local function craftingPurchaseOrder(wanted, inBags, _inBank, reagentsInBags, bu
 		end
 	end
 	for reagent in pairs(order) do
-		local have = (reagentsInBags or {})[reagent] or 0
+		local have = math.max(0, ((reagentsInBags or {})[reagent] or 0) - ((listKeeps or {})[reagent] or 0))
 		if have > 0 then
 			local remaining = order[reagent] - have
 			order[reagent] = remaining > 0 and remaining or 0
@@ -101,6 +103,23 @@ do
 	print(("  ok  %-46s -> %3d dust, %3d vial"):format("40 wanted, Buy off", 0, 0))
 	pass = pass + 1
 end
+--[[
+    A reagent that is also a list row with Buy on. The row orders its Keep less the bags,
+    the merchant restock adds the reagent line to that same order, and the bags count once
+    across the two: Keep plus what the crafts need, less the bags. Subtracting the bags from
+    both used to buy 10 vials here, and the Rogue came up short at the next craft.
+]]
+local function mergedVialScenario(label, vialsInBags, keep, wantBought)
+	local order = craftingPurchaseOrder(20, 0, 0, { ["Crystal Vial"] = vialsInBags }, nil, { ["Crystal Vial"] = keep })
+	local rowOrder = math.max(0, keep - vialsInBags)
+	local bought = rowOrder + order["Crystal Vial"]
+	assert(bought == wantBought, ("%s: want %d vials bought, got %d"):format(label, wantBought, bought))
+	print(("  ok  %-46s -> %3d vial"):format(label, bought))
+	pass = pass + 1
+end
+mergedVialScenario("20 crafts, 15 vials held, Keep 20", 15, 20, 25)
+mergedVialScenario("20 crafts, 30 vials held, Keep 20", 30, 20, 10)
+mergedVialScenario("20 crafts, 45 vials held, Keep 20", 45, 20, 0)
 
 --[[
   PurchaseMerchantItem, as shipped after the fix: cap what the order still owes to the

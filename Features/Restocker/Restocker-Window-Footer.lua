@@ -1,352 +1,219 @@
 local _, ns = ...
 local L = ns.L
 local GetColor = ns.GetColor
-local AceGUI = LibStub("AceGUI-3.0")
 
 --------------------------------------------------------------------------------
--- Footer Row
+-- Status Line
 --------------------------------------------------------------------------------
 
 --[[
-    List: [selector] [Copy] [Delete]  [box.....................] [Rename]
+    7 restocking orders outstanding.     Removed (icon) Major Mana Potion.  [Undo]
 
-    A list named after a character ("Gogopaladin-Mankrik") overruns a tight
-    width, so the selector is fixed wide enough for a full Name-Realm
-    (LIST_SELECTOR_WIDTH), Copy and Delete size themselves to their captions
-    through ns.FitRestockButton (Restocker-Window-Columns.lua), and the Rename
-    box takes whatever width is left -- so it, not the truncation, absorbs a
-    wider window.
+    The window's bottom line, under the list. Two things live on it.
 
-    The list selector is an InputBoxTemplate field like Rename beside it, not an
-    AceGUI Dropdown. Every other control in this window is a Blizzard template, so
-    the one AceGUI widget read as foreign -- and skins that restyle AceGUI globally
-    (ElvUI ships one) restyle it and nothing around it, which made the mismatch
-    worse and moved the geometry the neighbouring buttons were positioned against.
+    The left is the answer the list exists to give: how many restocking orders
+    are outstanding, in the words the merchant and bank reminders print
+    (ns.RestockShortfallHeadline). Hovering it lists the orders the way the
+    mini-map's Restocker Report does -- icon, name, have/wanted -- capped, so a
+    long list cannot run the tooltip off the screen.
 
-    It opens an AceGUI Dropdown-Pullout on click, the same way the reputation
-    column in Restocker-Window-Rows.lua does: Blizzard's UIDropDownMenu drives
-    shared global frames its own secure code uses and leaves taint behind, so the
-    pullout stays. Only the closed control changed, and because it is a real frame
-    with a real width, Copy anchors to its edge instead of to a sum of offsets
-    guessing where AceGUI drew its box.
+    It is read straight off ns.BuildGroceryList, like the mini-map tooltip and
+    every reminder, so none of them can disagree about what is outstanding. An
+    order is a row with Buy on that the bags are short of, and the count is
+    drawn in the yellow of the Keep marks it counts (KEEP_SHORT in
+    Data/Data.lua): the line is where a player learns what a yellow Keep
+    number means. Red is kept for errors, and being short of something is not
+    one.
+
+    The Keep marks in the list are every short row, Buy or not, so with Buy
+    off on a short row there is a mark and no order -- and the line says "no
+    orders", in plain white, rather than congratulating a list that is visibly
+    short of something. The congratulation is kept for a list with no mark on
+    it at all.
+
+    An empty list says nothing here: the invitation in its place already does.
+
+    The right is the offer to take back the last removal (ns.UndoRestockRemove
+    in Restocker-Window-Rows.lua): a sentence naming what went, by its icon
+    and its name, and an Undo button. It sits beside the count rather than in its place, so removing a
+    row never costs the player the answer on the left.
+
+    Anchor footer controls to the row, never to the WINDOW: a control anchored
+    to the window lands at its middle and disappears behind the list.
 ]]
-local LIST_LABEL_X = 10
-local FOOTER_ROW_HEIGHT = 22
-local FOOTER_RIGHT_INSET = 26
-local LIST_SELECTOR_WIDTH = 190
-local SELECTOR_ARROW_SIZE = 18
-local FOOTER_GAP = 4
+local FOOTER_X = 10
 local FOOTER_Y = 12
+local FOOTER_RIGHT_INSET = 26 -- clear of the resize grip
+local FOOTER_ROW_HEIGHT = 22
+local STATUS_GAP = 24 -- the count to the undo offer
+local UNDO_GAP = 10 -- "Removed [item]." to the Undo button
+
+-- The most orders the hover lists one per row; past it, one closing line counts the rest.
+local ORDERS_TOOLTIP_MAX_ROWS = 20
+
+local TITLE = ns.COLORS_RGB.TITLE
+-- The Keep marks' own color, as an escape for the orders count. Append |r at the point of use.
+local SHORT = "|cff" .. ns.RESTOCKER_WINDOW_COLORS.KEEP_SHORT
+
+--------------------------------------------------------------------------------
+-- Orders Tooltip
+--------------------------------------------------------------------------------
 
 --[[
-    One pullout, built on first use and reused, which is how AceGUI's own Dropdown
-    treats its pullout. Creating and releasing one per open would leak here: an
-    Execute item closes its own pullout from inside its OnClick, so a release
-    driven off OnClose would free the very item whose handler is still running.
-    Reuse sidesteps that entirely -- items are cleared at open, not at close.
-
-    The pullout lives as long as the window, which is built once per session and
-    only ever hidden.
+    An item as this line and its tooltip name one: its icon, then its name in
+    its quality color, with no brackets (ns.GetItemLabel, which names an item
+    even while the cache is cold). A name-only row has no ID to look an icon up
+    by, so it shows the question mark the list itself uses.
 ]]
-local listPullout
-local listPulloutOpen = false
+local UNKNOWN_ICON = "Interface\\ICONS\\INV_Misc_QuestionMark"
 
-local function CloseListPullout()
-	if listPullout and listPulloutOpen then
-		listPulloutOpen = false
-		listPullout:Close()
-	end
+local function ItemWithIcon(itemID, itemName)
+	local icon = itemID and C_Item.GetItemIconByID(itemID) or UNKNOWN_ICON
+	return string.format("|T%s:14:14|t %s", icon, ns.GetItemLabel(itemID, itemName))
 end
-
-ns.CloseRestockListPullout = CloseListPullout
 
 --[[
-    The menu: every saved list, then a rule, then New List.
+    The orders themselves, in the mini-map Restocker Report's own form and under
+    its own title: the item, then have/wanted, the ratio the verbose reminder
+    prints.
 
-    Rebuilt on every open rather than cached, so a rename or a delete needs
-    nothing kept in sync -- the next open reads the lists as they now are.
+    Built on hover rather than kept, so it is as current as the bags are.
+    Nothing to list draws no tooltip: the line above has already said so.
 ]]
-local function OpenListPullout(anchor)
-	local settings = ns.restockSettings
-
-	if not listPullout then
-		listPullout = AceGUI:Create("Dropdown-Pullout")
-		listPullout:SetCallback("OnClose", function()
-			listPulloutOpen = false
-		end)
-	end
-	listPullout:Clear()
-
-	-- Sorted for a stable menu; pairs() order is arbitrary.
-	local names = {}
-	for name in pairs(settings.lists) do
-		names[#names + 1] = name
-	end
-	table.sort(names)
-
-	for _, name in ipairs(names) do
-		local entry = AceGUI:Create("Dropdown-Item-Toggle")
-		entry:SetText(name)
-		entry:SetValue(name == settings.currentList)
-		entry:SetCallback("OnValueChanged", function()
-			-- A toggle item does not close its own pullout, unlike an execute item.
-			CloseListPullout()
-			-- The list already in use only closes the menu: a switch would clear New and rerun the restock.
-			if name ~= ns.restockSettings.currentList then
-				ns.SwitchRestockList(name)
-			end
-		end)
-		listPullout:AddItem(entry)
-	end
-
-	--[[
-	    A rule between the lists and the action under them. Inert by construction:
-	    AceGUI's ItemBase gives every item only OnEnter and OnLeave, and Separator
-	    is the one item type that never adds an OnClick, so the line cannot be
-	    picked and needs no handler of its own.
-	]]
-	listPullout:AddItem(AceGUI:Create("Dropdown-Item-Separator"))
-
-	--[[
-	    New List is an Execute, not a Toggle: it performs an action rather than
-	    selecting a value, so it draws no tick beside it and closes the menu itself.
-	]]
-	local newList = AceGUI:Create("Dropdown-Item-Execute")
-	newList:SetText(L["RESTOCKER_NEW_PROFILE"])
-	newList:SetCallback("OnClick", function()
-		ns.CreateRestockList()
-	end)
-	listPullout:AddItem(newList)
-
-	listPulloutOpen = true
-	listPullout:SetWidth(anchor:GetWidth())
-	listPullout:Open("TOPLEFT", anchor, "BOTTOMLEFT", 0, 0)
-end
-
--- The selector and its arrow open the menu, and close it again when it is already open.
-local function ToggleListPullout(anchor)
-	if listPulloutOpen then
-		CloseListPullout()
+local function ShowOrdersTooltip(owner)
+	local groceries = ns.BuildGroceryList()
+	if #groceries == 0 then
 		return
 	end
-	OpenListPullout(anchor)
-end
 
---[[
-    One row for the whole footer, so every control in it centres on the same line
-    by construction. Anchor footer controls to this row, never to the WINDOW: a
-    control anchored to the window lands at its middle and disappears behind the
-    list.
-]]
-local function CreateFooterRow(addonFrame)
-	local row = CreateFrame("Frame", nil, addonFrame)
-	row:SetPoint("BOTTOMLEFT", addonFrame, "BOTTOMLEFT", LIST_LABEL_X, FOOTER_Y)
-	row:SetPoint("BOTTOMRIGHT", addonFrame, "BOTTOMRIGHT", -FOOTER_RIGHT_INSET, FOOTER_Y)
-	row:SetHeight(FOOTER_ROW_HEIGHT)
-	addonFrame.footerRow = row
-	return row
-end
-
---[[
-    The closed control: an InputBoxTemplate field so it matches the Rename box,
-    showing the active list. Read-only -- keyboard is off and focus bounces
-    straight back out, so it renders as a field but behaves as a button.
-]]
-local function CreateListSelector(addonFrame)
-	local footerRow = addonFrame.footerRow
-	local listText = addonFrame:CreateFontString(nil, "OVERLAY")
-	listText:SetPoint("LEFT", footerRow, "LEFT", 0, 0)
-	listText:SetFontObject("GameFontNormal")
-	listText:SetText(L["RESTOCKER_PROFILE_LABEL"])
-	addonFrame.listLabel = listText
-
-	local selector = CreateFrame("EditBox", nil, addonFrame, "InputBoxTemplate")
-	selector:SetPoint("LEFT", listText, "RIGHT", 12, 0)
-	selector:SetWidth(LIST_SELECTOR_WIDTH)
-	selector:SetHeight(20)
-	selector:SetAutoFocus(false)
-	selector:EnableKeyboard(false)
-	selector:SetScript("OnEditFocusGained", function(self)
-		self:ClearFocus()
-	end)
-	selector:SetScript("OnMouseDown", function(self)
-		ToggleListPullout(self)
-	end)
-
-	--[[
-	    The same three textures Blizzard's own UIDropDownMenuTemplate puts on its
-	    button, so the control opens with the chevron players already read as "this
-	    is a menu" rather than a generic arrow painted into a text field. A real
-	    Button rather than a texture, so it presses and highlights like one.
-	]]
-	local arrow = CreateFrame("Button", nil, selector)
-	arrow:SetSize(SELECTOR_ARROW_SIZE, SELECTOR_ARROW_SIZE)
-	arrow:SetPoint("RIGHT", selector, "RIGHT", -4, 0)
-	arrow:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIcon-ScrollDown-Up")
-	arrow:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIcon-ScrollDown-Down")
-	arrow:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
-	arrow:SetScript("OnClick", function()
-		ToggleListPullout(selector)
-	end)
-
-	addonFrame.listSelector = selector
-	ns.SetupRestockerTooltip(selector, L["RESTOCKER_PROFILE_LABEL"], L["RESTOCKER_PROFILE_TOOLTIP"])
-	selector:SetText(ns.restockSettings.currentList or "")
-	selector:SetCursorPosition(0)
-end
-
---[[
-    Show the active list in the selector. Called whenever a list is added,
-    renamed, copied, deleted or switched.
-]]
-function ns.RefreshRestockListDropdown()
-	local selector = ns.restockWindow and ns.restockWindow.listSelector
-	if selector then
-		selector:SetText(ns.restockSettings.currentList or "")
-		selector:SetCursorPosition(0)
-	end
-end
-
---[[
-    Rename is a field plus its own button, the same shape the add row uses at the
-    top of the window: the field carries the value and the button carries the verb.
-
-    The button is not redundant with Enter, the way Add's is: Enter was the ONLY
-    way to commit a rename, with nothing on screen saying so. It is the visible
-    commit.
-
-    Clicking away discards the edit. This field is not like the add box at the
-    top, which is input-only and whose resting state is empty: this one also
-    DISPLAYS the active list's name, so text left sitting in it is indistinguishable
-    from the name the list actually has. Escape discards too, and any list change
-    repaints it through ns.UpdateRestockListWidgets.
-
-    A Button click does not pull keyboard focus off an EditBox, so pressing Rename
-    does not trip the discard -- OnClick reads what was typed.
-
-    The word "Rename" is the button's caption rather than a label beside the field,
-    so the row reads as one control instead of a caption, a field, and a verb. It
-    keeps the RESTOCKER_RENAME_LABEL key, since it is the same word.
-]]
-local function CreateListRenameBox(addonFrame)
-	local renameButton = CreateFrame("Button", nil, addonFrame, "UIPanelButtonTemplate")
-	renameButton:SetHeight(22)
-	renameButton:SetPoint("RIGHT", addonFrame.footerRow, "RIGHT", 0, 0)
-	renameButton:SetText(L["RESTOCKER_RENAME_LABEL"])
-	ns.FitRestockButton(renameButton)
-
-	local box = CreateFrame("EditBox", nil, addonFrame, "InputBoxTemplate")
-	box:SetHeight(20)
-	box:SetPoint("LEFT", addonFrame.deleteListButton, "RIGHT", 16, 0)
-	box:SetPoint("RIGHT", renameButton, "LEFT", -FOOTER_GAP - 4, 0)
-	box:SetAutoFocus(false)
-	box:SetText(ns.restockSettings.currentList or "")
-
-	local function CommitRename()
-		ns.RenameCurrentRestockList(box:GetText())
-		box:ClearFocus()
-	end
-
-	local function RevertRename()
-		box:SetText(ns.restockSettings.currentList or "")
-		box:SetCursorPosition(0)
-	end
-
-	renameButton:SetScript("OnClick", CommitRename)
-	box:SetScript("OnEnterPressed", CommitRename)
-	box:SetScript("OnEditFocusLost", RevertRename)
-	box:SetScript("OnEscapePressed", function(self)
-		RevertRename()
-		self:ClearFocus()
-	end)
-
-	ns.SetupRestockerTooltip(renameButton, L["RESTOCKER_RENAME_LABEL"], L["RESTOCKER_RENAME_TOOLTIP"])
-
-	addonFrame.listRenameBox = box
-	addonFrame.renameListButton = renameButton
-	return box
-end
-
---------------------------------------------------------------------------------
--- Copy And Delete Buttons
---------------------------------------------------------------------------------
-
---[[
-    Confirmation for the footer Delete button. text_arg1 is the list name,
-    gold-wrapped at show time; StaticPopup_Show's fourth argument carries that same
-    name through as the dialog's data, and OnAccept deletes THAT name rather than
-    re-reading currentList.
-
-    Load-bearing: the dialog does not lock the window behind it, so a list
-    switched in the selector while the confirm is open would otherwise redirect the
-    delete onto a list the player was never asked about -- and a Restock List has no
-    undo. Deleting the current list always starts a fresh class-named list, never
-    another existing one (ns.DeleteRestockList, which also ignores a nil or
-    already-deleted name).
-]]
--- luacheck: globals StaticPopupDialogs
-StaticPopupDialogs["CONNOISSEUR_RESTOCKER_DELETE_LIST"] = {
-	text = L["RESTOCKER_DELETE_PROFILE_CONFIRM"],
-	button1 = YES,
-	button2 = NO,
-	OnAccept = function(_self, data)
-		ns.DeleteRestockList(data)
-		ns.UpdateRestockList()
-	end,
-	timeout = 0,
-	whileDead = true,
-	hideOnEscape = true,
-	preferredIndex = 3,
-}
-
-local function CreateListButtons(addonFrame)
-	local copyButton = CreateFrame("Button", nil, addonFrame, "UIPanelButtonTemplate")
-	copyButton:SetHeight(22)
-	-- Anchored to the selector, which is a real frame with a real width.
-	copyButton:SetPoint("LEFT", addonFrame.listSelector, "RIGHT", FOOTER_GAP + 4, 0)
-	copyButton:SetText(L["RESTOCKER_COPY_PROFILE"])
-	ns.FitRestockButton(copyButton)
-	copyButton:SetScript("OnClick", function()
-		ns.CloneCurrentRestockList()
-	end)
-	ns.SetupRestockerTooltip(copyButton, L["RESTOCKER_COPY_PROFILE_TOOLTIP"])
-
-	local deleteButton = CreateFrame("Button", nil, addonFrame, "UIPanelButtonTemplate")
-	deleteButton:SetHeight(22)
-	deleteButton:SetPoint("LEFT", copyButton, "RIGHT", FOOTER_GAP, 0)
-	deleteButton:SetText(L["RESTOCKER_DELETE_PROFILE"])
-	ns.FitRestockButton(deleteButton)
-	deleteButton:SetScript("OnClick", function()
-		local settings = ns.restockSettings
-		if not settings.currentList then
-			return
-		end
-		StaticPopup_Show(
-			"CONNOISSEUR_RESTOCKER_DELETE_LIST",
-			GetColor("TITLE") .. settings.currentList .. "|r",
-			nil,
-			settings.currentList
+	GameTooltip:SetOwner(owner, "ANCHOR_TOPLEFT")
+	GameTooltip:SetText(L["MINIMAP_RESTOCKER_REPORT"], TITLE.r, TITLE.g, TITLE.b)
+	for index = 1, math.min(#groceries, ORDERS_TOOLTIP_MAX_ROWS) do
+		local entry = groceries[index]
+		GameTooltip:AddDoubleLine(
+			ItemWithIcon(entry.itemID, entry.itemName),
+			GetColor("BODY") .. string.format(L["MINIMAP_RESTOCKER_ITEM_COUNT"], entry.have, entry.wanted) .. "|r"
 		)
-	end)
-	ns.SetupRestockerTooltip(deleteButton, L["RESTOCKER_DELETE_PROFILE_TOOLTIP"])
+	end
+	if #groceries > ORDERS_TOOLTIP_MAX_ROWS then
+		GameTooltip:AddLine(
+			GetColor("MUTED") .. string.format(L["RESTOCKER_REPORT_MORE"], #groceries - ORDERS_TOOLTIP_MAX_ROWS) .. "|r"
+		)
+	end
+	GameTooltip:Show()
+end
 
-	addonFrame.copyListButton = copyButton
-	addonFrame.deleteListButton = deleteButton
+--------------------------------------------------------------------------------
+-- Status Text
+--------------------------------------------------------------------------------
+
+-- Is any row on the list short in the bags, Buy or not? The rows' Keep marks ask the same of each row.
+local function AnyRowShort(list)
+	for _, item in pairs(list) do
+		if ns.IsRestockItemShort(item) then
+			return true
+		end
+	end
+	return false
+end
+
+local function StatusText(list)
+	if next(list) == nil then
+		return ""
+	end
+
+	local orders = #ns.BuildGroceryList()
+	if orders > 0 then
+		return SHORT .. ns.RestockShortfallHeadline(orders) .. "|r"
+	end
+	if AnyRowShort(list) then
+		return L["RESTOCKER_NO_ORDERS"]
+	end
+	return GetColor("ON") .. L["MINIMAP_RESTOCKER_STOCKED"] .. "|r"
+end
+
+--[[
+    Repaint the line. Called at the end of every redraw, and on its own wherever
+    the count can move without the rows moving: a Buy cell clicked, a Keep amount
+    typed, the bags changing with the window open.
+
+    The count's button is sized to its text, so the hover is over the words and
+    not over the empty run of footer beside them, and the undo offer closes up
+    against the left edge when there is no count to sit beside. Undo is sized
+    here too, to its caption.
+]]
+function ns.UpdateRestockStatus()
+	local footer = ns.restockWindow.footer
+	local settings = ns.restockSettings
+
+	local text = StatusText(settings.lists[settings.currentList])
+	footer.statusText:SetText(text)
+	footer.status:SetWidth(math.max(1, footer.statusText:GetStringWidth()))
+
+	local removed = ns.restockLastRemoved
+	footer.removedText:SetShown(removed ~= nil)
+	footer.undo:SetShown(removed ~= nil)
+	if removed then
+		footer.removedText:SetText(
+			string.format(L["RESTOCKER_REMOVED_ITEM"], ItemWithIcon(removed.item.itemID, removed.item.itemName))
+		)
+		footer.removedText:ClearAllPoints()
+		footer.removedText:SetPoint("LEFT", footer.status, "RIGHT", (text ~= "") and STATUS_GAP or 0, 0)
+		-- Sized here rather than when built: a font not yet resolved at login measures as nothing.
+		ns.FitRestockButton(footer.undo)
+	end
 end
 
 --------------------------------------------------------------------------------
 -- Assembly
 --------------------------------------------------------------------------------
 
---[[
-    The whole footer in one call, so Restocker-Window.lua assembles the window
-    from parts rather than from this row's four separate pieces. Order matters:
-    Copy anchors to the list selector's edge, and the rename box anchors off the
-    Delete button.
-]]
 function ns.CreateRestockWindowFooter(addonFrame)
-	CreateFooterRow(addonFrame)
-	CreateListSelector(addonFrame)
-	CreateListButtons(addonFrame)
-	CreateListRenameBox(addonFrame)
+	local footer = CreateFrame("Frame", nil, addonFrame)
+	footer:SetPoint("BOTTOMLEFT", addonFrame, "BOTTOMLEFT", FOOTER_X, FOOTER_Y)
+	footer:SetPoint("BOTTOMRIGHT", addonFrame, "BOTTOMRIGHT", -FOOTER_RIGHT_INSET, FOOTER_Y)
+	footer:SetHeight(FOOTER_ROW_HEIGHT)
+
+	--[[
+	    A button only so it can be hovered: a FontString takes no mouse. A click
+	    does nothing but take an item dropped on it.
+	]]
+	local status = CreateFrame("Button", nil, footer)
+	status:SetPoint("LEFT", footer, "LEFT", 0, 0)
+	status:SetHeight(FOOTER_ROW_HEIGHT)
+	local statusText = status:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	statusText:SetPoint("LEFT", status, "LEFT", 0, 0)
+	status:SetScript("OnEnter", ShowOrdersTooltip)
+	status:SetScript("OnLeave", function()
+		GameTooltip:Hide()
+	end)
+	ns.SetRestockControlClick(status)
+
+	local removedText = footer:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	removedText:Hide()
+
+	--[[
+	    Undo is a panel button, as everything a click acts on in this window is.
+	    A word in the interaction blue reads as information, not as something to
+	    press.
+	]]
+	local undo = CreateFrame("Button", nil, footer, "UIPanelButtonTemplate")
+	undo:SetPoint("LEFT", removedText, "RIGHT", UNDO_GAP, 0)
+	undo:SetHeight(FOOTER_ROW_HEIGHT)
+	undo:SetText(L["RESTOCKER_UNDO"])
+	ns.FitRestockButton(undo)
+	ns.SetRestockControlClick(undo, function()
+		-- The click hides the button under the mouse, which would leave its tooltip up.
+		GameTooltip:Hide()
+		ns.UndoRestockRemove()
+	end)
+	ns.SetupRestockerTooltip(undo, L["RESTOCKER_UNDO_TOOLTIP"])
+	undo:Hide()
+
+	footer.status = status
+	footer.statusText = statusText
+	footer.removedText = removedText
+	footer.undo = undo
+	addonFrame.footer = footer
+	return footer
 end

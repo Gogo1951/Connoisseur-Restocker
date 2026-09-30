@@ -67,6 +67,11 @@ local AceConfigRegistry = LibStub("AceConfigRegistry-3.0")
       stackTypeName     -- the macro type those ids belong to, whose
                            DruidMacroHelper guards a stack-only body takes
                            (Health Potion: "Healthstone")
+      outOfCombatTypeName -- the macro type whose scanned best item this body
+                           uses instead while out of combat, behind
+                           potionsUseFoodAndWater (Health Potion: "Food",
+                           Mana Potion: "Water"). The scanned item only: no
+                           scrolls, pet food, conjure clicks or stealth line
       buildModeOverride(context) -- full-body takeover; returns body, stateKey
                            or nil (Food's scroll-only mode). Mode state keys
                            MUST use their own prefix (e.g. "SCROLLS:") so they
@@ -328,13 +333,26 @@ function ns.UpdateMacros(forced)
 			end
 
 			--[[
+			    Definition field: the food or water a potion macro uses out
+			    of combat. It is the scanner's pick for that type as it
+			    stands, buff food included, whether or not that type's own
+			    macro is enabled; none in bags leaves the body as it was.
+			]]
+			local outOfCombatID
+			if definition.outOfCombatTypeName and ns.db.profile.potionsUseFoodAndWater then
+				local outOfCombatEntry = best[definition.outOfCombatTypeName]
+				outOfCombatID = outOfCombatEntry and outOfCombatEntry.id
+			end
+
+			--[[
 			    Class-specific macro overrides. The Druid builder owns the
 			    DMH-wrap path (HP/MP/HS). Returns nil here means "no override
 			    for this type/item" — fall through to the standard body.
 			]]
 			local classBody, classStateID
 			if itemID then
-				classBody, classStateID = ns.BuildDruidMacroOverride(overrideTypeName, itemID, useIDs, stackIDs)
+				classBody, classStateID =
+					ns.BuildDruidMacroOverride(overrideTypeName, itemID, useIDs, stackIDs, outOfCombatID)
 			end
 
 			--[[
@@ -386,10 +404,19 @@ function ns.UpdateMacros(forced)
 					appendText, appendFlag = definition.appendBlock(itemID)
 				end
 
-				local stateID = ns.BuildStateKey(definition, itemID, useIDs, stackIDs, conjureInfo, appendFlag)
+				local stateID =
+					ns.BuildStateKey(definition, itemID, useIDs, stackIDs, conjureInfo, appendFlag, outOfCombatID)
 
 				if currentMacroState[typeName] ~= stateID or forced then
-					local body = ns.BuildStandardBody(definition, itemID, useIDs, stackIDs, conjureInfo, appendText)
+					local body = ns.BuildStandardBody(
+						definition,
+						itemID,
+						useIDs,
+						stackIDs,
+						conjureInfo,
+						appendText,
+						outOfCombatID
+					)
 					WriteMacro(config.macro, body, stateID, typeName)
 				end
 			end

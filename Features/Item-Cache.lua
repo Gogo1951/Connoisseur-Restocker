@@ -3,8 +3,7 @@ local GetColor = ns.GetColor
 
 --[[
     Item-Cache -- derives and caches per-item consumable data in
-    ns.db.profile.itemCache (the stateful item-metadata layer) and answers
-    whether an item is a known consumable.
+    ns.db.profile.itemCache (the stateful item-metadata layer).
 ]]
 
 --------------------------------------------------------------------------------
@@ -15,43 +14,23 @@ local GetColor = ns.GetColor
     The derived item cache lives on the profile and is never declared in
     defaults, so a reset or a brand-new profile arrives without one. Core calls
     this at login and after every profile change. It invalidates on a version
-    change; the scanner's stale-schema nil-test catches same-version (dev) field
-    additions.
+    change, and on a change of data folder: Classic Era and Season of Discovery
+    characters share one saved file, and so one profile, while their realms
+    build different folders' tables, so a record one of them derived can be
+    wrong for the other. The scanner's stale-schema nil-test catches
+    same-version (dev) field additions.
 ]]
 function ns.EnsureItemCache()
 	local profile = ns.db.profile
-	if type(profile.itemCache) ~= "table" or profile.itemCacheVersion ~= ns.Version then
+	if
+		type(profile.itemCache) ~= "table"
+		or profile.itemCacheVersion ~= ns.Version
+		or profile.itemCacheFolder ~= ns.DATA_FOLDER
+	then
 		profile.itemCache = {}
 		profile.itemCacheVersion = ns.Version
+		profile.itemCacheFolder = ns.DATA_FOLDER
 	end
-end
-
-function ns.IsKnownConsumable(itemID)
-	local cache = ns.db and ns.db.profile.itemCache
-	if cache and cache[itemID] and cache[itemID] ~= "IGNORE" then
-		return true
-	end
-	if ns.SCROLL_ITEM_LOOKUP and ns.SCROLL_ITEM_LOOKUP[itemID] then
-		return true
-	end
-	--[[
-	    Pet foods are consumables the Feed Pet macro selects from, even though
-	    no consumable table carries the pet-only ones.
-	]]
-	if ns.PET_FOOD_DATA[itemID] then
-		return true
-	end
-	if ns.POISON_DATA[itemID] then
-		return true
-	end
-	--[[
-	    The pet buff foods are in no consumable or pet food table:
-	    ns.FindPetBuffOverride offers them through the Food macro.
-	]]
-	if ns.PET_BUFF_FOODS[itemID] then
-		return true
-	end
-	return ns.HasRawData(itemID)
 end
 
 -- Whether any consumable table carries the item: the test that decides what ns.CacheItemData caches.
@@ -435,4 +414,23 @@ function ns.GetItemHyperlink(itemID, fallbackName)
 	end
 
 	return fallbackName or "?"
+end
+
+--[[
+    An item's name for the add-on's own windows, panels and tooltips: the
+    link's text in its quality color, with the square brackets taken off.
+    Brackets are how chat marks a link, so everything printed to chat keeps
+    them (ns.GetItemHyperlink above). Beside the item's icon they are clutter,
+    and the Restock List's own rows have never worn them.
+
+    ns.UnbracketItemLink takes a link the caller already holds. ns.GetItemLabel
+    names an item from its ID the way ns.GetItemHyperlink does, cold cache
+    included.
+]]
+function ns.UnbracketItemLink(link)
+	return (link:gsub("|h%[(.-)%]|h", "|h%1|h"))
+end
+
+function ns.GetItemLabel(itemID, fallbackName)
+	return ns.UnbracketItemLink(ns.GetItemHyperlink(itemID, fallbackName))
 end

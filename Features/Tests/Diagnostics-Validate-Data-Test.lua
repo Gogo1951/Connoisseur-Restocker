@@ -192,6 +192,8 @@ local spells = {
 	[746] = { name = "First Aid", description = "Heals 66 damage over 6 sec.", cached = true },
 	[7001] = { name = "Use 7001", description = "Restores 100 health.", cached = true },
 	[7007] = { name = "Use 7007", description = "Restores 200 mana.", delay = 2 },
+	[7101] = { name = "Aura 7101", description = "", cached = true }, -- its record is at hand, its text never arrives
+	[7102] = { name = "Use 7102", description = "", cached = true },
 }
 
 local items = {}
@@ -214,6 +216,7 @@ end
 for id = 3001, 3003 do
 	items[id] = { exists = true, delay = 3 }
 end
+items[4001] = { exists = true, delay = 1, spellID = 7102 } -- loads, but its spell's text never arrives
 
 local requests, firstRequestTick, lastRequestTick, spellRequests = {}, {}, {}, {}
 
@@ -325,9 +328,6 @@ C_Spell = {
 			spell.loadedAt = spell.loadedAt or tick + spell.delay
 		end
 	end,
-	IsSpellDataCached = function(id)
-		return spells[id] ~= nil and SpellLoaded(spells[id])
-	end,
 	GetSpellInfo = function(id)
 		local spell = spells[id]
 		if spell then
@@ -342,9 +342,12 @@ C_Spell = {
 			}
 		end
 	end,
+	-- Nil until the spell loads, as on WoW Forever; a loaded spell with no text answers "".
 	GetSpellDescription = function(id)
 		local spell = spells[id]
-		return spell and SpellLoaded(spell) and spell.description or ""
+		if spell and SpellLoaded(spell) then
+			return spell.description
+		end
 	end,
 	GetSpellSubtext = function()
 		return ""
@@ -440,6 +443,8 @@ end
 ns.TEST_OTHER = { first = 1, second = 2, third = 3 }
 ns.TEST_SMALL = { [2001] = true, [2002] = true, [2003] = true }
 ns.TEST_RESTART = { [3001] = true, [3002] = true, [3003] = true }
+ns.TEST_TEXTLESS_SPELLS = { [7101] = true }
+ns.TEST_TEXTLESS_ITEMS = { [4001] = true }
 ns.DIAGNOSTIC_DATA_SOURCES = {
 	{
 		label = "Test",
@@ -452,6 +457,13 @@ ns.DIAGNOSTIC_DATA_SOURCES = {
 	},
 	{ label = "Small", tables = { { table = "TEST_SMALL", kind = "item", idsOf = Keys } } },
 	{ label = "Restart", tables = { { table = "TEST_RESTART", kind = "item", idsOf = Keys } } },
+	{
+		label = "Textless",
+		tables = {
+			{ table = "TEST_TEXTLESS_SPELLS", kind = "spell", idsOf = Keys },
+			{ table = "TEST_TEXTLESS_ITEMS", kind = "item", idsOf = Keys },
+		},
+	},
 }
 
 -- The report's TSV blocks, each its header's columns and its rows' cells.
@@ -620,6 +632,26 @@ check("no more than one a second, plus the first and the last", #paints <= math.
 check("the last repaint is the finished report", paints[#paints], ns.diagnostics.throttledReport)
 check("finished report", paints[#paints]:find("STATUS\tItem ID", 1, true) ~= nil, true)
 secondsPerTick = 1
+
+say("10. Text that never arrives holds its batch until the idle cap, then settles INCOMPLETE")
+local textlessStart = tick
+ns.RunDataValidation(4, "textlessReport", function() end)
+PumpAll()
+local textlessBlocks = Blocks(ns.diagnostics.textlessReport)
+local textlessSpells, textlessItems = textlessBlocks[1], textlessBlocks[2]
+local auraRow = Find(textlessSpells, "7101")
+check("spell status", auraRow[1], "INCOMPLETE")
+check("spell printed in full", #auraRow, #textlessSpells.columns)
+check("spell description", auraRow[Column(textlessSpells, "Description")], "")
+local textlessItem = Find(textlessItems, "4001")
+check("item status", textlessItem[1], "INCOMPLETE")
+check("item printed in full", #textlessItem, #textlessItems.columns)
+check("item spell ID", textlessItem[Column(textlessItems, "Item Spell ID")], "7102")
+check("item spell text", textlessItem[Column(textlessItems, "Item Spell Description")], "")
+-- The idle cap is 25 polls, and the first poll runs at once rather than on a timer.
+check("held open for the idle cap", tick - textlessStart >= 24, true)
+check("the spell's text asked for again", (spellRequests[7101] or 0) > 1, true)
+check("the item's spell text asked for again", (spellRequests[7102] or 0) > 1, true)
 
 say("")
 if failures == 0 then

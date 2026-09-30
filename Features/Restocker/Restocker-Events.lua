@@ -24,11 +24,12 @@ function ns.InitializeRestocker()
 	ns.restockerLoaded = false
 
 	--[[
-	    Everything the subsystem saves lives on ns.db.global.restocker: named
-	    shopping lists keyed by itemID, and which list each character uses, so all
-	    characters share one file while a Warrior and a Priest see separate lists.
-	    AceDB has already applied the defaults from Data/Default-Settings.lua by
-	    this point, so nothing is filled in by hand here.
+	    The subsystem's lists and settings live on ns.db.global.restocker: named
+	    shopping lists keyed by itemID, shared by every character. Which list a
+	    character uses is its profile's choice (ns.db.profile.restockList), so a
+	    Warrior and a Priest see separate lists. AceDB has already applied the
+	    defaults from Data/Default-Settings.lua by this point, so nothing is
+	    filled in by hand here.
 	]]
 	ns.restockSettings = ns.db.global.restocker
 
@@ -43,7 +44,7 @@ function ns.InitializeRestocker()
 	]]
 	ns.InflateSavedRestockItems(ns.restockSettings)
 
-	-- Select this character's own list (creating it if this is a fresh character)
+	-- Select the list this character's profile uses (creating one if the profile has chosen none)
 	ns.InitCharacterRestockList()
 
 	-- Drop leftover empty orphan lists (e.g. an old shared "default")
@@ -172,6 +173,23 @@ function ns.OnRestockerBankClose()
 end
 
 --------------------------------------------------------------------------------
+-- Bags
+--------------------------------------------------------------------------------
+
+--[[
+    The open window's yellow Keep marks and the orders counted under its list are
+    read from the bags, so they follow the bags: a merchant or bank visit fills
+    them with the window up, and the marks should clear as it does. A repaint of
+    those two things only (ns.RefreshRestockShortfall), and nothing at all while
+    the window is shut -- it redraws itself on the way back in.
+]]
+function ns.OnRestockerBagUpdate()
+	if ns.restockWindow and ns.restockWindow:IsShown() then
+		ns.RefreshRestockShortfall()
+	end
+end
+
+--------------------------------------------------------------------------------
 -- Level, Logout And Errors
 --------------------------------------------------------------------------------
 
@@ -234,6 +252,7 @@ function ns.InitRestockerEvents()
 		BANKFRAME_OPENED = ns.OnRestockerBankOpen,
 		BANKFRAME_CLOSED = ns.OnRestockerBankClose,
 		GET_ITEM_INFO_RECEIVED = ns.OnRestockerItemInfoReceived,
+		BAG_UPDATE_DELAYED = ns.OnRestockerBagUpdate,
 		PLAYER_LOGOUT = ns.OnRestockerLogout,
 		UI_ERROR_MESSAGE = ns.OnRestockerUiErrorMessage,
 		PLAYER_UPDATE_RESTING = ns.OnRestockerUpdateResting,

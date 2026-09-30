@@ -181,7 +181,28 @@ local function GroupHasSoulstone()
 end
 
 --[[
-    Every buff answers to TWO switches: the per-character macro switch saying
+    Whether the stones' shared use cooldown is running, which is when no stone
+    can go up however many the Warlock carries: after a stoned player rose, for
+    the rest of the half hour since the stone was used. The stones share the
+    one cooldown, so any of them on it answers. A cooldown the client keeps
+    secret (Forever) counts as over, and the entry reports as it always has.
+]]
+local function SoulstonesOnCooldown()
+	if C_Secrets.ShouldCooldownsBeSecret() then
+		return false
+	end
+	for itemID in pairs(ns.SOULSTONES) do
+		local _, duration = C_Container.GetItemCooldown(itemID)
+		-- A stone on the global cooldown alone reads as on cooldown too: close enough, as it is ready by the next check.
+		if duration and duration > 0 then
+			return true
+		end
+	end
+	return false
+end
+
+--[[
+    Every buff answers to TWO switches: the profile's macro switch saying
     the character uses the thing at all, and the account-wide report switch
     saying to mention it. Both must be on, because reporting a buff the
     character never applies would be noise whatever the report is set to.
@@ -245,14 +266,15 @@ local function BuildMissingBuffs(settings, reports)
 	--[[
 	    The one entry that asks the GROUP rather than the player: is a stone up
 	    on anyone. Only a Warlock who knows Create Soulstone sees it, because
-	    only they can put one up. Anyone else would be reading a nag they cannot
-	    clear.
+	    only they can put one up, and only while the stones' cooldown lets them.
+	    Anyone else would be reading a nag they cannot clear.
 	]]
 	if
 		reports.readinessSoulstone
 		and ns.isWarlock
 		and ns.KnowsAny(ns.CONJURE_SPELLS.WarlockCreateSoulstone)
 		and not GroupHasSoulstone()
+		and not SoulstonesOnCooldown()
 	then
 		missing[#missing + 1] = L["READINESS_SOULSTONE"]
 	end
@@ -406,8 +428,7 @@ local function BuildCharacter(reports, inArena)
 
 	-- Arenas and battlegrounds flag everyone, so the warning would be one nobody can clear.
 	if reports.readinessPvP and not inArena and select(2, IsInInstance()) ~= "pvp" and ns.IsPvPFlagged() then
-		-- The one entry coloured as a warning rather than a value; it is the one that bites.
-		entries[#entries + 1] = GetColor("OFF") .. L["READINESS_PVP_ON"] .. "|r" .. GetColor("TEXT")
+		entries[#entries + 1] = L["READINESS_PVP_ON"]
 	end
 
 	return entries

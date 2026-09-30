@@ -93,7 +93,7 @@ function ns.BuildGeneralOptions()
 			spaceCommunity0 = Spacer(900),
 			headerCommunity = Header(L["OPTIONS_COMMUNITY_HEADER"], 901),
 			spaceCommunity1 = Spacer(902),
-			discordLabel = RowLabel(GetColor("TITLE") .. L["DISCORD"] .. "|r", 903, LINK_LABEL_WIDTH),
+			discordLabel = RowLabel(GetColor("BODY") .. L["DISCORD"] .. "|r", 903, LINK_LABEL_WIDTH),
 			discordURL = {
 				type = "input",
 				name = "",
@@ -105,7 +105,7 @@ function ns.BuildGeneralOptions()
 				set = function() end,
 			},
 			spaceCommunity2 = Spacer(905),
-			githubLabel = RowLabel(GetColor("TITLE") .. L["GITHUB"] .. "|r", 906, LINK_LABEL_WIDTH),
+			githubLabel = RowLabel(GetColor("BODY") .. L["GITHUB"] .. "|r", 906, LINK_LABEL_WIDTH),
 			githubURL = {
 				type = "input",
 				name = "",
@@ -117,7 +117,7 @@ function ns.BuildGeneralOptions()
 				set = function() end,
 			},
 			spaceCommunity3 = Spacer(908),
-			curseforgeLabel = RowLabel(GetColor("TITLE") .. L["CURSEFORGE"] .. "|r", 909, LINK_LABEL_WIDTH),
+			curseforgeLabel = RowLabel(GetColor("BODY") .. L["CURSEFORGE"] .. "|r", 909, LINK_LABEL_WIDTH),
 			curseforgeURL = {
 				type = "input",
 				name = "",
@@ -129,7 +129,7 @@ function ns.BuildGeneralOptions()
 				set = function() end,
 			},
 			spaceCommunity4 = Spacer(911),
-			wagoLabel = RowLabel(GetColor("TITLE") .. L["WAGO"] .. "|r", 912, LINK_LABEL_WIDTH),
+			wagoLabel = RowLabel(GetColor("BODY") .. L["WAGO"] .. "|r", 912, LINK_LABEL_WIDTH),
 			wagoURL = {
 				type = "input",
 				name = "",

@@ -174,13 +174,23 @@ local COLUMN_MIN_WIDTH = 24
 
 --[[
     A starting width, replaced once the font resolves (see ResolveColumns).
-    Amount is measured like every other column -- against its own caption AND
-    against a four-digit count, since the edit box under it has to hold what
-    the caption names. A fixed width truncates the heading (at 40px it reads
-    "Am..."), so this one is measured too.
+    The Keep box -- the row's amount, which is the name the code and the saved
+    rows still use for it -- is measured like every other column: against its
+    own caption AND against a four-digit count, since the edit box under it has
+    to hold what the caption names. A fixed width truncates a longer locale's
+    heading, so this one is measured too.
+
+    The count is measured in the font the box DRAWS in, not the captions': an
+    InputBoxTemplate field writes in ChatFontNormal, a good deal larger than the
+    heading font, and "Keep" is too short a caption to cover for the difference
+    the way "Amount" once did. Four digits is what a hunter's ammunition needs.
+    The box's own padding is wider than a column's too: the template's border
+    art sits inside its right edge.
 ]]
-ns.restockAmountWidth = 58
+ns.restockAmountWidth = 44
 local AMOUNT_DIGITS_SAMPLE = "8888"
+local AMOUNT_BOX_FONT = "ChatFontNormal"
+local AMOUNT_BOX_PAD_X = 14 -- digits to box edge, both sides together
 
 --[[
     Starting widths are the English measurement, replaced once the font
@@ -200,6 +210,17 @@ ns.restockColumnWidths = {
 ns.restockColumnWidthSerial = 0 -- bumped when the widths change, so rows notice
 
 local columnsResolved = false
+
+-- Scratch FontString used only to measure the Keep box's own font; never shown.
+local digitsFontString
+
+local function MeasureDigitsFontString()
+	if not digitsFontString then
+		digitsFontString = (ns.restockHiddenFrame or UIParent):CreateFontString(nil, "ARTWORK", AMOUNT_BOX_FONT)
+		digitsFontString:Hide()
+	end
+	return digitsFontString
+end
 
 -- Measure every column from its caption, or nil while the font is unresolved.
 local function MeasureColumns()
@@ -228,14 +249,16 @@ local function MeasureColumns()
 	end
 
 	fontString:SetText(L["RESTOCKER_COLUMN_AMOUNT"])
-	local amountWidth = fontString:GetStringWidth() or 0
-	fontString:SetText(AMOUNT_DIGITS_SAMPLE)
-	amountWidth = math.max(amountWidth, fontString:GetStringWidth() or 0)
-	if amountWidth <= 0 then
+	local captionWidth = fontString:GetStringWidth() or 0
+	local digits = MeasureDigitsFontString()
+	digits:SetText(AMOUNT_DIGITS_SAMPLE)
+	local digitsWidth = digits:GetStringWidth() or 0
+	if captionWidth <= 0 or digitsWidth <= 0 then
 		return nil
 	end
 
-	return widths, math.max(COLUMN_MIN_WIDTH, math.ceil(amountWidth) + COLUMN_PAD_X)
+	return widths,
+		math.max(COLUMN_MIN_WIDTH, math.ceil(captionWidth) + COLUMN_PAD_X, math.ceil(digitsWidth) + AMOUNT_BOX_PAD_X)
 end
 
 --[[
@@ -310,11 +333,16 @@ ns.FitRestockButton = FitButton
 --------------------------------------------------------------------------------
 
 --[[
-    [icon] Item Name ....  [Wdrw][Dpst]  [Buy][Extra][Rep]  [Upgrade]  [40]  [x]
+    [icon] Item Name ....  [40]  [Take][Store]  [Buy][Extra][Rep]  [Upgrade] [x]
 
-    Everything right of the name is laid out by walking COLUMNS from the right
-    edge inward, which is exactly what the header does, so the two line up by
-    construction rather than by matching offsets in two places.
+    The Keep box leads the strip, beside the name it belongs to. It is the one
+    number that defines a row, and it turns yellow when the bags hold fewer, so it
+    has to sit where the eye already is rather than six columns away.
+
+    Everything right of it is laid out by walking COLUMNS from the remove
+    control inward, which is exactly what the header does, so the two line up by
+    construction rather than by matching offsets in two places. The Keep box
+    then hangs off the leftmost column.
 
     Each cell anchors to its neighbour's edge, never to a fixed x. That is what
     lets a late column measurement reflow the row with nothing but SetWidth calls,
@@ -328,9 +356,9 @@ local ROW_INSET = 6
 local ICON_SIZE = 18
 local ICON_TEXT_GAP = 4
 local NAME_INSET = ROW_INSET + ICON_SIZE + ICON_TEXT_GAP
-local NAME_COLUMN_GAP = 10 -- name to the first cell
+local NAME_COLUMN_GAP = 10 -- name to the Keep box
 
-local AMOUNT_GAP = 6 -- amount box to the remove control
+local REMOVE_GAP = 6 -- last column to the remove control
 
 --------------------------------------------------------------------------------
 -- Cell States
@@ -357,10 +385,15 @@ local WINDOW_COLORS = ns.RESTOCKER_WINDOW_COLORS
 
 local DASH_OFF = ns.HexToRGB(WINDOW_COLORS.DASH_OFF)
 local DASH_NOT_APPLICABLE = ns.HexToRGB(WINDOW_COLORS.DASH_NOT_APPLICABLE)
+local KEEP_SHORT = ns.HexToRGB(WINDOW_COLORS.KEEP_SHORT)
+
+-- The hover highlight every clickable cell and toggle heading shares.
+local CELL_HIGHLIGHT = "Interface\\Buttons\\UI-Listbox-Highlight2"
+local CELL_HIGHLIGHT_ALPHA = 0.30
 --[[
     Column headings are coloured by the band they belong to, so the eye can see
     where Bank stops and Merchant starts without a rule between them. The three
-    columns in no band -- Item, Upgrade, Amount -- take the brand gold every
+    columns in no band -- Item, Keep, Upgrade -- take the brand gold every
     other heading in the add-on already uses. Gold on the outside is what lets
     the two coloured bands read as a pair set into ordinary chrome rather than as
     three groups competing with one another.
@@ -377,7 +410,7 @@ local DASH_NOT_APPLICABLE = ns.HexToRGB(WINDOW_COLORS.DASH_NOT_APPLICABLE)
     colours the list draws names in (uncommon 1eff00, rare 0070dd) for the same
     reason. These are chrome, and have to look like it.
 ]]
-local HEADER_CAPTION_UNGROUPED = ns.COLORS_RGB.TITLE -- Item, Upgrade, Amount
+local HEADER_CAPTION_UNGROUPED = ns.COLORS_RGB.TITLE -- Item, Keep, Upgrade
 
 local GROUP_TONE = {
 	RESTOCKER_ROW_BANK = {
@@ -392,14 +425,15 @@ local GROUP_TONE = {
 local REPUTATION_SET = ns.HexToRGB(WINDOW_COLORS.REPUTATION_SET) -- amber, to stand out
 
 --[[
-    Lay the cells out right to left, and hand back the leftmost one. Used by both
+    Lay the cells out right to left from the remove control, and hand back the
+    leftmost one, which the Keep box hangs off (ns.RESTOCK_KEEP_GAP). Used by both
     the rows and the header, which is the whole point: one walk, one set of gaps,
     so a column can never sit in two different places.
 ]]
 local function LayoutColumns(anchorTo, build)
 	local cells = {}
 	local anchor = anchorTo
-	local gap = COLUMN_GROUP_GAP -- last column to the amount box
+	local gap = REMOVE_GAP
 	for i = #COLUMNS, 1, -1 do
 		local column = COLUMNS[i]
 		local cell = build(column)
@@ -426,7 +460,7 @@ end
     column carrying `group` opens a band and every column after it inherits that
     band's caption tone until the next boundary; `gapBefore` without a `group`
     closes the band and falls back to the ungrouped gold, which is how Upgrade,
-    sitting alone between Merchant and Amount, gets its colour.
+    sitting alone after Merchant, gets its colour.
 
     BAND_LABEL_TONE is keyed by the column that OPENS each band, because that is
     the key the band-drawing loop below already has in hand.
@@ -509,17 +543,20 @@ function ns.CreateRestockColumnHeader(parent, scrollFrame)
 	removeSpacer:SetSize(REMOVE_ICON_SIZE, 1)
 	removeSpacer:SetPoint("RIGHT", captionRow, "RIGHT", -ROW_INSET, 0)
 
-	local amount = Caption(captionRow, L["RESTOCKER_COLUMN_AMOUNT"], HEADER_CAPTION_UNGROUPED, ns.restockAmountWidth)
-	amount:SetPoint("RIGHT", removeSpacer, "LEFT", -AMOUNT_GAP, 0)
-	header.amountCaption = amount
-
 	--[[
 	    Captions ride on buttons of their column's width: a FontString takes no
 	    mouse, and hovering a heading has to give the same explanation as hovering a
 	    cell under it. That is what lets the cells be glyphs instead of repeating
 	    the words on every row.
+
+	    A toggle column's heading also acts: a click offers to switch that column
+	    on or off for every row shown (ns.OpenRestockColumnMenu in
+	    Restocker-Window-Rows.lua), so its tooltip ends with a line saying so and
+	    it lights on hover like the cells under it. Reputation names one of five
+	    standings rather than on or off, so its heading only explains.
 	]]
-	header.cells = LayoutColumns(amount, function(column)
+	local firstCell
+	header.cells, firstCell = LayoutColumns(removeSpacer, function(column)
 		local button = CreateFrame("Button", nil, captionRow)
 		button:SetSize(ns.restockColumnWidths[column.key] or COLUMN_MIN_WIDTH, ns.restockButtonHeight)
 		local fontString = button:CreateFontString(nil, "OVERLAY")
@@ -528,9 +565,39 @@ function ns.CreateRestockColumnHeader(parent, scrollFrame)
 		fontString:SetTextColor(tone.r, tone.g, tone.b)
 		fontString:SetText(L[column.caption])
 		fontString:SetPoint("CENTER")
-		ns.SetupRestockerTooltip(button, L[column.title], unpack(TooltipBody(column)))
+
+		if column.isText then
+			ns.SetupRestockerTooltip(button, L[column.title], unpack(TooltipBody(column)))
+			ns.SetRestockControlClick(button)
+			return button
+		end
+
+		local body = { unpack(TooltipBody(column)) }
+		body[#body + 1] = L["RESTOCKER_COLUMN_BULK_HINT"]
+		ns.SetupRestockerTooltip(button, L[column.title], unpack(body))
+
+		button:SetHighlightTexture(CELL_HIGHLIGHT, "ADD")
+		local highlight = button:GetHighlightTexture()
+		if highlight then
+			highlight:SetVertexColor(GOLD.r, GOLD.g, GOLD.b, CELL_HIGHLIGHT_ALPHA)
+		end
+		ns.SetRestockControlClick(button, function(self)
+			ns.OpenRestockColumnMenu(column, self)
+		end)
 		return button
 	end)
+
+	--[[
+	    The Keep heading, over the box that leads the strip. A button for the same
+	    reason the column headings are: it carries the box's own tooltip.
+	]]
+	local amount = CreateFrame("Button", nil, captionRow)
+	amount:SetSize(ns.restockAmountWidth, ns.restockButtonHeight)
+	amount:SetPoint("RIGHT", firstCell, "LEFT", -COLUMN_GROUP_GAP, 0)
+	Caption(amount, L["RESTOCKER_COLUMN_AMOUNT"], HEADER_CAPTION_UNGROUPED):SetPoint("CENTER")
+	ns.SetupRestockerTooltip(amount, L["RESTOCKER_AMOUNT_TOOLTIP_TITLE"], L["RESTOCKER_AMOUNT_TOOLTIP_KEEP"])
+	ns.SetRestockControlClick(amount)
+	header.amountCaption = amount
 
 	--[[
 	    GROUP BANDS
@@ -583,7 +650,7 @@ function ns.RefreshRestockColumnHeader()
 	local header = ns.restockColumnHeader
 	if header and header.cells then
 		ApplyColumnWidths(header.cells)
-		-- The amount heading is not one of the laid-out cells, so it re-widths here.
+		-- The Keep heading is not one of the laid-out cells, so it re-widths here.
 		header.amountCaption:SetWidth(ns.restockAmountWidth)
 	end
 end
@@ -603,11 +670,14 @@ ns.RESTOCK_ROW_INSET = ROW_INSET
 ns.RESTOCK_ICON_SIZE = ICON_SIZE
 ns.RESTOCK_ICON_TEXT_GAP = ICON_TEXT_GAP
 ns.RESTOCK_NAME_COLUMN_GAP = NAME_COLUMN_GAP
-ns.RESTOCK_AMOUNT_GAP = AMOUNT_GAP
+ns.RESTOCK_KEEP_GAP = COLUMN_GROUP_GAP -- leftmost column to the Keep box
 ns.RESTOCK_CELL_GOLD = GOLD
 ns.RESTOCK_CELL_WHITE = WHITE
 ns.RESTOCK_CELL_DASH_OFF = DASH_OFF
 ns.RESTOCK_CELL_DASH_NOT_APPLICABLE = DASH_NOT_APPLICABLE
+ns.RESTOCK_CELL_KEEP_SHORT = KEEP_SHORT
+ns.RESTOCK_CELL_HIGHLIGHT = CELL_HIGHLIGHT
+ns.RESTOCK_CELL_HIGHLIGHT_ALPHA = CELL_HIGHLIGHT_ALPHA
 ns.RESTOCK_CELL_REPUTATION_SET = REPUTATION_SET
 ns.LayoutRestockColumns = LayoutColumns
 ns.ApplyRestockColumnWidths = ApplyColumnWidths

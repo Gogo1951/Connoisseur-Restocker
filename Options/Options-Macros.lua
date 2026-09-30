@@ -15,13 +15,14 @@ local RowLabel = ns.OptionsRowLabel
     Every sub-option hides until its toggle is on. A dropdown then appears on
     its toggle's line (see the Options Layout Grid in Data/Data.lua); a block
     of checkboxes, the scroll and pet food types, has no line to share, so it
-    appears beneath its toggle instead. These read the per-character settings
+    appears beneath its toggle instead. These read the profile's settings
     table that InitializeSavedVariables guarantees.
 
-    Settings live on the AceDB profile, so every character configures its own
-    consumables. The exceptions on this panel are account-wide and read
-    ns.db.global directly: Macro Names on Buttons and the Enable Macros
-    toggles (see Data/Default-Settings.lua for why each one stays there).
+    Settings live on the AceDB profile, which every character shares unless
+    the player made another one. The exceptions on this panel are
+    account-wide and read ns.db.global directly: Macro Names on Buttons and
+    the Enable Macros toggles (see Data/Default-Settings.lua for why each one
+    stays there).
 ]]
 
 local function GetSettings()
@@ -121,7 +122,7 @@ local function ModeDescription(featureName)
 	return string.format(L["OPTIONS_MODE_DESCRIPTION"], featureName)
 end
 
--- Toggle for one entry inside a per-character settings subtable (scroll/pet types).
+-- Toggle for one entry inside a profile settings subtable (scroll/pet types).
 local function SubsetToggle(subtableKey, key, label, order)
 	return {
 		type = "toggle",
@@ -142,8 +143,10 @@ end
 
 --[[
     One pet food toggle per row of the flavor folder's ns.PET_BUFF_FOODS, best
-    rank first, each named with the client's own item name. A name still
-    uncached shows as loading text and is warmed so the panel repaints.
+    rank first. Each stands for an item, so it wears the item's icon on the
+    icon checkbox (Options-Utilities.lua) and names it in its quality color,
+    as the Enable Macros rows do. A name still uncached shows as loading text
+    and is warmed so the panel repaints.
 ]]
 local function PetBuffTypeToggles()
 	local foods = {}
@@ -157,12 +160,18 @@ local function PetBuffTypeToggles()
 	local toggles = {}
 	local coldItemIDs = {}
 	for order, food in ipairs(foods) do
-		local name = C_Item.GetItemInfo(food.itemID)
-		if not name then
+		local label
+		if C_Item.GetItemInfo(food.itemID) then
+			label = ns.GetItemLabel(food.itemID)
+		else
 			coldItemIDs[#coldItemIDs + 1] = food.itemID
-			name = ns.GetItemDisplayName(food.itemID)
+			label = ns.GetItemDisplayName(food.itemID)
 		end
-		toggles["pet" .. food.settingKey] = SubsetToggle("petBuffTypes", food.settingKey, name, order)
+		local toggle = SubsetToggle("petBuffTypes", food.settingKey, label, order)
+		toggle.image = C_Item.GetItemIconByID(food.itemID)
+		toggle.imageCoords = ns.OPTIONS_ICON_TEXCOORDS
+		toggle.dialogControl = ns.ICON_CHECKBOX_WIDGET_TYPE
+		toggles["pet" .. food.settingKey] = toggle
 	end
 	ns.WarmItemCache(coldItemIDs, ns.OPTIONS_REGISTRY.Macros)
 	return toggles
@@ -222,12 +231,24 @@ end
     locale leads it with: the macros keep the dash, the panel drops it. The
     LABEL_* strings can't stand in, since three of them name the item rather
     than the macro (Explosive, Pet Food, Poison).
+
+    The row wears the macro's default icon between the box and the name: the
+    icon of the item the macro shows while the bags hold nothing it can use
+    (ns.MACRO_DEFAULT_ITEM_IDS, keyed by the same macro type as `key`), which
+    is how the macro looks on a fresh character's action bar. The checkbox is
+    the icon checkbox (Options-Utilities.lua), for the gap between the two.
 ]]
 local function MacroToggle(macroName, key, order, isHidden)
 	return {
 		type = "toggle",
 		name = (macroName:gsub("^%- ", "")),
 		desc = L["OPTIONS_MACRO_TOGGLE_DESCRIPTION"],
+		image = function()
+			local itemID = ns.MACRO_DEFAULT_ITEM_IDS[key]
+			return itemID and C_Item.GetItemIconByID(itemID) or nil
+		end,
+		imageCoords = ns.OPTIONS_ICON_TEXCOORDS,
+		dialogControl = ns.ICON_CHECKBOX_WIDGET_TYPE,
 		order = order,
 		width = "normal",
 		hidden = isHidden,
@@ -410,11 +431,28 @@ function ns.BuildMacrosOptions()
 		spacePotions1 = Spacer(42),
 		descPotions = Desc(GetColor("BODY") .. L["OPTIONS_POTIONS_DESCRIPTION"] .. "|r", 43),
 		spacePotions2 = Spacer(44),
+		togglePotionsUseFoodAndWater = {
+			type = "toggle",
+			name = L["OPTIONS_POTIONS_USE_FOOD_AND_WATER"],
+			desc = L["OPTIONS_POTIONS_USE_FOOD_AND_WATER_DESCRIPTION"],
+			order = 45,
+			width = "full",
+			get = function()
+				local settings = GetSettings()
+				return settings and settings.potionsUseFoodAndWater
+			end,
+			set = function(_, value)
+				ns.db.profile.potionsUseFoodAndWater = value
+				ns.ResetMacroState()
+				ns.RequestUpdate()
+			end,
+		},
+		spacePotions3 = Spacer(46),
 		toggleCombineHealthstones = {
 			type = "toggle",
 			name = L["OPTIONS_COMBINE_HEALTHSTONES"],
 			desc = L["OPTIONS_COMBINE_HEALTHSTONES_DESCRIPTION"],
-			order = 45,
+			order = 47,
 			width = "full",
 			get = function()
 				local settings = GetSettings()
@@ -563,7 +601,7 @@ function ns.BuildMacrosOptions()
 		spaceExplosives1 = Spacer(352),
 		descExplosives = Desc(GetColor("BODY") .. L["OPTIONS_EXPLOSIVES_DESCRIPTION"] .. "|r", 353),
 		spaceExplosives2 = Spacer(354),
-		labelExplosivesClickMode = RowLabel(GetColor("TITLE") .. L["OPTIONS_EXPLOSIVES_CLICK_LAYOUT"] .. "|r", 355),
+		labelExplosivesClickMode = RowLabel(GetColor("BODY") .. L["OPTIONS_EXPLOSIVES_CLICK_LAYOUT"] .. "|r", 355),
 		explosivesClickMode = {
 			type = "select",
 			name = "",
@@ -648,7 +686,7 @@ function ns.BuildMacrosOptions()
 		-- Label-beside-control rows: the label cell, then the unlabeled dropdown, one row wide together.
 		labelMainHandPoison = {
 			type = "description",
-			name = GetColor("TITLE") .. L["OPTIONS_POISON_MAIN_HAND"] .. "|r",
+			name = GetColor("BODY") .. L["OPTIONS_POISON_MAIN_HAND"] .. "|r",
 			fontSize = "medium",
 			width = ns.OPTIONS_LABEL_WIDTH,
 			order = 525,
@@ -658,7 +696,7 @@ function ns.BuildMacrosOptions()
 		spaceRogue3 = { type = "description", name = " ", order = 527, hidden = NotRogue },
 		labelOffHandPoison = {
 			type = "description",
-			name = GetColor("TITLE") .. L["OPTIONS_POISON_OFF_HAND"] .. "|r",
+			name = GetColor("BODY") .. L["OPTIONS_POISON_OFF_HAND"] .. "|r",
 			fontSize = "medium",
 			width = ns.OPTIONS_LABEL_WIDTH,
 			order = 528,

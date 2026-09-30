@@ -124,9 +124,11 @@ function ns.BuildIgnoreListOptions()
 			--[[
 			    A character with nothing ignored is noise in the tree, so it is
 			    left out -- except for the character playing right now, whose
-			    list has to be reachable to put a first item in it. Profile names
-			    are character keys ("Name - Realm") and are never localized, so
-			    they are shown as-is and sorted as plain strings.
+			    list has to be reachable to put a first item in it. A profile is
+			    named for its character ("Name - Realm", or the first name and
+			    surname on WoW Forever) unless the player typed the name, and
+			    neither is ever localized, so they are shown as-is and sorted as
+			    plain strings.
 			]]
 			local ignoreList = ns.GetIgnoreListForScope(profileName)
 			if profileName == currentProfile or (ignoreList and next(ignoreList) ~= nil) then
