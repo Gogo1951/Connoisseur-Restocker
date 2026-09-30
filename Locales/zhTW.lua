@@ -23,6 +23,7 @@ L["MACRO_BANDAGE"] = "- 繃帶"
 L["MACRO_EXPLOSIVES"] = "- 爆炸物"
 L["MACRO_FEED_PET"] = "- 餵養寵物"
 L["MACRO_FOOD"] = "- 食物"
+L["MACRO_FOOD_AND_POTION"] = "- 食物/藥水"
 L["MACRO_HEALTH_POTION"] = "- 治療藥水"
 L["MACRO_HEALTHSTONE"] = "- 治療石"
 L["MACRO_MANA_GEM"] = "- 法力寶石"
@@ -30,6 +31,7 @@ L["MACRO_MANA_POTION"] = "- 法力藥水"
 L["MACRO_POISONS"] = "- 毒藥"
 L["MACRO_SOULSTONE"] = "- 靈魂石"
 L["MACRO_WATER"] = "- 水"
+L["MACRO_WATER_AND_POTION"] = "- 水/藥水"
 
 --------------------------------------------------------------------------------
 -- Common

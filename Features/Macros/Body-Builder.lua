@@ -287,3 +287,91 @@ function ns.BuildStateKey(definition, itemID, useIDs, stackIDs, conjureInfo, app
 	end
 	return table.concat(stateParts, "_")
 end
+
+--------------------------------------------------------------------------------
+-- Combo Body Builder
+--------------------------------------------------------------------------------
+
+--[[
+    Composes a combo body with one /use [combat] line per combat id. Either
+    half with nothing in bags becomes a ConnoisseurNoItemIf line for its own
+    combat state, and a body with neither keeps the rest type's default icon.
+]]
+local function ComposeComboBody(restType, combatType, combatIDs, restID)
+	local combatID = combatIDs[1]
+	local lines = {}
+
+	if combatID or restID then
+		lines[1] = "#showtooltip"
+	else
+		lines[1] = "#showtooltip item:" .. ns.MACRO_DEFAULT_ITEM_IDS[restType]
+	end
+
+	if combatID and restID then
+		lines[#lines + 1] = '/run ConnoisseurFireIf("[combat]",' .. combatID .. "," .. restID .. ")"
+	elseif combatID or restID then
+		lines[#lines + 1] = "/run ConnoisseurFire(" .. (combatID or restID) .. ")"
+	end
+
+	if combatID then
+		for _, id in ipairs(combatIDs) do
+			lines[#lines + 1] = "/use [combat] item:" .. id
+		end
+	else
+		lines[#lines + 1] = '/run ConnoisseurNoItemIf("[combat]","' .. combatType .. '")'
+	end
+
+	if restID then
+		lines[#lines + 1] = "/use [nocombat] item:" .. restID
+	else
+		lines[#lines + 1] = '/run ConnoisseurNoItemIf("[nocombat]","' .. restType .. '")'
+	end
+
+	return table.concat(lines, "\n")
+end
+
+--[[
+    Builds the body and state key of a combo macro (Food & Potion, Water &
+    Potion): the restType winner out of combat, and in combat the combatType
+    macro's ranked lines followed by stackIDs. The canonical emitted macro is:
+
+      #showtooltip
+      /run ConnoisseurFireIf("[combat]",13446,8932)
+      /use [combat] item:13446
+      /use [combat] item:3928
+      /use [nocombat] item:8932
+
+    Bare #showtooltip shows the potion in combat and the food out of it. The
+    state key uses its own "COMBO:" prefix, since the definitions write it
+    through buildModeOverride.
+]]
+function ns.BuildComboBody(best, restType, combatType, stackIDs)
+	local combatIDs = {}
+	for _, id in ipairs(best[combatType].topIDs) do
+		combatIDs[#combatIDs + 1] = id
+	end
+	if stackIDs then
+		for _, id in ipairs(stackIDs) do
+			combatIDs[#combatIDs + 1] = id
+		end
+	end
+	local restID = best[restType].id
+
+	local combatKey = #combatIDs > 0 and table.concat(combatIDs, ",") or "none"
+	local stateKey = "COMBO:" .. combatKey .. ":" .. (restID and tostring(restID) or "none")
+
+	local body = ComposeComboBody(restType, combatType, combatIDs, restID)
+
+	--[[
+	    Measured in bytes against ns.MACRO_BODY_MAX_LENGTH (Data/Data.lua).
+	    Shed the combat lines from the bottom, stacked lines first; the first
+	    combat line is never dropped. combatIDs is this function's own copy,
+	    so dropping its tail leaves the scan's lists untouched.
+	]]
+	while #body > ns.MACRO_BODY_MAX_LENGTH and #combatIDs > 1 do
+		combatIDs[#combatIDs] = nil
+		body = ComposeComboBody(restType, combatType, combatIDs, restID)
+	end
+
+	return body, stateKey
+end

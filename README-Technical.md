@@ -52,7 +52,7 @@ Connoisseur/
 │   │   ├── Signatures.lua                       Target and group signatures, the friendly-player test
 │   │   ├── Smart-Spell.lua                      Conjure rank resolution (ns.GetSmartSpell)
 │   │   ├── Writer.lua                           Macro create, edit and delete, the full-book warning
-│   │   ├── Body-Builder.lua                     Standard body, conjure block and state key, the 255 trim
+│   │   ├── Body-Builder.lua                     Standard body, conjure block and state key, the 255 trim, the combo body
 │   │   ├── Engine.lua                           Definition registry and protocol, the update loop, the switch setter
 │   │   ├── Runtime.lua                          The globals macro bodies call, plus the short-name bridge
 │   │   ├── Tools-Mages.lua                      Mage conjure resolvers (food, water, gem, table)
@@ -62,12 +62,14 @@ Connoisseur/
 │   │   ├── Bandage.lua                          Definition
 │   │   ├── Explosive.lua                        Definition plus the click-layout use line
 │   │   ├── Food.lua                             Definition: buff food, pet-buff override, scroll-only mode, Stealth Eating
+│   │   ├── Food-and-Potion.lua                  Definition: the Food winner out of combat, Health Potion lines in it
 │   │   ├── Health-Potion.lua                    Ranked definition plus optional Healthstone stacking
 │   │   ├── Healthstone.lua                      Ranked definition
 │   │   ├── Mana-Gem.lua                         Ranked definition plus the opt-in runes
 │   │   ├── Mana-Potion.lua                      Ranked definition
 │   │   ├── Soulstone.lua                        Definition
 │   │   ├── Water.lua                            Definition plus the Shadowmeld drinking line
+│   │   ├── Water-and-Potion.lua                 Definition: the Water winner out of combat, Mana Potion lines in it
 │   │   └── Integration-Druid-Macro-Helper.lua   DruidMacroHelper powershift wrapping (HP, MP, HS)
 │   ├── Action-Button-Text.lua                   Macro-name visibility on the default action bars
 │   ├── Readiness-Report-Probes.lua              Stateless live reads: auras, weapons, gear, talents, PvP
@@ -261,16 +263,18 @@ ITEMIDS(+HS:stackIDs)?(_C(_M:id)?(_R:id)?(_MR:key)?(_MM:key)?(_NI:key)?)?(_EX:mo
 
 `ITEMIDS` is the single itemID, the literal `none` when there is no item, or the comma-joined ranked list for the multi-use types, so a change in any fallback rank also rewrites. `+HS:` carries Health Potion's stacked Healthstones, the `_C` group carries the conjure clicks and their not-yet-learned tips, `_EX:` carries the Explosive click layout, and `_SM` / `_SE` mark the Shadowmeld drinking and Stealth Eating lines.
 
-Namespaces are disjoint by prefix, so any transition into or out of a mode forces a rewrite: Food's scroll-only mode keys under `SCROLLS:` and the Druid Macro Helper override under `DMH:`, which also carries the return form's spell ID, so learning Dire Bear Form rewrites a body still returning to Bear Form. Poisons (`K` or `NK` plus each hand's item) and Feed Pet (knowledge tier, food item, dead-pet flag) keep their own keys under the same lossless rule.
+Namespaces are disjoint by prefix, so any transition into or out of a mode forces a rewrite: Food's scroll-only mode keys under `SCROLLS:`, the combo macros under `COMBO:` (their combat ids, then their rest item) and the Druid Macro Helper override under `DMH:`, which also carries the return form's spell ID, so learning Dire Bear Form rewrites a body still returning to Bear Form. Poisons (`K` or `NK` plus each hand's item) and Feed Pet (knowledge tier, food item, dead-pet flag) keep their own keys under the same lossless rule.
 
 ## Macro Runtime Globals
 
-A macro body's `/run` executes in the global environment, which cannot see the add-on namespace, so `Features/Macros/Runtime.lua` defines the four globals the bodies call, each with the full `Connoisseur` prefix:
+A macro body's `/run` executes in the global environment, which cannot see the add-on namespace, so `Features/Macros/Runtime.lua` defines the six globals the bodies call, each with the full `Connoisseur` prefix:
 
 - `ConnoisseurFire(itemID)` rides in every standard body that has an item and in every Druid Macro Helper body, and stamps the item and the time. When `ERR_ITEM_WRONG_ZONE` arrives within a second of it, `ns.OnMacroUiErrorMessage` prints a bug report naming the item, zone, subzone and map ID, which is how a wrong zone set in `Data/` gets reported with everything needed to fix it. The scroll-only, no-item, Poisons and Feed Pet bodies never call it, so a wrong-zone error from one of those prints no report. The call is short on purpose: it spends bytes in every body against the 255 ceiling.
+- `ConnoisseurFireIf(condition, itemID, altItemID)` stamps `itemID` when a macro conditional matches and `altItemID` otherwise, with the same sentinel as `ConnoisseurTipIf`. The Food & Potion and Water & Potion bodies call it with `[combat]` when both halves have an item, and `ConnoisseurFire` when only one does.
 - `ConnoisseurTip(key)` prints a canned tip: static text from `ns.TIP_MESSAGES`, or "you don't currently know" a spell from `ns.MISSING_SPELL_MESSAGE_IDS`, resolved through `C_Spell.GetSpellName` at press time so the name is localized and a spell absent from this client prints nothing.
 - `ConnoisseurTipIf(condition, key)` fires the tip only when a macro conditional matches. It appends a sentinel ` 1` so `SecureCmdOptionParse` returns a clean truthy value.
 - `ConnoisseurNoItem(typeName)` prints the no-item line. The type key stays English inside the body, so bodies and state keys are locale-independent, and resolves to its localized label at press time.
+- `ConnoisseurNoItemIf(condition, typeName)` prints the no-item line only when a macro conditional matches, with the same sentinel as `ConnoisseurTipIf`. The Food & Potion and Water & Potion bodies use it for a half with nothing in bags.
 
 Until 2026-10-18 the short names `ConnFire`, `ConnTip`, `ConnIf` and `ConnNoItem` remain as globals (MIGRATION): `ConnTip` and `ConnIf` translate the old tip keys, and the other two are plain aliases. A body saved by an older build calls them until Connoisseur rewrites it, which waits out combat and an open Macro UI, and a press before then would otherwise raise a Lua error.
 
@@ -305,6 +309,7 @@ Macro bodies are capped at 255, and the unit of that cap is unconfirmed (Style G
 | Site | Sheds | Never drops |
 |---|---|---|
 | `Body-Builder.lua`, `ns.BuildStandardBody` (ranked types only; any other body is never trimmed) | Stacked Healthstone lines first, then ranked fallback lines, bottom-up | The rank-1 `/use` line |
+| `Body-Builder.lua`, `ns.BuildComboBody` | Stacked Healthstone lines first, then potion fallback lines, bottom-up | The first `[combat]` line and the `[nocombat]` rest line |
 | `Integration-Druid-Macro-Helper.lua` | `/use` lines from the bottom, stacked stones first | The rank-1 `/use` line, and the trailing `/cast !Form` and `/dmh end` pair |
 | `Tools-Hunters.lua` | The Dismiss shortcut, then the Revive shortcut with its `[@pet,dead]` auto-revive | Summon, Mend, Feed and the food line |
 
@@ -500,7 +505,7 @@ The log sees only events currently registered on Core's frame, so an on-demand e
 
 ## Offline Test Suites
 
-WoW's sandboxed Lua has no test framework, so logic tests are plain-Lua scripts beside the code they test. They are dev-only: no TOC lists them and `.pkgmeta` strips both `Tests/` folders. Each prints its `ALL ... PASSED` line and exits 0. The three in `Features/Tests/` run from the add-on root and the rest from `Features/Restocker/`:
+WoW's sandboxed Lua has no test framework, so logic tests are plain-Lua scripts beside the code they test. They are dev-only: no TOC lists them and `.pkgmeta` strips both `Tests/` folders. Each prints its `ALL ... PASSED` line and exits 0. The four in `Features/Tests/` run from the add-on root and the rest from `Features/Restocker/`:
 
 ```
 lua Features/Tests/Readiness-Report-Test.lua
@@ -512,6 +517,7 @@ cd Features/Restocker && lua Tests/Restocker-Cold-Item-Test.lua
 | `Readiness-Report-Test.lua` | Real files | Silence (restricted auras included), the arena and battleground rules, the class and group gates, the soulstone name match, Mana Gem runes, ignored items counted as carried, Expiring Soon, spec and unspent talents (Forever's missing APIs included), print order |
 | `Diagnostics-Event-Log-Test.lua` | Real file | Folded uncorrelated messages, allowlisted full lines, verbatim unclassifiable firings, `UNIT_AURA` counting, secret arguments |
 | `Diagnostics-Validate-Data-Test.lua` | Real files | Validate Data's batch gate, the OK, INCOMPLETE, NOT ON CLIENT, ERROR, TABLE MISSING and `"other"` rows, one cell per column, both tooltip readers, stopping, restarting, the once-a-second repaint |
+| `Combo-Macros-Test.lua` | Real files | The Food & Potion and Water & Potion bodies, Healthstone stacking under Combine Healthstones, the no-item lines, the 255 trim, the state key, `ConnoisseurFireIf` and `ConnoisseurNoItemIf` |
 | `Restocker-Cold-Item-Test.lua` | Real files | The waiter-scoped item memo: remembered misses, forgets, releases and retries |
 | `Restocker-Saved-Migration-Test.lua` | Real files | Adoption, the saved-key rename and the Blinding Powder repair |
 | `Restocker-Starter-List-Test.lua` | Real files | Stack sizes read off the item, ticks on cold items, and rows named by the client |
@@ -636,7 +642,7 @@ The Spanish file pairing, the overflow canary (ruRU here, which is why the three
 - **Editing one flavor folder's copy of a row**: the seven folders hold separate copies, so a fix to one leaves the other six as they were. Look the ID up in every folder, change each copy the fix is true for (by script for any table over 20 rows), and say which copies you left and why.
 - **Changing a shipped macro name**: macros are found by name, so the rename creates a second macro and strands the old one on every action bar. `MACRO_*` values never change, in any locale.
 - **Passing a numeric `1` to `CreateMacro`'s `perCharacter` argument**: the client boolean-checks it, so a number lands in General only by accident. Omit the argument, as `ns.WriteMacroBody`, the only writer, does.
-- **Overflowing macro bodies in wide locales**: always assemble, then trim (the three trim sites). `#body` measures bytes, which holds under either reading of the 255 ceiling; never loosen it to a character count.
+- **Overflowing macro bodies in wide locales**: always assemble, then trim (the four trim sites). `#body` measures bytes, which holds under either reading of the 255 ceiling; never loosen it to a character count.
 - **Adding a ranking or cached field halfway**: steps compare booleans raw, so a nil against `false` decides a step that should tie, and a same-version build (every dev copy reads `Dev`) keeps cached entries missing a new field. Build every flag as a real boolean, copy every step field in `CopyCandidateRecord`, and extend the stale-schema nil-test in `ns.ScanBags`.
 - **`GetItemInfo` cold nils**: a fresh login cannot resolve uncached items. The scan flags `dataRetry` and re-runs on `GET_ITEM_INFO_RECEIVED`, so never assume the first scan is complete; Restock List adds, upgrades and List Builder ticks defer on the same miss rather than writing a row with the wrong name, and options panels hand cold ids to `ns.WarmItemCache`. Every answer heard must reach `ns.ForgetItemDataMiss` before any retry, since a miss remembered past its answer strands that item for the session, and anything parked on an item calls `ns.SyncRestockItemInfoSubscription` so the `"restocker"` waiter stays registered while it waits.
 - **Calling the deprecated item globals**: on every client `GetItemInfo`, `GetItemCount` and their kin exist only through Blizzard's deprecation layer, which the `loadDeprecationFallbacks` CVar switches off, and the offline suites stub them, so a call that works only through the layer passes every test. Call `C_Item` directly (and `C_SpecializationInfo` for talents), with no legacy fallback: every client ships the namespaced item readers. The same holds for `IsSpellKnown` and `IsPlayerSpell` on Forever: go through `ns.IsSpellKnown` / `ns.IsPlayerSpell`, which read `C_SpellBook`.

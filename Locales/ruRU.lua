@@ -23,6 +23,7 @@ L["MACRO_BANDAGE"] = "- Бинты"
 L["MACRO_EXPLOSIVES"] = "- Взрывчатка"
 L["MACRO_FEED_PET"] = "- Корм. питомца"
 L["MACRO_FOOD"] = "- Еда"
+L["MACRO_FOOD_AND_POTION"] = "- Еда/зелье"
 L["MACRO_HEALTH_POTION"] = "- Леч. зелье"
 L["MACRO_HEALTHSTONE"] = "- Кам. здоровья"
 L["MACRO_MANA_GEM"] = "- Мана-камень"
@@ -30,6 +31,7 @@ L["MACRO_MANA_POTION"] = "- Зелье маны"
 L["MACRO_POISONS"] = "- Яды"
 L["MACRO_SOULSTONE"] = "- Кам. души"
 L["MACRO_WATER"] = "- Вода"
+L["MACRO_WATER_AND_POTION"] = "- Вода/зелье"
 
 --------------------------------------------------------------------------------
 -- Common

@@ -44,6 +44,8 @@ Macros that automatically use your best food, water, potions, healthstones, band
 | `- Explosives` | Hardest-hitting bomb, grenade, or sapper your Engineering skill allows, with Ez-Thro Dynamite open to everyone |
 | `- Feed Pet` | All-in-one pet button (Hunters only) |
 | `- Poisons` | Poisons for both weapons from one button (Rogues only) |
+| `- Food & Potion` | Best food out of combat, best healing potion in combat, optionally with your best Healthstone stacked underneath |
+| `- Water & Potion` | Best drink out of combat, best mana potion in combat |
 
 **How it picks.** Connoisseur ranks every usable item in your bags:
 

@@ -23,6 +23,7 @@ L["MACRO_BANDAGE"] = "- Bandagem"
 L["MACRO_EXPLOSIVES"] = "- Explosivos"
 L["MACRO_FEED_PET"] = "- Alim. Ajudante"
 L["MACRO_FOOD"] = "- Comida"
+L["MACRO_FOOD_AND_POTION"] = "- Comida/Poção"
 L["MACRO_HEALTH_POTION"] = "- Poção de Cura"
 L["MACRO_HEALTHSTONE"] = "- Pedra de Vida"
 L["MACRO_MANA_GEM"] = "- Gema de Mana"
@@ -30,6 +31,7 @@ L["MACRO_MANA_POTION"] = "- Poção de Mana"
 L["MACRO_POISONS"] = "- Venenos"
 L["MACRO_SOULSTONE"] = "- Pedra de Alma"
 L["MACRO_WATER"] = "- Água"
+L["MACRO_WATER_AND_POTION"] = "- Água/Poção"
 
 --------------------------------------------------------------------------------
 -- Common

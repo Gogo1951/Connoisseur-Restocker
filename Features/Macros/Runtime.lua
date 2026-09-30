@@ -15,11 +15,11 @@ local L = ns.L
     "Connoisseur" prefix to keep collision risk negligible.
 
     They are the runtime half of the macro system: the macro builders emit
-    `/run ConnoisseurFire / ConnoisseurTip / ConnoisseurTipIf /
-    ConnoisseurNoItem` lines, and these functions run when the player presses
-    the macro. This file loads after Announcements (ConnoisseurTip and
-    ConnoisseurNoItem call ns.PrintMessage) and after Data (reads
-    ns.TIP_MESSAGES, ns.MISSING_SPELL_MESSAGE_IDS, ns.MACRO_CONFIG).
+    `/run ConnoisseurFire / ConnoisseurFireIf / ConnoisseurTip /
+    ConnoisseurTipIf / ConnoisseurNoItem / ConnoisseurNoItemIf` lines, and
+    these functions run when the player presses the macro. This file loads after Announcements
+    (ConnoisseurTip and ConnoisseurNoItem call ns.PrintMessage) and after Data
+    (reads ns.TIP_MESSAGES, ns.MISSING_SPELL_MESSAGE_IDS, ns.MACRO_CONFIG).
 ]]
 
 --[[
@@ -38,6 +38,19 @@ local macroFireState = {}
 function ConnoisseurFire(itemID)
 	macroFireState.lastID = itemID
 	macroFireState.lastTime = GetTime()
+end
+
+--[[
+    Conditional sibling of ConnoisseurFire: stamps itemID when the macro
+    conditional matches, else altItemID. The combo macros pass the same
+    conditional as their /use lines, so the stamp names the item that fired.
+]]
+function ConnoisseurFireIf(condition, itemID, altItemID)
+	if SecureCmdOptionParse(condition .. " 1") then
+		ConnoisseurFire(itemID)
+	else
+		ConnoisseurFire(altItemID)
+	end
 end
 
 --[[
@@ -127,6 +140,16 @@ function ConnoisseurNoItem(typeName)
 	local config = ns.MACRO_CONFIG[typeName]
 	local label = config and config.label or typeName
 	ns.PrintMessage(string.format(L["MESSAGE_NO_ITEM"], label))
+end
+
+--[[
+    Conditional sibling of ConnoisseurNoItem: prints only when the macro
+    conditional matches, with the same sentinel as ConnoisseurTipIf.
+]]
+function ConnoisseurNoItemIf(condition, typeName)
+	if SecureCmdOptionParse(condition .. " 1") then
+		ConnoisseurNoItem(typeName)
+	end
 end
 
 -- MIGRATION (remove after 2026-10-18)

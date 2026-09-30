@@ -23,6 +23,7 @@ L["MACRO_BANDAGE"] = "- 붕대"
 L["MACRO_EXPLOSIVES"] = "- 폭발물"
 L["MACRO_FEED_PET"] = "- 먹이 주기"
 L["MACRO_FOOD"] = "- 음식"
+L["MACRO_FOOD_AND_POTION"] = "- 음식/물약"
 L["MACRO_HEALTH_POTION"] = "- 치유 물약"
 L["MACRO_HEALTHSTONE"] = "- 생명석"
 L["MACRO_MANA_GEM"] = "- 마나 보석"
@@ -30,6 +31,7 @@ L["MACRO_MANA_POTION"] = "- 마나 물약"
 L["MACRO_POISONS"] = "- 독"
 L["MACRO_SOULSTONE"] = "- 영혼석"
 L["MACRO_WATER"] = "- 물"
+L["MACRO_WATER_AND_POTION"] = "- 물/물약"
 
 --------------------------------------------------------------------------------
 -- Common

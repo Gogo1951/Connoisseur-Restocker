@@ -182,12 +182,14 @@ ns.MACRO_CONFIG = {
 	["Bandage"] = { macro = ns.L["MACRO_BANDAGE"], label = ns.L["LABEL_BANDAGE"] },
 	["Explosive"] = { macro = ns.L["MACRO_EXPLOSIVES"], label = ns.L["LABEL_EXPLOSIVE"] },
 	["Food"] = { macro = ns.L["MACRO_FOOD"], label = ns.L["LABEL_FOOD"] },
+	["Food & Potion"] = { macro = ns.L["MACRO_FOOD_AND_POTION"], label = ns.L["LABEL_FOOD"] },
 	["Health Potion"] = { macro = ns.L["MACRO_HEALTH_POTION"], label = ns.L["LABEL_HEALTH_POTION"] },
 	["Healthstone"] = { macro = ns.L["MACRO_HEALTHSTONE"], label = ns.L["LABEL_HEALTHSTONE"] },
 	["Mana Gem"] = { macro = ns.L["MACRO_MANA_GEM"], label = ns.L["LABEL_MANA_GEM"] },
 	["Mana Potion"] = { macro = ns.L["MACRO_MANA_POTION"], label = ns.L["LABEL_MANA_POTION"] },
 	["Soulstone"] = { macro = ns.L["MACRO_SOULSTONE"], label = ns.L["LABEL_SOULSTONE"] },
 	["Water"] = { macro = ns.L["MACRO_WATER"], label = ns.L["LABEL_WATER"] },
+	["Water & Potion"] = { macro = ns.L["MACRO_WATER_AND_POTION"], label = ns.L["LABEL_WATER"] },
 	["Feed Pet"] = { macro = ns.L["MACRO_FEED_PET"], label = ns.L["LABEL_PET_FOOD"] },
 	["Poisons"] = { macro = ns.L["MACRO_POISONS"], label = ns.L["LABEL_POISONS"] },
 }
@@ -222,9 +224,10 @@ ns.MACRO_SLOT_CUSHION = 0
     Blizzard's macro edit box caps with letters="255" while the chat box uses
     SetMaxBytes, so the two may not agree. Every guard therefore measures #body
     in BYTES, which is never smaller than a character count and so holds under
-    either reading -- never convert one to a character count. The three trims
-    that read this are in Macros/Body-Builder.lua, Macros/Tools-Hunters.lua and
-    Macros/Integration-Druid-Macro-Helper.lua; ruRU is the overflow canary.
+    either reading -- never convert one to a character count. The four trims
+    that read this are in Macros/Body-Builder.lua (standard and combo bodies),
+    Macros/Tools-Hunters.lua and Macros/Integration-Druid-Macro-Helper.lua;
+    ruRU is the overflow canary.
 ]]
 ns.MACRO_BODY_MAX_LENGTH = 255
 

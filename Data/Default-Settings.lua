@@ -242,13 +242,14 @@ ns.DATABASE_DEFAULTS = {
 		    are class-gated on top of this toggle and build only for Hunters and
 		    Rogues; the conjure-capable macros (Healthstone, Mana Gem,
 		    Soulstone) are built for every class, with only their conjure clicks
-		    class-gated.
+		    class-gated. The two combo macros are opt-in.
 		]]
 		enabledMacros = {
 			["Bandage"] = true,
 			["Explosive"] = true,
 			["Feed Pet"] = true,
 			["Food"] = true,
+			["Food & Potion"] = false,
 			["Health Potion"] = true,
 			["Healthstone"] = true,
 			["Mana Gem"] = true,
@@ -256,6 +257,7 @@ ns.DATABASE_DEFAULTS = {
 			["Poisons"] = true,
 			["Soulstone"] = true,
 			["Water"] = true,
+			["Water & Potion"] = false,
 		},
 		--[[
 		    Minimap button visibility. LibDBIcon reads `hide` from this subtable,

@@ -119,9 +119,11 @@ globals = {
 	-- MIGRATION (remove after 2026-09-29): read once at login and cleared; see Features/Restocker/Restocker-Saved-Migration.lua
 	"ConnoisseurRestockerDB",
 	"ConnoisseurFire",
+	"ConnoisseurFireIf",
 	"ConnoisseurTip",
 	"ConnoisseurTipIf",
 	"ConnoisseurNoItem",
+	"ConnoisseurNoItemIf",
 	"SLASH_CONNOISSEUR1",
 	"SLASH_CONNOISSEURRESTOCKER1",
 	"SlashCmdList",

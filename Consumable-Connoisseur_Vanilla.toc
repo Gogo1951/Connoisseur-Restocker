@@ -117,12 +117,14 @@ Features/Macros/Tools-Hunters.lua
 Features/Macros/Bandage.lua
 Features/Macros/Explosive.lua
 Features/Macros/Food.lua
+Features/Macros/Food-and-Potion.lua
 Features/Macros/Health-Potion.lua
 Features/Macros/Healthstone.lua
 Features/Macros/Mana-Gem.lua
 Features/Macros/Mana-Potion.lua
 Features/Macros/Soulstone.lua
 Features/Macros/Water.lua
+Features/Macros/Water-and-Potion.lua
 Features/Macros/Integration-Druid-Macro-Helper.lua
 Features/Action-Button-Text.lua
 Features/Readiness-Report-Probes.lua
