@@ -65,7 +65,7 @@ Macros that automatically use your best food, water, potions, healthstones, band
 * **Named lists** let a character switch loadouts or share one with an alt. Copy, rename, and delete all live in the window.
 * **Hold Shift** while opening a merchant or the bank to skip restocking for that visit.
 
-<img width="800" src="https://github.com/user-attachments/assets/73bbf400-da83-42b2-b000-9a31ea392309" />
+<img width="800" src="https://github.com/user-attachments/assets/62a9acfb-6c3d-4443-bf73-3af49ae3a5ec" />
 
 ### Class & Race Features
 
@@ -90,7 +90,7 @@ Macros that automatically use your best food, water, potions, healthstones, band
 | Middle-Click | Clear this character's Ignore List |
 | Shift + Middle-Click | Open the Options Interface |
 
-<img width="300" src="https://github.com/user-attachments/assets/f0328eab-56bf-4957-9262-3627d7976bb8" />
+<img width="300" src="https://github.com/user-attachments/assets/a2e70f47-00a1-4259-9401-d07d0d2200ec" />
 
 ### Options
 
@@ -106,7 +106,7 @@ Type `/foodie` to open the Options Interface, also found under **Options > AddOn
 
 Most settings are per character, so your raiding 60 and your level-15 alt keep their own consumable choices. Which macros exist, the mini-map button, the Restocker and Readiness Report settings, and your Restock Lists are account-wide, though each character picks the list it shops from.
 
-<img width="800" src="https://github.com/user-attachments/assets/5223b8ad-b718-45b3-a585-68d550b7f5e3" />
+<img width="800" src="https://github.com/user-attachments/assets/0f234519-72ad-44f9-b97d-5cffce8634c6" />
 
 ## Testing & Localization Status
 
