@@ -16,11 +16,7 @@ local _, ns = ...
 ]]
 
 --[[
-    Source: copied from Data/Vanilla/Poisons-Vanilla.lua before Classic Era's
-    Validate Data pass, then pruned of the Anesthetic group and the twelve ranks
-    above level 60: WoW Forever's own item table (wago.tools, build
-    1.60.1.69977) has none of them. Validate Data on this client, with the
-    Poisons report, has yet to confirm the rest.
+    Source: Validate Data on the WoW Forever client (1.60.1, build 70124).
 ]]
 
 -- [groupID] = base item of the series (the group's runtime display name)

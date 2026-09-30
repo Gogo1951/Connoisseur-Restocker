@@ -35,7 +35,7 @@ L["MACRO_WATER"] = "- 물"
 -- Common
 --------------------------------------------------------------------------------
 
--- Joins the items of a printed list: a Readiness Report clause, or the Restocker's "Couldn't move" list.
+-- Joins the items of a list: a Readiness Report clause, the Restocker's "Couldn't move" list, or the characters on a Restock List.
 L["LIST_SEPARATOR"] = ", "
 -- The decimal mark in a number the code prints, such as the Readiness Report's 2.5-minute choice.
 L["DECIMAL_SEPARATOR"] = "."
@@ -51,7 +51,7 @@ L["DECIMAL_SEPARATOR"] = "."
     /dump C_PetInfo.GetPetFoodTypes() on Forever). Used to build
     ns.PET_DIET_MAP in Data/Data.lua.
 
-    They are ALSO the food checkbox labels in the Starter List pop-up, so they
+    They are ALSO the food checkbox labels in the staples pop-up, so they
     read as ordinary labels while carrying that hard constraint. Translate them
     as the client's own diet words, never as the nicer label they look like --
     a locale that "improves" one here stops matching that client's strings and
@@ -170,21 +170,23 @@ L["MENU_BUFF_FOOD_DESCRIPTION"] =
 	'"포만감" 버프가 없을 때 해당 버프를 주는 음식을 우선 사용합니다.'
 L["FEATURE_SCROLL_BUFFS"] = "두루마리 버프"
 L["MENU_SCROLL_BUFFS_DESCRIPTION"] =
-	"두루마리 버프가 없을 때 음식 매크로가 두루마리를 사용하도록 바꿉니다."
+	"음식을 먹기 전에 음식 매크로로 빠진 두루마리 버프를 적용합니다."
 
--- Section titles and ignore-list actions in the mini-map tooltip.
+--[[
+    Item titles in the mini-map tooltip. A title sits alone on its row and its
+    item is right-aligned on the row beneath, so neither has to stay short;
+    with nothing to show, MESSAGE_NO_ITEM takes the item's row. Current Pet
+    Food opens the Attention Hunters block, and the two poison titles open the
+    Attention Rogues block.
+]]
 L["MINIMAP_BEST_FOOD"] = "현재 음식"
 L["MINIMAP_BEST_PET_FOOD"] = "현재 소환수 음식"
--- Weapon-slot titles beside the rogue's resolved poison, in the Attention Rogues block.
-L["MINIMAP_MAIN_HAND"] = "주장비"
-L["MINIMAP_OFF_HAND"] = "보조장비"
---[[
-    The value shown beside an item title when nothing resolved. Kept to a single
-    word so it fits in the tooltip's right column, which never wraps -- the full
-    sentence, MESSAGE_NO_ITEM, explains it on the wrapping line underneath.
-]]
-L["MINIMAP_NONE"] = "없음"
+L["MINIMAP_MAIN_HAND_POISON"] = "주장비 독"
+L["MINIMAP_OFF_HAND_POISON"] = "보조장비 독"
+
+-- The Ignore List block. The count stands in for a list too long to show, so it is never one and needs no singular.
 L["MINIMAP_IGNORE_LIST"] = "차단 목록"
+L["MINIMAP_IGNORE_COUNT"] = "아이템 %d개"
 L["MENU_IGNORE"] = "차단"
 L["MENU_CLEAR_IGNORE"] = "차단 목록 초기화"
 
@@ -203,7 +205,9 @@ L["MENU_CLEAR_IGNORE"] = "차단 목록 초기화"
     The count sits in the tooltip's right column, beside the header, so it has
     to stay short enough to read as a value rather than a sentence. The
     all-stocked case has no header and no count: STOCKED replaces the whole
-    row, on a wrapping line of its own, so it can be a full sentence.
+    row, on a wrapping line of its own, so it can be a full sentence. EMPTY is
+    the line under the header when the list holds nothing at all, which is not
+    the same as being stocked.
 
     ITEM_COUNT is the right-hand value of a listed row: { have, wanted }, the
     ratio RESTOCKER_REMINDER_ITEM prints. Wordless, so there is nothing to
@@ -213,18 +217,28 @@ L["MINIMAP_RESTOCKER_REPORT"] = "Restocker 보고서"
 L["MINIMAP_RESTOCKER_NEEDED"] = "미완료 주문 %d건"
 L["MINIMAP_RESTOCKER_ITEM_COUNT"] = "%d/%d"
 L["MINIMAP_RESTOCKER_STOCKED"] = "축하합니다, 필요한 물품을 모두 갖췄습니다!"
+L["MINIMAP_RESTOCKER_EMPTY"] = "목록이 비어 있습니다."
 
--- Options entry at the bottom of the mini-map tooltip.
+--[[
+    The Restocker List block, above the class notes: its title, a line saying
+    what the list is for, and its click, which sits beside MINIMAP_OPEN. "Your
+    list" in the description and in MINIMAP_RESTOCKER_EMPTY is this list. The
+    Options entry is always the tooltip's last block and has no action label.
+]]
+L["MENU_RESTOCKER"] = "Restocker 목록"
+L["MENU_RESTOCKER_DESCRIPTION"] = "목록에 있는 아이템을 구매하고 은행에 보관합니다."
+L["MENU_RESTOCKER_KEYBIND"] = "Shift + 우클릭"
 L["MENU_OPTIONS"] = "Connoisseur 설정"
 L["MENU_OPTIONS_KEYBIND"] = "Shift + 휠클릭"
 
 --------------------------------------------------------------------------------
--- Class Tips
+-- Class Notes
 --------------------------------------------------------------------------------
 
 --[[
-    Class-colored headers and click tips shown in the mini-map tooltip for the
-    player's class.
+    The class block of the mini-map tooltip: a class-colored header, the items
+    the class's own macro will use (a Hunter's pet food, a Rogue's two poisons,
+    titled in the Minimap Tooltip section above), then one group per macro.
 ]]
 
 L["PREFIX_HUNTER"] = "사냥꾼 주목"
@@ -233,52 +247,51 @@ L["PREFIX_ROGUE"] = "도적 주목"
 L["PREFIX_WARLOCK"] = "흑마법사 주목"
 
 --[[
-    Subtitle under each class header, naming the macros the tips below apply
-    to. Each tip below is one instruction, rendered on its own line. The Mage
-    and Warlock tips name the macro they belong to, since those blocks cover
-    more than one macro and a bare "Right-Click" would be ambiguous; the Hunter
-    and Rogue blocks cover one macro each, which the subtitle names.
-
-    The verb tracks the real spell names, which differ by class: mages get
-    Conjure Food / Conjure Water, warlocks get Create Healthstone / Create
-    Soulstone.
+    A group is the macro's name, then one row per click: the click on the left
+    and what it does on the right. The right-hand column never wraps, so each
+    result stays a few words. A spell the row casts is named by the client
+    (Mend Pet, Ritual of Refreshment, Ritual of Souls) and has no key here, and
+    a plain click reuses MINIMAP_LEFT_CLICK, MINIMAP_RIGHT_CLICK or
+    MINIMAP_MIDDLE_CLICK.
 ]]
-L["TIP_HUNTER_MACROS"] = "먹이 주기 매크로 안내..."
-L["TIP_MAGE_MACROS"] = "음식, 물, 마나 보석 매크로 안내..."
-L["TIP_ROGUE_MACROS"] = "독 매크로 안내..."
-L["TIP_WARLOCK_MACROS"] = "생명석 및 영혼석 매크로 안내..."
+L["NOTE_MACRO_FEED_PET"] = "먹이 주기 매크로"
+L["NOTE_MACRO_FOOD_WATER"] = "음식 및 물 매크로"
+L["NOTE_MACRO_MANA_GEM"] = "마나 보석 매크로"
+L["NOTE_MACRO_HEALTHSTONE"] = "생명석 매크로"
+L["NOTE_MACRO_SOULSTONE"] = "영혼석 매크로"
+L["NOTE_MACRO_POISONS"] = "독 매크로"
 
-L["TIP_HUNTER_ALL_IN_ONE"] = "먹이 주기는 올인원 소환수 버튼입니다!"
-L["TIP_HUNTER_CALL"] = "좌클릭하면 소환수를 자동으로 부르거나, 먹이를 주거나, 되살립니다."
-L["TIP_HUNTER_MEND"] = "우클릭하거나 전투 중에 클릭하면 동물 치료를 시전합니다."
-L["TIP_HUNTER_MODIFIERS"] =
-	"Shift를 누르고 있으면 되살리기를 강제하고, Ctrl을 누르고 있으면 소환을 해제합니다."
+-- Hunter. NOTE_PET_MEND_CLICK is the click that casts Mend Pet: a Right-Click, or any click during combat.
+L["NOTE_PET_CALL_FEED_REVIVE"] = "부르기, 먹이주기 또는 되살리기"
+L["NOTE_PET_MEND_CLICK"] = "우클릭 또는 전투 중"
+L["NOTE_HOLD_SHIFT"] = "Shift 누른 채"
+L["NOTE_PET_FORCE_REVIVE"] = "강제 되살리기"
+L["NOTE_HOLD_CONTROL"] = "Ctrl 누른 채"
+L["NOTE_PET_DISMISS"] = "소환해제"
 
 --[[
+    Mage and Warlock. The verb tracks the real spell names, which differ by
+    class: mages Conjure, warlocks Create. A second Right-Click makes the next
+    rank down, since the bags hold one of each rank.
+
     Target downranking is per-macro, not block-wide: it applies only to the
-    mage's Food and Water and the warlock's Healthstone. Mana Gems, Soulstones,
-    and both rituals ignore the target (ignoreTarget in the resolvers), so each
-    line names what it actually affects rather than saying "the macro."
+    mage's Food and Water and the warlock's Healthstone, so each line closes
+    the group it belongs to. "One" in the warlock's line is a Healthstone.
 ]]
-L["TIP_MAGE_CONJURE"] =
-	"음식 또는 물 매크로를 우클릭하면 음식 창조 또는 음료 창조를 시전합니다."
-L["TIP_MAGE_DOWNRANK"] =
-	"레벨이 낮은 플레이어를 대상으로 지정하면 그 레벨에 맞는 음식이나 물을 창조합니다."
-L["TIP_MAGE_TABLE"] = "음식 또는 물 매크로를 휠클릭하면 원기 회복의 의식을 시전합니다."
-L["TIP_MAGE_GEM"] =
-	"마나 보석 매크로를 우클릭하면 새 보석을 창조합니다. 다시 우클릭하면 낮은 등급의 예비 보석을 창조합니다."
-
-L["TIP_WARLOCK_HEALTHSTONE"] =
-	"생명석 매크로를 우클릭하면 생명석 창조를 시전합니다. 다시 우클릭하면 낮은 등급의 예비 생명석을 창조합니다."
-L["TIP_WARLOCK_DOWNRANK"] =
+L["NOTE_CONJURE"] = "창조"
+L["NOTE_CREATE"] = "창조"
+L["NOTE_RIGHT_CLICK_AGAIN"] = "다시 우클릭"
+L["NOTE_LOWER_RANK_BACKUP"] = "낮은 등급 예비"
+L["NOTE_MAGE_TARGET_LEVEL"] =
+	"레벨이 낮은 플레이어를 대상으로 지정하면 그 레벨에 맞게 창조합니다."
+L["NOTE_WARLOCK_TARGET_LEVEL"] =
 	"레벨이 낮은 플레이어를 대상으로 지정하면 그 레벨에 맞는 생명석을 창조합니다."
-L["TIP_WARLOCK_SOULSTONE"] = "영혼석 매크로를 우클릭하면 영혼석 창조를 시전합니다."
-L["TIP_WARLOCK_SOUL"] = "생명석 매크로를 휠클릭하면 영혼의 의식을 시전합니다."
 
-L["TIP_ROGUE_OFF_HAND"] = "좌클릭하면 보조장비에 독을 바릅니다."
-L["TIP_ROGUE_MAIN_HAND"] = "우클릭하면 주장비에 독을 바릅니다."
-L["TIP_ROGUE_REPLACE"] = "기존 독은 자동으로 교체됩니다."
-L["TIP_ROGUE_WINDOW"] = "휠클릭하면 독 조제 창을 엽니다."
+-- Rogue. The two hands are the results of a Left-Click and a Right-Click on the Poisons macro.
+L["MINIMAP_MAIN_HAND"] = "주장비"
+L["MINIMAP_OFF_HAND"] = "보조장비"
+L["NOTE_POISONS_WINDOW"] = "독 조제 창"
+L["NOTE_POISONS_REPLACED"] = "기존 독을 자동으로 교체합니다."
 
 --------------------------------------------------------------------------------
 -- Item Labels
@@ -287,7 +300,7 @@ L["TIP_ROGUE_WINDOW"] = "휠클릭하면 독 조제 창을 엽니다."
 --[[
     One label per macro type, dropped as-is into MESSAGE_NO_ITEM ("No suitable
     %s found...") from ConnoisseurNoItem and the mini-map tooltip. LABEL_WATER
-    is also the List Builder's Water checkbox.
+    is also the staples pop-up's Water checkbox.
 ]]
 
 L["LABEL_BANDAGE"] = "붕대"
@@ -311,6 +324,7 @@ L["LABEL_WATER"] = "물"
 L["MINIMAP_ENABLED"] = "켜짐"
 L["MINIMAP_DISABLED"] = "꺼짐"
 L["MINIMAP_TOGGLE"] = "켜기/끄기"
+L["MINIMAP_OPEN"] = "열기"
 L["MINIMAP_LEFT_CLICK"] = "좌클릭"
 L["MINIMAP_RIGHT_CLICK"] = "우클릭"
 L["MINIMAP_MIDDLE_CLICK"] = "휠클릭"
@@ -328,6 +342,10 @@ L["MINIMAP_SHIFT_LEFT"] = "Shift + 좌클릭"
     conjured dropdown has hover text of its own. The dropdowns have no
     caption, so each value carries its own "when". Leveling means below the
     client's max level.
+
+    In the mini-map tooltip, a Buff Food or Scroll Buffs switch that is on
+    while its choice does not apply shows the choice's label in place of
+    MINIMAP_ENABLED, so every label has to read as a state too.
 ]]
 L["OPTIONS_MODE_DESCRIPTION"] =
 	"음식 매크로에서 %s 기능을 항상 사용할지, 아니면 혼자일 때, 파티 또는 공격대에 있을 때, 공격대에 있을 때, 레벨업 중일 때, 최고 레벨일 때만 사용할지 선택합니다."
@@ -339,11 +357,37 @@ L["MODE_LEVELING"] = "레벨업 중일 때"
 L["MODE_MAX_LEVEL"] = "최고 레벨일 때"
 
 --------------------------------------------------------------------------------
+-- Inventory Report
+--------------------------------------------------------------------------------
+
+--[[
+    The block Features/Inventory-Report.lua adds under an item's own tooltip
+    lines. Its header is "Connoisseur & Restocker // Inventory Report": the
+    brand below, filled with ADDON_TITLE and TAB_RESTOCKER, then the title, in
+    the chat prints' branded colors. Under it, each line is a label on the left
+    with its count at the right edge: Bags, Bank, one line per other character
+    (the client's own character names, so no keys here), then Total.
+
+    Keep the labels to a word: they share a line with a number, and the tooltip
+    is as wide as its longest line. The Bags count of a Restock List item is the
+    have/keep ratio MINIMAP_RESTOCKER_ITEM_COUNT prints.
+]]
+-- { add-on name, feature name }
+L["INVENTORY_REPORT_BRAND"] = "%s & %s"
+L["INVENTORY_REPORT_TITLE"] = "보유량 보고서"
+L["INVENTORY_REPORT_BAGS"] = "가방"
+L["INVENTORY_REPORT_BANK"] = "은행"
+-- In place of the Bank count, muted, until this character's bank has been opened once with the add-on running.
+L["INVENTORY_REPORT_BANK_UNKNOWN"] = "미확인"
+-- Everything above it added up: this character and every other one on the realm.
+L["INVENTORY_REPORT_TOTAL"] = "합계"
+
+--------------------------------------------------------------------------------
 -- Options Panel
 --------------------------------------------------------------------------------
 
 L["OPTIONS_DESCRIPTION"] =
-	"최고의 음식, 버프 음식, 물, 물약, 생명석, 붕대, 두루마리를 자동으로 사용하는 매크로와, 가방을 가득 채워 두고 레벨에 맞춰 소모품을 업그레이드해 주는 보충 목록을 제공합니다. 최고의 성능을 위한 편의성 자동화입니다."
+	"가장 좋은 음식, 물, 물약, 생명석, 붕대, 독, 소환수 음식을 자동으로 사용하는 매크로와, 소모품을 자동으로 구매하고 은행에 보관하며 레벨에 맞춰 업그레이드해 주는 보충 목록을 제공합니다. 최고의 성능을 위한 편의성 자동화입니다."
 
 -- Welcome Message
 L["OPTIONS_WELCOME_MESSAGE"] = "환영 메시지 활성화"
@@ -362,7 +406,7 @@ L["OPTIONS_COMMANDS_HEADER"] = "/Commands"
 L["OPTIONS_COMMAND"] = "/foodie"
 L["OPTIONS_COMMAND_DESCRIPTION"] = "이 애드온의 설정 인터페이스를 엽니다."
 L["RESTOCKER_COMMAND"] = "/crs"
-L["RESTOCKER_COMMAND_DESCRIPTION"] = "보충 목록을 관리할 Restocker 창을 엽니다."
+L["RESTOCKER_COMMAND_DESCRIPTION"] = "보충 목록을 엽니다."
 
 --[[
     Feedback & Support. The four service names are brand names and stay English
@@ -446,6 +490,9 @@ L["OPTIONS_CONJURED_FIRST_MODE_DESCRIPTION"] =
 L["OPTIONS_POTIONS_HEADER"] = "물약 및 생명석"
 L["OPTIONS_POTIONS_DESCRIPTION"] =
 	"전투 중에는 매크로를 변경할 수 없으므로(블리자드 제한 사항), 각 물약 및 생명석 매크로는 가장 좋은 아이템과 최대 2개의 예비 아이템으로 미리 구성됩니다. 긴 전투에서는 아이콘과 툴팁이 갱신되지 않아 잘못된 아이템을 표시할 수 있지만, 매크로를 클릭하면 항상 가방에 실제로 있는 가장 좋은 아이템을 사용합니다."
+L["OPTIONS_POTIONS_USE_FOOD_AND_WATER"] = "비전투 시 물약 매크로에서 음식 및 물 사용"
+L["OPTIONS_POTIONS_USE_FOOD_AND_WATER_DESCRIPTION"] =
+	"전투 중이 아닐 때 치유 물약 매크로는 가장 좋은 음식을 먹고, 마나 물약 매크로는 가장 좋은 물을 마십니다. 전투 중에는 평소처럼 물약을 사용합니다. 두루마리, 소환수 음식, 창조 주문은 계속 음식 및 물 매크로가 담당합니다."
 L["OPTIONS_COMBINE_HEALTHSTONES"] = "생명석을 치유 물약 매크로에 결합"
 L["OPTIONS_COMBINE_HEALTHSTONES_DESCRIPTION"] =
 	"가장 좋은 생명석을 치유 물약 매크로의 하단에 추가하여, 한 번 누르면 물약과 생명석을 모두 사용합니다."
@@ -536,12 +583,13 @@ L["OPTIONS_STEALTH_PICK_ONE"] =
 
 --[[
     Ignore List panel (Options-Ignore-List.lua). One tree scope per list: the
-    account-wide Global list, then the current character and every other
-    character with something ignored. The rows are items, so the copy here is
+    Global list, then the character playing and every other character with
+    something ignored, each under its profile's name, which is never
+    translated and has no key here. The rows are items, so the copy here is
     the panel description, the scope and promote labels, the add box, Remove,
     the empty-list line, and LOADING_ITEM, the placeholder shown while the
     client is still resolving an item's name (the mini-map tooltip, the Macros
-    panel, and the List Builder use it too). The mini-map tooltip's section
+    panel, and the staples pop-up use it too). The mini-map tooltip's section
     keeps its own MINIMAP_IGNORE_LIST and MENU_CLEAR_IGNORE keys.
 ]]
 L["TAB_IGNORE_LIST"] = "차단 목록"
@@ -568,9 +616,9 @@ L["TAB_RESTOCKER"] = "Restocker"
 L["OPTIONS_RESTOCKER_DESCRIPTION"] =
 	"보충 목록에 따라 가방을 채워 두며, 상인에게서 구매하고 은행과 가방 사이에서 아이템을 옮기는 작업을 자동으로 처리합니다. 목록을 열려면 %s 명령어를 입력하세요."
 L["OPTIONS_RESTOCKER_OPEN_BANK"] = "은행에서 열기"
-L["OPTIONS_RESTOCKER_OPEN_BANK_DESCRIPTION"] = "은행을 방문하면 Restocker 창을 엽니다."
+L["OPTIONS_RESTOCKER_OPEN_BANK_DESCRIPTION"] = "은행을 방문하면 보충 목록을 엽니다."
 L["OPTIONS_RESTOCKER_OPEN_MERCHANT"] = "상인 방문 시 열기"
-L["OPTIONS_RESTOCKER_OPEN_MERCHANT_DESCRIPTION"] = "상인을 방문하면 Restocker 창을 엽니다."
+L["OPTIONS_RESTOCKER_OPEN_MERCHANT_DESCRIPTION"] = "상인을 방문하면 보충 목록을 엽니다."
 L["OPTIONS_RESTOCKER_REMIND"] = "마을 보충 알림 사용"
 L["OPTIONS_RESTOCKER_REMIND_DESCRIPTION"] =
 	"보충 목록에 부족한 것이 있고 여관이나 도시에 도착하거나 이미 그곳에 있는 상태로 접속했을 때 대화창에 알림을 표시합니다."
@@ -582,14 +630,15 @@ L["OPTIONS_RESTOCKER_BANK_REMIND_DESCRIPTION"] =
 	"은행을 닫을 때 미완료 보충 주문이 있으면 알려 줍니다."
 
 --[[
-    The Starter List Builder pop-up. This toggle and the pop-up's own "Don't
-    Show This Again" box are the same per-character choice read from opposite
-    ends, which is why one ships on and the other off: a settings row reads
-    naturally as "enable", a dismissal reads naturally as "stop".
+    The staples pop-up (STARTER_POPUP_TITLE below). This toggle and the
+    pop-up's own "Don't Show This Again" box are the same per-character choice
+    read from opposite ends, which is why one ships on and the other off: a
+    settings row reads naturally as "enable", a dismissal reads naturally as
+    "stop".
 ]]
-L["OPTIONS_RESTOCKER_STARTER_LIST"] = "보충 목록이 비어 있을 때 목록 도우미 사용"
+L["OPTIONS_RESTOCKER_STARTER_LIST"] = "보충 목록이 비어 있을 때 기본 물품 팝업 사용"
 L["OPTIONS_RESTOCKER_STARTER_LIST_DESCRIPTION"] =
-	"이 캐릭터의 보충 목록이 비어 있으면 접속할 때 기본 보충 목록을 제안합니다."
+	"이 캐릭터의 보충 목록이 비어 있으면 접속할 때 직업에 맞는 기본 물품을 제안합니다."
 
 --[[
     How much each reminder says. Simple is the headline alone; Verbose adds a
@@ -608,7 +657,18 @@ L["OPTIONS_RESTOCKER_REMIND_SOUND_DESCRIPTION"] =
 	"대화창이 바쁠 때를 위해 알림과 함께 경고음을 재생합니다."
 L["OPTIONS_RESTOCKER_SOUND_PREVIEW"] = "클릭하면 경고음을 들어 볼 수 있습니다."
 
-L["OPTIONS_RESTOCKER_WINDOW_HEADER"] = "Restocker 창"
+L["OPTIONS_RESTOCKER_WINDOW_HEADER"] = "보충 목록 창"
+L["OPTIONS_RESTOCKER_WINDOW_DESCRIPTION"] = "보충 목록이 자동으로 열릴 시점을 선택하세요."
+
+--[[
+    The Inventory Report's switch, under a header that is the report's own
+    title (INVENTORY_REPORT_TITLE, in the Inventory Report section above).
+]]
+L["OPTIONS_INVENTORY_REPORT_SECTION_DESCRIPTION"] =
+	"이 서버에 있는 모든 캐릭터를 통틀어 아이템을 몇 개 가지고 있는지 해당 아이템의 툴팁에 표시합니다."
+L["OPTIONS_INVENTORY_REPORT"] = "아이템 툴팁에 보유량 보고서 표시"
+L["OPTIONS_INVENTORY_REPORT_DESCRIPTION"] =
+	"가방, 은행, 다른 캐릭터에 있는 아이템 개수를 해당 아이템의 툴팁에 추가합니다. 다른 애드온이 이미 이 개수를 표시한다면 끄세요."
 
 --[[
     Praise for the adopted Restocker code. The three names are proper nouns and
@@ -633,8 +693,8 @@ L["OPTIONS_READINESS_DESCRIPTION"] =
 --[[
     The reset button under the master toggle. It needs a control of its own
     because these settings are account-wide: the stock Reset Profile reaches
-    only the character's own profile, so nothing else on any panel can return
-    them to their defaults.
+    only the active profile, so nothing else on any panel can return them to
+    their defaults.
 
     The confirm names the one consequence a player would not otherwise predict.
     Off is what the report ships as, so resetting switches it back off, and a
@@ -731,8 +791,13 @@ L["OPTIONS_READINESS_QUESTIONABLE_GEAR_DESCRIPTION"] =
 
 -- Chat messages printed by the Restocker feature (Features/Restocker/).
 L["RESTOCKER_PROFILE_EXISTS"] = '"%s" 이름의 목록이 이미 있습니다.'
--- %d is the item ID the player typed.
-L["RESTOCKER_UNKNOWN_ITEM"] = "ID %d에 해당하는 아이템이 없습니다."
+--[[
+    %d is the item ID the player typed. Written into the add box itself while
+    the window is open, so it shares that box's width with
+    RESTOCKER_ADD_PLACEHOLDER and has to stay as short; printed to chat when the
+    window is closed.
+]]
+L["RESTOCKER_UNKNOWN_ITEM"] = "ID %d인 아이템 없음"
 L["RESTOCKER_BANK_NOT_OPEN"] = "은행이 열려 있지 않습니다."
 --[[
     %s is the /crs slash command, colored at the call site. Only the bank flow
@@ -836,8 +901,7 @@ L["RESTOCKER_RESTOCKED_PARTIAL_MANY"] = "보충 주문 %d건을 일부만 채웠
 -- Printed after the counts above when the bags ran out of room before every order was bought.
 L["RESTOCKER_BAGS_FULL_PARTIAL"] = "모든 아이템을 구매하기 전에 가방이 가득 찼습니다."
 
--- /crs help lines. The command literals stay in code; these are the descriptions.
-L["RESTOCKER_HELP_SHOW"] = "Restocker 창을 표시합니다."
+-- /crs help lines. The command literals stay in code; these are the descriptions, and the show line reuses RESTOCKER_COMMAND_DESCRIPTION.
 -- Stands for the list name the player types after a /crs profile subcommand.
 L["RESTOCKER_HELP_NAME_PLACEHOLDER"] = "[이름]"
 L["RESTOCKER_HELP_PROFILE_ADD"] = "해당 이름의 목록을 추가합니다."
@@ -847,29 +911,37 @@ L["RESTOCKER_HELP_PROFILE_COPY"] = "현재 목록을 해당 이름의 목록 복
 L["RESTOCKER_HELP_PROFILE_USE"] = "이 캐릭터가 해당 이름의 목록을 사용하도록 전환합니다."
 
 --[[
-    Starter List pop-up, the List Builder: offers staples at login when the
-    Restock List is empty, and on demand from the Restocker window
-    (Features/Restocker/Restocker-Starter-List.lua). Its title reuses
-    RESTOCKER_WINDOW_TITLE below, and the six food staples reuse the DIET_ keys
-    above, so each food row carries the client's own pet diet name.
+    Starter List pop-up, the staples window: offers staples at login when the
+    Restock List is empty, and on demand from the Restock List window's Pick
+    Staples button (Features/Restocker/Restocker-Starter-List.lua). The six
+    food staples reuse the DIET_ keys above, so each food row carries the
+    client's own pet diet name.
 
-    The intro is three short paragraphs: why the window opened, what a tick
-    does, and the way back in. Joined with blank lines at the call site, so
-    each reads as its own breath rather than one wall.
+    The title is its own, and carries the add-on's name: at login this window
+    opens with nothing else of Connoisseur's on screen, so its title bar is
+    all that says whose it is.
+
+    The intro is one paragraph: an opening sentence that answers to how the
+    window was reached (EMPTY over an empty list, STOCKED over one that has
+    items), then HOW, which says what a check does. The two are run together
+    with a space at the call site, so each has to stand as whole sentences.
+    The way back in (COMMAND_HINT) is a second paragraph, shown only when the
+    window opened by itself at login; from the Pick Staples button the list it
+    names is open right behind it.
 ]]
+L["STARTER_POPUP_TITLE"] = "Connoisseur 기본 물품"
 L["STARTER_POPUP_INTRO_EMPTY"] =
 	"보충 목록이 비어 있으니, 시작할 수 있도록 아이템을 몇 가지 추가해 봅시다."
 -- Shown instead when the window is opened over a list that already has items on it.
-L["STARTER_POPUP_INTRO_STOCKED"] =
-	"계속 채워 둘 기본 물품을 고르세요. 이미 보충 목록에 있는 것은 체크되어 있습니다."
+L["STARTER_POPUP_INTRO_STOCKED"] = "계속 채워 둘 기본 물품을 고르세요."
 L["STARTER_POPUP_INTRO_HOW"] =
-	"선택한 항목은 상인이나 은행을 열 때마다 자동으로 채워지고, 기본 소모품은 레벨이 오르면 스스로 상위 등급으로 바뀌므로 항상 최선의 물건을 갖게 됩니다."
+	"체크한 항목은 상인이나 은행을 열 때마다 자동으로 보충됩니다. 일반 소모품은 레벨이 오르면 스스로 상위 등급으로 바뀌므로, 항상 구할 수 있는 가장 좋은 물건을 갖게 됩니다."
 -- %s is the /crs slash command, colored at the call site.
 L["STARTER_POPUP_COMMAND_HINT"] =
 	"%s 명령어를 입력하면 언제든지 이 목록을 조정하거나 아이템을 더 추가할 수 있습니다."
 --[[
-    The first section's heading names the Water row beneath it as well; the
-    food-only heading is the fallback for a section with no Water row.
+    The first section's heading names the Water row that closes its grid as
+    well; the food-only heading is the fallback for a section with no Water row.
 ]]
 L["STARTER_POPUP_FOOD_AND_WATER_HEADER"] = "음식 및 물"
 L["STARTER_POPUP_FOOD_HEADER"] = "음식"
@@ -890,7 +962,7 @@ L["STARTER_POPUP_POISONS_HEADER"] = "독"
 L["STARTER_POPUP_POISONS_NOTE"] =
 	"%s : 완성된 독을 목록에 추가하면, 재료를 모두 취급하는 상인이라면 어디서든 Connoisseur가 재료를 자동으로 구매합니다."
 --[[
-    Checkbox tooltips: { item link, amount }. The first is for ladder items;
+    Checkbox tooltips: { item name, amount }. The first is for ladder items;
     the second for single-tier reagents, which never upgrade.
 ]]
 L["STARTER_POPUP_ITEM_DESCRIPTION"] =
@@ -915,45 +987,106 @@ L["STARTER_POPUP_DISMISS"] = "이 캐릭터에서 다시 표시하지 않기"
 L["STARTER_POPUP_DISMISS_DESCRIPTION"] =
 	"보충 목록이 비어 있는 상태로 접속해도 이 제안이 다시 나타나지 않게 합니다."
 
--- Restocker window UI.
-L["RESTOCKER_WINDOW_TITLE"] = "Connoisseur Restocker"
+-- Restock List window UI. The title names what the window holds; the feature that acts on it stays "Restocker".
+L["RESTOCKER_WINDOW_TITLE"] = "Connoisseur 보충 목록"
 L["RESTOCKER_FILTER_PLACEHOLDER"] = "아이템 필터..."
 L["RESTOCKER_FILTER_CLEAR_TOOLTIP"] = "지우기"
 L["RESTOCKER_ADD_BUTTON"] = "추가"
-L["RESTOCKER_LIST_BUILDER_BUTTON"] = "목록 도우미 열기"
+--[[
+    The button that opens the staples pop-up over the window, on the control
+    row and on an empty list, and its tooltip. The keys keep the pop-up's
+    earlier name, the List Builder. "Check" is the pop-up's own word
+    (STARTER_POPUP_INTRO_HOW).
+]]
+L["RESTOCKER_LIST_BUILDER_BUTTON"] = "기본 물품 고르기"
 L["RESTOCKER_LIST_BUILDER_TOOLTIP"] =
-	"새 캐릭터에게 제안되는 것과 같은 기본 물품을 담은 목록 도우미를 열고, 이 창을 닫습니다."
+	"음식, 물, 탄약, 독, 재료 중에서 직업과 레벨에 맞는 기본 물품을 고르세요. 체크하면 이 목록에 추가되고, 체크를 해제하면 제거됩니다."
 L["RESTOCKER_ADD_TOOLTIP_TITLE"] = "아이템 추가"
 L["RESTOCKER_ADD_TOOLTIP_BODY"] =
-	"가방에서 아이템을 끌어다 놓거나, 아이템 ID를 입력하고 Enter를 누르세요."
+	"가방에서 아이템을 끌어다 여기나 이 창의 아무 곳에나 놓거나, 아이템 ID를 입력하고 Enter를 누르세요."
 --[[
-    In-box placeholder for the add row; the tooltip above carries the detail.
-    Kept to a phrase rather than a sentence: both boxes on that row share a
-    fixed width sized to this English hint, and a longer one is cut off.
+    In-box placeholder for the add box; the tooltip above carries the detail.
+    Kept to a phrase rather than a sentence: the box shares its row with two
+    other fields and is sized to this English hint, so a longer one is cut off.
 ]]
-L["RESTOCKER_ADD_PLACEHOLDER"] = "여기에 아이템 놓기 또는 ID 입력"
+L["RESTOCKER_ADD_PLACEHOLDER"] = "아이템 놓기 또는 ID 입력"
+--[[
+    Written into the add box, in place of the placeholder above, when what was
+    typed is neither an item ID nor an item the client can place by name. Same
+    width budget as the placeholder. RESTOCKER_UNKNOWN_ITEM, for an ID with no
+    item behind it, shows the same way.
+]]
+L["RESTOCKER_ADD_NOT_FOUND"] = "대신 ID를 입력하세요."
+--[[
+    The bag menu on the control row, between the filter and the add box. The
+    caption is all the closed menu shows and is its tooltip's title; it has
+    room for about 24 characters, and a longer one is cut off. NONE is the one
+    line the open menu holds when the bags have nothing the list lacks. Title
+    case and no terminal punctuation for both, like every menu entry.
+]]
+L["RESTOCKER_ADD_FROM_BAGS"] = "가방에서 아이템 추가"
+L["RESTOCKER_ADD_FROM_BAGS_TOOLTIP"] =
+	"가방에 있지만 아직 이 목록에 없는 모든 아이템입니다. 하나를 클릭하면 추가됩니다."
+L["RESTOCKER_ADD_FROM_BAGS_NONE"] = "가방에 추가할 아이템 없음"
+
+--[[
+    The list bar across the top of the window: the selector, the characters on
+    the list, and Manage Lists.
+
+    USED_BY's %s is those characters, the client's own names joined with
+    LIST_SEPARATOR, which also joins them on the selector's menu and in the
+    delete confirmation. Each name is colored by its class at the call site.
+    Keep USED_BY short: the line shares its row with the selector and the
+    Manage Lists button, and truncates when it outgrows the space. MANAGE is
+    that button's caption and the title of its tooltip.
+]]
 L["RESTOCKER_PROFILE_LABEL"] = "목록"
 L["RESTOCKER_PROFILE_TOOLTIP"] =
 	"클릭하면 이 캐릭터가 사용할 보충 목록을 다른 목록으로 바꾸거나 새 목록을 시작할 수 있습니다."
-L["RESTOCKER_RENAME_LABEL"] = "이름 바꾸기"
-L["RESTOCKER_NEW_PROFILE"] = "새 목록"
-L["RESTOCKER_COPY_PROFILE"] = "복사"
+L["RESTOCKER_USED_BY"] = "사용 중: %s"
+L["RESTOCKER_MANAGE"] = "목록 관리"
+L["RESTOCKER_MANAGE_TOOLTIP"] =
+	"새 목록을 시작하거나, 이 목록을 복사하거나 이름을 바꾸거나 삭제할 수 있습니다."
 --[[
-    The three single-argument tooltips below (Copy, Delete, and the row's
-    Remove) render in ns.SetupRestockerTooltip's TITLE slot, not its body, so
-    they take title case and no terminal punctuation -- matching every other
-    title in the window. Don't "restore" the period they read as wanting.
+    The Manage Lists menu, top to bottom. Menu entries take title case and no
+    terminal punctuation, like every title in the window. New List is also the
+    last entry on the selector's own menu. The Copy and Delete keys end in
+    _TOOLTIP because they began as the tooltips of two buttons this menu
+    replaced.
 ]]
+L["RESTOCKER_NEW_PROFILE"] = "새 목록"
 L["RESTOCKER_COPY_PROFILE_TOOLTIP"] = "이 목록을 새 목록으로 복사"
+L["RESTOCKER_RENAME_PROFILE"] = "이 목록 이름 바꾸기"
+L["RESTOCKER_DELETE_PROFILE_TOOLTIP"] = "이 목록 삭제"
 -- %s becomes "<list name> Copy"; numbered if that name is taken.
 L["RESTOCKER_PROFILE_COPY_NAME"] = "%s 복사본"
-L["RESTOCKER_DELETE_PROFILE"] = "삭제"
-L["RESTOCKER_DELETE_PROFILE_TOOLTIP"] = "이 목록 삭제"
+-- The button that commits a rename, beside the field Rename This List opens, and that button's tooltip.
+L["RESTOCKER_RENAME_LABEL"] = "이름 바꾸기"
 L["RESTOCKER_RENAME_TOOLTIP"] =
 	"이 목록을 사용하는 모든 캐릭터에서 이 목록의 이름을 바꿉니다."
--- %s is the list name, colored at the call site. |n are line breaks.
-L["RESTOCKER_DELETE_PROFILE_CONFIRM"] =
-	"이 목록을 정말 삭제하시겠습니까?|n|n%s|n|n되돌릴 수 없습니다."
+--[[
+    The delete confirmation, a paragraph per fact, joined with blank lines in
+    code: QUESTION, the list's name (colored at the call site), what happens
+    next, and FINAL.
+
+    "What happens next" is SHARED followed by SWITCH or LAST, run together as
+    one paragraph, so each has to stand as a full sentence. SHARED appears only
+    when other characters are on the list; its %s is their names, joined with
+    LIST_SEPARATOR, and ONE or MANY follows how many there are.
+
+    SWITCH says where this character lands: %s is the top list in the List
+    selector, colored at the call site. LAST stands in for it when the list
+    being deleted is the only one, which is the one delete that makes a list.
+]]
+L["RESTOCKER_DELETE_LIST_QUESTION"] = "이 목록을 정말 삭제하시겠습니까?"
+L["RESTOCKER_DELETE_LIST_SHARED_ONE"] =
+	"%s도 이 목록을 사용 중이며, 다음 접속 시 같은 이름의 빈 목록으로 시작하게 됩니다."
+L["RESTOCKER_DELETE_LIST_SHARED_MANY"] =
+	"%s도 이 목록을 사용 중이며, 다음 접속 시 각자 같은 이름의 빈 목록으로 시작하게 됩니다."
+L["RESTOCKER_DELETE_LIST_SWITCH"] = "이 캐릭터는 %s 목록으로 전환됩니다."
+L["RESTOCKER_DELETE_LIST_LAST"] =
+	"남은 목록이 이것뿐이므로, 이 캐릭터는 새로운 빈 목록으로 시작합니다."
+L["RESTOCKER_DELETE_LIST_FINAL"] = "되돌릴 수 없습니다."
 --[[
     The Upgrade toggle. One string serves both the column heading and every
     row's checkbox, so it has to read for a single item and for the whole
@@ -993,7 +1126,25 @@ L["RESTOCKER_COLUMN_ITEM"] = "아이템"
 L["RESTOCKER_COLUMN_WITHDRAW"] = "꺼내기"
 L["RESTOCKER_COLUMN_DEPOSIT"] = "보관"
 L["RESTOCKER_COLUMN_REPUTATION"] = "평판"
-L["RESTOCKER_COLUMN_AMOUNT"] = "수량"
+--[[
+    The row's target, beside the item's name: how many the list keeps in the
+    bags. "Keep" rather than "Amount" because the number is a standing target,
+    not a quantity to buy, and because 0 then reads as what it does -- keep
+    none, which with Store on sends the whole stock to the bank. The keys, the
+    code and the saved rows still call it the amount.
+]]
+L["RESTOCKER_COLUMN_AMOUNT"] = "유지"
+
+--[[
+    A toggle column's heading sets the column for every item shown. HINT closes
+    the heading's tooltip; ON and OFF are the two entries of the menu a click on
+    the heading opens, where %d is how many of the items shown the column can be
+    set on. Menu entries: title case, no terminal punctuation.
+]]
+L["RESTOCKER_COLUMN_BULK_HINT"] =
+	"열 제목을 클릭하면 표시된 모든 아이템에 이 설정을 적용할 수 있습니다."
+L["RESTOCKER_BULK_ON"] = "표시된 아이템 %d개 켜기"
+L["RESTOCKER_BULK_OFF"] = "표시된 아이템 %d개 끄기"
 
 L["RESTOCKER_GROUP_OTHER"] = "미분류"
 --[[
@@ -1007,10 +1158,54 @@ L["RESTOCKER_GROUP_NEW"] = "신규"
     to read as "everything" rather than as another type.
 ]]
 L["RESTOCKER_GROUP_ALL"] = "모든 아이템"
--- Title slot, like the Copy and Delete tooltips above: title case, no terminal period.
+--[[
+    What the list area shows in place of rows. EMPTY_ is a list with nothing on
+    it: a heading (title case), a body of two sentences (the two ways to add,
+    then what the list does with what is on it), the Pick Staples button
+    (RESTOCKER_LIST_BUILDER_BUTTON), and a hint under it. NO_MATCH_ is one line
+    for a list that has items and is showing none: the filter matches nothing,
+    or the selected category just lost its last item.
+]]
+L["RESTOCKER_EMPTY_TITLE"] = "아직 이 목록에 아무것도 없습니다"
+L["RESTOCKER_EMPTY_BODY"] =
+	"음식, 물, 직업 재료 같은 기본 물품을 선택하거나, 위 메뉴에서 가방에 있는 아이템을 무엇이든 추가하세요. 선택한 아이템은 자동으로 계속 채워지거나 은행에 보관되므로 가방이 깔끔하게 유지됩니다."
+L["RESTOCKER_EMPTY_DROP_HINT"] = "이 창의 아무 곳에나 아이템을 끌어다 놓아도 추가됩니다."
+L["RESTOCKER_NO_MATCH_FILTER"] = "이 목록에 필터와 일치하는 항목이 없습니다."
+L["RESTOCKER_NO_MATCH_GROUP"] = "이 분류에 남은 항목이 없습니다."
+
+--[[
+    The status line under the list. The orders count itself is
+    RESTOCKER_STILL_SHORT_ONE / _MANY above, and the all-stocked line is
+    MINIMAP_RESTOCKER_STOCKED, so the window, the reminders and the mini-map
+    tooltip say the same thing in the same words.
+
+    NO_ORDERS is the in-between: nothing for a merchant to fill, but a row with
+    Buy off is still short in the bags (its Keep number is yellow), so the
+    congratulation would be untrue. "Outstanding" stays beside the noun, as in
+    the counts.
+
+    REPORT_MORE closes the orders tooltip when the list is longer than it shows:
+    %d is how many were left out. REMOVED_ITEM's %s is the item's icon and name,
+    and UNDO is the button beside it that puts the item back; UNDO_TOOLTIP
+    renders in the title slot.
+]]
+L["RESTOCKER_NO_ORDERS"] = "미완료 보충 주문이 없습니다."
+L["RESTOCKER_REPORT_MORE"] = "외 %d건"
+L["RESTOCKER_REMOVED_ITEM"] = "제거됨: %s"
+L["RESTOCKER_UNDO"] = "되돌리기"
+L["RESTOCKER_UNDO_TOOLTIP"] = "목록에 이 아이템 다시 추가"
+
+-- Title slot: title case, no terminal period. The line under it is body text.
 L["RESTOCKER_REMOVE_TOOLTIP"] = "보충 목록에서 이 아이템 제거"
-L["RESTOCKER_AMOUNT_TOOLTIP_TITLE"] = "보충할 수량"
-L["RESTOCKER_AMOUNT_TOOLTIP_BODY"] = "편집을 마치면 Enter를 누르세요."
+L["RESTOCKER_REMOVE_TOOLTIP_UNDO"] = "창 아래쪽에서 되돌릴 수 있습니다."
+--[[
+    The Keep box and its heading, which share one tooltip: the title, and KEEP
+    under it, which explains the number. There is no editing hint: the box
+    saves as it is typed in, so nothing has to be pressed.
+]]
+L["RESTOCKER_AMOUNT_TOOLTIP_TITLE"] = "가방에 유지"
+L["RESTOCKER_AMOUNT_TOOLTIP_KEEP"] =
+	"가방에 유지할 개수입니다. 가방에 이보다 적게 있으면 숫자가 노란색이 되며, 보관이 켜진 상태에서 0이면 전부 은행으로 보냅니다."
 L["RESTOCKER_BUY_LABEL"] = "구매"
 L["RESTOCKER_BUY_TOOLTIP_TITLE"] = "상인에게서 구매"
 L["RESTOCKER_BUY_TOOLTIP_BODY"] = "상인 창이 열려 있을 때 상인에게서 필요한 수량을 구매합니다."
@@ -1024,15 +1219,16 @@ L["RESTOCKER_BUY_TOOLTIP_BODY"] = "상인 창이 열려 있을 때 상인에게�
 L["RESTOCKER_EXTRA_LABEL"] = "여분"
 L["RESTOCKER_EXTRA_TOOLTIP_TITLE"] = "여분 구매"
 L["RESTOCKER_EXTRA_TOOLTIP_STOCK"] =
-	"상인이 가진 이 아이템의 한정 재고, 즉 조금씩 천천히 다시 채워지는 상품을 목표 수량을 넘더라도 모두 구매합니다."
+	"상인이 가진 이 아이템의 한정 재고, 즉 조금씩 천천히 다시 채워지는 상품을 유지 개수를 넘더라도 모두 구매합니다."
 L["RESTOCKER_DEPOSIT_TOOLTIP_TITLE"] = "은행에 보관"
 --[[
-    Names the Amount column, so it is coupled to RESTOCKER_COLUMN_AMOUNT: a
-    locale that renders that heading differently has to say the same word here,
-    or the sentence points at a column the player cannot find.
+    Both this line and the Extra one above name the Keep column, so they are
+    coupled to RESTOCKER_COLUMN_AMOUNT: a locale that renders that heading
+    differently has to say the same word here, or the sentence points at a
+    column the player cannot find.
 ]]
 L["RESTOCKER_DEPOSIT_TOOLTIP_BODY"] =
-	"은행이 열려 있을 때 초과분을 은행에 보관하며, 수량 열이 0이면 전부 보관합니다."
+	"은행이 열려 있을 때 초과분을 은행에 보관하며, 유지 열이 0이면 전부 보관합니다."
 L["RESTOCKER_WITHDRAW_TOOLTIP_TITLE"] = "은행에서 꺼내기"
 L["RESTOCKER_WITHDRAW_TOOLTIP_BODY"] = "은행이 열려 있을 때 필요한 아이템을 은행에서 꺼냅니다."
 
@@ -1054,9 +1250,23 @@ L["RESTOCKER_REPUTATION_REVERED"] = "매우 우호적"
 L["RESTOCKER_REPUTATION_EXALTED"] = "확고한 동맹"
 L["RESTOCKER_REPUTATION_TOOLTIP_TITLE"] = "필요한 상인 평판"
 --[[
-    Quotes the cell's own values, which couples this line to
-    RESTOCKER_REPUTATION_ANY and the four standings above: a locale that renders
-    a standing differently has to say so here too.
+    Quotes the cell's own values, which couples this line to the four standings
+    above: a locale that renders a standing differently has to say so here too.
+    With no standing required the cell draws a dash rather than the word "Any",
+    which is why the last sentence names the dash; "Any" is still the menu's
+    first entry.
 ]]
 L["RESTOCKER_REPUTATION_TOOLTIP_STANDING"] =
-	'클릭하면 Connoisseur가 상인에게서 구매하는 데 필요한 평판 단계("무관"은 어디서나 구매)를 설정할 수 있으며, 이 평판으로 가격도 할인됩니다: 약간 우호적 5%, 우호적 10%, 매우 우호적 15%, 확고한 동맹 20%.'
+	"클릭하면 Connoisseur가 상인에게서 구매하는 데 필요한 평판 단계를 설정할 수 있으며, 이 평판으로 가격도 할인됩니다: 약간 우호적 5%, 우호적 10%, 매우 우호적 15%, 확고한 동맹 20%. 대시(-)로 표시되면 어느 상인에게서나 구매합니다."
+
+--[[
+    Why a cell cannot be set on its row: the tooltip a dimmed cell shows under
+    its column's title, in place of the column's own explanation. Extra and
+    Rep ride on Buy; Upgrade needs a ladder with somewhere to go, which a quest
+    item lacks outright and the Hearthstone lacks for having one tier.
+]]
+L["RESTOCKER_EXTRA_NOT_APPLICABLE"] =
+	"이 아이템은 구매가 꺼져 있어 여분으로 구매할 것이 없습니다."
+L["RESTOCKER_REPUTATION_NOT_APPLICABLE"] =
+	"이 아이템은 구매가 꺼져 있어 평판 단계가 적용되지 않습니다."
+L["RESTOCKER_UPGRADE_NOT_APPLICABLE"] = "이 아이템에는 업그레이드할 상위 등급이 없습니다."

@@ -3,8 +3,8 @@ local _, ns = ...
 --[[
     Source: copied from Data/Vanilla/Healthstones-Vanilla.lua until Validate
     Data passes on this client. The five Healthstone amounts came from the
-    wago.tools tables for build 1.60.1.69977, for the next Validate Data run
-    to confirm.
+    wago.tools tables for build 1.60.1.69977, and Validate Data on build
+    1.60.1.70124 confirmed them.
 
     SELECT
         CONCAT('    [', s.entry, '] = {', (st.EffectBasePoints1 + 1),
@@ -43,7 +43,7 @@ ns.HEALTHSTONES = {
 	[5510] = { 960, 36 }, -- Greater Healthstone
 	[11951] = { 700, 45 }, -- Whipper Root Tuber
 	[5509] = { 600, 24 }, -- Healthstone
-	[14894] = { 525, 1 }, -- Lily Root
+	[14894] = { 525, 0 }, -- Lily Root
 	[5511] = { 300, 12 }, -- Lesser Healthstone
 	[5512] = { 120, 1 }, -- Minor Healthstone
 	[5205] = { 71, 5 }, -- Sprouted Frond

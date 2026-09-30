@@ -30,7 +30,8 @@
 
     Scenario 7 pins add-box input that names no item (an empty box, a typo): it is dropped
     rather than parked, because no answer can ever clear such a key and a parked one held the
-    event registered for the rest of the session.
+    event registered for the rest of the session. A typo is answered, though, where an empty
+    box is not: the add box says what it takes.
 ]]
 
 local ROOT = arg[1] or "../.."
@@ -124,6 +125,8 @@ local function session(level)
 	function ns.PrintMessage(message)
 		printed[#printed + 1] = message
 	end
+	-- The add box's notice line (Restocker-Window.lua), which falls back to chat with the window shut, as here.
+	ns.ShowRestockAddNotice = ns.PrintMessage
 	-- The Starter List's retry queue, which its own test covers.
 	function ns.HasPendingStarterAdds()
 		return false
@@ -137,9 +140,15 @@ local function session(level)
 	ns.RESTOCK_COLUMNS = {}
 	ns.RESTOCK_CELL_WHITE = { r = 1, g = 1, b = 1 }
 	ns.RESTOCK_CELL_DASH_OFF = { r = 0.5, g = 0.5, b = 0.5 }
+	ns.RESTOCK_CELL_DASH_NOT_APPLICABLE = { r = 0.3, g = 0.3, b = 0.3 }
 	ns.RESTOCK_CELL_REPUTATION_SET = { r = 0, g = 1, b = 0 }
+	ns.RESTOCK_CELL_KEEP_SHORT = { r = 1, g = 0, b = 0 }
 	function ns.RestockReputationStandingByValue()
 		return { label = "Any" }
+	end
+	-- The bag count a row's Keep mark goes by (Restocker-Merchant.lua); no scenario here reads the mark.
+	function ns.IsRestockItemShort()
+		return false
 	end
 
 	local function loadAddonFile(path)
@@ -172,9 +181,15 @@ local function session(level)
 			},
 			stripe = { SetShown = function() end },
 			text = { SetText = function() end, SetTextColor = function() end },
-			amountBox = { SetText = function() end },
+			amountBox = { SetText = function() end, SetTextColor = function() end },
 			removeButton = {},
-			cells = { reputation = { text = { SetText = function() end, SetTextColor = function() end } } },
+			cells = {
+				reputation = {
+					text = { SetText = function() end, SetTextColor = function() end, SetShown = function() end },
+					dash = { SetShown = function() end, SetColorTexture = function() end },
+					GetHighlightTexture = function() end,
+				},
+			},
 			columnSerial = 1,
 		}
 		for _, method in ipairs({ "SetParent", "Hide", "Show", "ClearAllPoints", "SetPoint", "SetSize" }) do
@@ -196,6 +211,11 @@ local function session(level)
 		scrollFrame = { SetVerticalScroll = function() end },
 	}
 	function ns.RefreshRestockColumnHeader() end
+	-- The start of a redraw closes the bag menu (Restocker-Window-Bag-Menu.lua), which is never open here.
+	function ns.CloseRestockBagMenu() end
+	-- The end of a redraw: the empty list's panel (Restocker-Window.lua) and the status line (Restocker-Window-Footer.lua).
+	function ns.UpdateRestockEmptyState() end
+	function ns.UpdateRestockStatus() end
 	local groups = {}
 	function ns.UpdateRestockGroupPane(_, view)
 		groups = {}
@@ -364,9 +384,11 @@ s.ns.AddRestockItem("")
 check("an empty box parks nothing", next(s.ns.restockItemWait), nil)
 check("an empty box leaves the event unregistered", s.registered(), false)
 s.ns.AddRestockItem("   ")
+check("an empty or blank box says nothing", s.printed[1], nil)
 s.ns.AddRestockItem("not an item")
 check("blank and unparseable text park nothing", next(s.ns.restockItemWait), nil)
 check("the event is still unregistered", s.registered(), false)
+check("unparseable text is told what the box takes", s.printed[1], "RESTOCKER_ADD_NOT_FOUND")
 s.ns.AddRestockItem("21177")
 check("a cold id still parks", s.ns.restockItemWait[21177], true)
 check("and holds the event while it waits", s.registered(), true)

@@ -27,8 +27,9 @@
 
     The soulstone entry is the odd one out and gets the most attention: it asks
     whether a stone is ACTIVE ON SOMEONE IN THE GROUP, not whether one is sitting
-    in a bag, and it matches the aura by spell id OR by the localized name every
-    rank shares. One scenario deliberately hands it an id that is NOT in
+    in a bag, it keeps quiet while the stones' shared cooldown means none can go
+    up, and it matches the aura by spell id OR by the localized name every rank
+    shares. One scenario deliberately hands it an id that is NOT in
     ns.SOULSTONE_BUFF_SPELL_IDS, because the name pass is what makes a wrong or
     missing id in that table harmless.
 ]]
@@ -87,6 +88,9 @@ local function ResetWorld()
 		auras = {},
 		-- The client restricting aura data, as Forever does mid-pull.
 		aurasSecret = false,
+		-- The soulstones' shared use cooldown, in seconds (0 while a stone can go up), and whether it reads secret.
+		soulstoneCooldown = 0,
+		cooldownsSecret = false,
 		-- ns.bestSelection stand-in: an id means "carrying one".
 		carrying = {},
 		-- Ranked topIDs per category, for the entries that read past the winner.
@@ -162,6 +166,20 @@ C_UnitAuras = {
 C_Secrets = {
 	ShouldAurasBeSecret = function()
 		return world.aurasSecret
+	end,
+	ShouldCooldownsBeSecret = function()
+		return world.cooldownsSecret
+	end,
+}
+
+-- A secret cooldown cannot be read at all, so asking for one is itself the failure.
+C_Container = {
+	GetItemCooldown = function(itemID)
+		assert(not world.cooldownsSecret, "read a cooldown the client keeps secret")
+		if ns.SOULSTONES[itemID] then
+			return 1000, world.soulstoneCooldown, 1
+		end
+		return 0, 0, 1
 	end,
 }
 
@@ -471,6 +489,26 @@ world.knows.WarlockCreateSoulstone = false
 settings({ readinessSoulstone = true })
 ns.OnReadyCheck()
 check("no output", #printed, 0)
+
+say("6b. The stones' shared cooldown is running, after a stoned player rose: no stone can go up, so silent")
+ResetWorld()
+world.classes = WARLOCK_PLAYER
+world.soulstoneCooldown = 1800
+settings({ readinessSoulstone = true })
+ns.OnReadyCheck()
+check("no output", #printed, 0)
+world.soulstoneCooldown = 0
+ns.OnReadyCheck()
+check("once it is over, reported", report(), "READINESS_TITLE ~ READINESS_MISSING_BUFFS READINESS_SOULSTONE")
+
+say("6c. Cooldowns kept secret (Forever): reported as before, without reading one")
+ResetWorld()
+world.classes = WARLOCK_PLAYER
+world.soulstoneCooldown = 1800
+world.cooldownsSecret = true
+settings({ readinessSoulstone = true })
+ns.OnReadyCheck()
+check("soulstone named", report(), "READINESS_TITLE ~ READINESS_MISSING_BUFFS READINESS_SOULSTONE")
 
 say("7. Aura id NOT in the table, matched on the shared name instead")
 ResetWorld()

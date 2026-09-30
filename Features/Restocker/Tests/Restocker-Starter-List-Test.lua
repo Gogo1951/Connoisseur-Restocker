@@ -1,12 +1,13 @@
 -- luacheck: allow defined, ignore 121 122 131 143
 --[[
-    Headless test for the List Builder's stack counts (no WoW client needed).
+    Headless test for the staples pop-up's stack counts (no WoW client needed).
 
     Run it with:   lua Tests/Restocker-Starter-List-Test.lua        (from Features/Restocker/)
 
     Like the upgrade test, this does NOT model the feature. Every scenario loads the REAL
     enUS strings, ladders, category rows, Restocker-Starter-List.lua and the pop-up that
-    draws it, plus the item memo (Item-Cache.lua) and the GET_ITEM_INFO_RECEIVED handler
+    draws it, the options helpers' icon checkbox (Options-Utilities.lua), plus the item memo
+    (Item-Cache.lua) and the GET_ITEM_INFO_RECEIVED handler
     (Restocker-List.lua). Only the client is simulated: C_Item.GetItemInfo answers for an item
     once it has resolved, asking about any other item queues a server query, and deliver()
     answers the queue, firing GET_ITEM_INFO_RECEIVED only while the event is registered,
@@ -26,13 +27,27 @@
     forgotten: ticking such a row afterwards parked it in pendingStarterAdds for good, the
     box ticked and nothing added. Restocker-Cold-Item-Test.lua pins the memo's own fix.
 
-    Scenario 11 pins the intro line. The login trigger writes the class's pre-ticked staples
+    Scenario 11 pins the intro. The login trigger writes the class's pre-ticked staples
     onto the list just before the window opens, so a builder that asked the list whether it
     was empty greeted a new character with the line meant for a list that already had items.
+    It also pins the words: one paragraph from the Pick Staples button, and the way back in
+    as a second at login.
 
     Scenario 12 pins the names. Poison and reagent rows carry no strings of their own: each
     is named by the client -- a poison type for its ladder's first item, any other row for the
     item a tick adds -- shows loading text until that item resolves, and sorts by the name.
+
+    Scenario 13 pins the window's shape: the sections in their order, Water as the last cell
+    of the food grid, one set of cell widths from the first section to the last, each row's
+    icon, and the /crs hint kept for the login route.
+
+    Scenario 14 pins the icon checkbox a staple row is drawn with: the stock one under a name
+    of its own, its label a gap off its icon wherever the stock code would have put it back
+    against it.
+
+    Scenario 15 pins what the pop-up does to the frame the dialog hands it: drawn in to the
+    height of its rows, up to a cap, over a solid fill that sits in the strata under it, and
+    both handed back when the frame hides.
 ]]
 
 local ROOT = arg[1] or "../.."
@@ -55,6 +70,9 @@ local ITEMS = {
 	[10918] = { "Wound Poison", "Consumable" },
 	[17034] = { "Maple Seed", "Reagent" },
 	[17038] = { "Ironwood Seed", "Reagent" },
+	[5060] = { "Thieves' Tools", "Miscellaneous" },
+	[5140] = { "Flash Powder", "Reagent" },
+	[5530] = { "Blinding Powder", "Reagent" },
 }
 
 --[[
@@ -79,6 +97,9 @@ local STACKS = {
 		[10918] = 20,
 		[17034] = 20,
 		[17038] = 20,
+		[5060] = 1,
+		[5140] = 20,
+		[5530] = 20,
 	},
 	tbc = {
 		[8766] = 20,
@@ -109,7 +130,7 @@ end
     memo, the pending adds and the pop-up's caches are all file locals, so a scenario
     only starts clean by reloading them.
 ]]
-local function session(classToken, level, client)
+local function session(classToken, level, client, noStockCheckBox)
 	client = client or "era"
 	local resolved, queued, registered, warmed = {}, {}, {}, {}
 	local ns = {}
@@ -124,6 +145,10 @@ local function session(classToken, level, client)
 			local link = "|cffffffff|Hitem:" .. itemID .. "|h[" .. item[1] .. "]|h|r"
 			return item[1], link, 1, 1, 1, item[2], "", STACKS[client][itemID]
 		end,
+		-- The icon comes off the client's own item table, so it answers for a cold item too.
+		GetItemIconByID = function(itemID)
+			return "icon:" .. itemID
+		end,
 	}
 	function UnitLevel()
 		return level
@@ -134,11 +159,198 @@ local function session(classToken, level, client)
 	function InCombatLockdown()
 		return false
 	end
-	C_Timer = { After = function() end }
+	-- The client's table-emptying global.
+	function wipe(target)
+		for key in pairs(target) do
+			target[key] = nil
+		end
+		return target
+	end
+	-- A timer is kept, not run: s.nextFrame() is the frame after.
+	local timers = {}
+	C_Timer = {
+		After = function(_, callback)
+			timers[#timers + 1] = callback
+		end,
+	}
+
+	--[[
+	    The frames the pop-up touches once the dialog has built its window: the host it is
+	    handed, and the fill and the checkbox it hangs on that host. A frame here is only what
+	    the pop-up sets on it, kept to be read back. A frame takes its parent's strata when it
+	    is parented, as in the client, which is what makes the order of those two calls matter.
+	]]
+	local created = {}
+	local function frame(kind, parent)
+		local new = { kind = kind, parent = parent, shown = true, points = {}, hooks = {} }
+		function new:SetParent(to)
+			self.parent = to
+			self.strata, self.level = to.strata, (to.level or 0) + 1
+		end
+		function new:GetParent()
+			return self.parent
+		end
+		function new:ClearAllPoints()
+			self.points = {}
+		end
+		function new:SetPoint(point, _, _, x, y)
+			self.points[point] = (x or 0) .. "," .. (y or 0)
+		end
+		function new:SetFrameStrata(strata)
+			self.strata = strata
+		end
+		function new:GetFrameStrata()
+			return self.strata
+		end
+		function new:SetFrameLevel(frameLevel)
+			self.level = frameLevel
+		end
+		function new:GetFrameLevel()
+			return self.level
+		end
+		function new:Show()
+			self.shown = true
+		end
+		function new:Hide()
+			if self.shown then
+				self.shown = false
+				for _, hook in ipairs(self.hooks) do
+					hook(self)
+				end
+			end
+		end
+		function new:HookScript(_, handler)
+			self.hooks[#self.hooks + 1] = handler
+		end
+		function new:SetSize() end
+		function new:SetScript() end
+		function new:SetChecked() end
+		function new.CreateTexture()
+			local texture = {}
+			function texture.SetAllPoints() end
+			function texture.SetColorTexture(_, r, g, b, a)
+				new.fill = table.concat({ r, g, b, a }, " ")
+			end
+			return texture
+		end
+		function new.CreateFontString()
+			local fontString = {}
+			function fontString.SetPoint() end
+			function fontString.SetText() end
+			return fontString
+		end
+		return new
+	end
+	UIParent = frame("Frame")
+	function CreateFrame(kind, _, parent)
+		created[kind] = frame(kind, parent)
+		return created[kind]
+	end
+
+	--[[
+	    The AceGUI Frame widget the dialog builds the window in, pooled and handed back on
+	    every Open: its host frame, where AceGUI puts every such frame, and the scroll
+	    container that is its one child, whose content is as tall as the rows laid out in it.
+	]]
+	local host = frame("Frame", UIParent)
+	host.strata, host.level = "FULLSCREEN_DIALOG", 100
+	host.backdropInfo = { insets = { left = 8, right = 8, top = 8, bottom = 8 } }
+	local contentHeight = 300
+	local window = {
+		frame = host,
+		children = { {
+			content = {
+				GetHeight = function()
+					return contentHeight
+				end,
+			},
+		} },
+	}
+	function window:EnableResize(enabled)
+		self.resizable = enabled
+	end
+	function window:SetHeight(height)
+		self.height = height
+	end
 
 	-- AceLocale hands enUS its table; AceConfigDialog builds the window on Open, as the real one does.
 	local L = {}
 	local opened -- the build the last Open drew
+	local status = {} -- the dialog's status table for the window, which every repaint reopens it from
+	local dialog = { OpenFrames = {} }
+	function dialog.SetDefaultSize(_, _, width, height)
+		status.defaultSize = width .. "x" .. height
+	end
+	function dialog.GetStatusTable()
+		return status
+	end
+	function dialog:Open(registryName)
+		opened = ns.BuildStarterListPopupOptions()
+		self.OpenFrames[registryName] = window
+		host:Show()
+	end
+
+	--[[
+	    AceGUI's widget registry, holding the stock checkbox as far as its label goes: where
+	    AceGUI's own code anchors it, and when. With an image the label hangs a pixel off it;
+	    a press nudges it a pixel right and down, and the release puts it back.
+	]]
+	local aceGUI = { WidgetRegistry = {} }
+	local function stockCheckBox()
+		local texture
+		local stock = { type = "CheckBox", frame = frame("Button") }
+		stock.frame.obj = stock
+		stock.image = {
+			GetTexture = function()
+				return texture
+			end,
+		}
+		stock.text = {
+			SetPoint = function(_, _, to, _, x, y)
+				stock.label = (to == stock.image and "image" or "box") .. " " .. (x or 0) .. " " .. (y or 0)
+			end,
+		}
+		local function align(nudge)
+			if texture then
+				stock.text:SetPoint("LEFT", stock.image, "RIGHT", 1 + nudge, -nudge)
+			else
+				stock.text:SetPoint("LEFT", stock.checkbg, "RIGHT", nudge, -nudge)
+			end
+		end
+		function stock:SetImage(path)
+			texture = path
+			align(0)
+		end
+		-- The stock handlers first, then whatever was hooked behind them.
+		local function mouse(nudge)
+			if not stock.disabled then
+				align(nudge)
+			end
+			for _, hook in ipairs(stock.frame.hooks) do
+				if hook.script == (nudge == 1 and "OnMouseDown" or "OnMouseUp") then
+					hook.handler(stock.frame)
+				end
+			end
+		end
+		function stock.frame:HookScript(script, handler)
+			self.hooks[#self.hooks + 1] = { script = script, handler = handler }
+		end
+		function stock.press()
+			mouse(1)
+		end
+		function stock.release()
+			mouse(0)
+		end
+		return stock
+	end
+	-- noStockCheckBox: an AceGUI with no checkbox registered, which the add-on must survive.
+	if not noStockCheckBox then
+		aceGUI.WidgetRegistry.CheckBox = stockCheckBox
+	end
+	function aceGUI:RegisterWidgetType(name, constructor)
+		self.WidgetRegistry[name] = constructor
+	end
+
 	function LibStub(name)
 		if name == "AceLocale-3.0" then
 			return {
@@ -150,19 +362,24 @@ local function session(classToken, level, client)
 				end,
 			}
 		end
-		return {
-			SetDefaultSize = function() end,
-			Open = function()
-				opened = ns.BuildStarterListPopupOptions()
-			end,
-			OpenFrames = {},
-		}
+		if name == "AceGUI-3.0" then
+			return aceGUI
+		end
+		return dialog
 	end
 
 	function ns.SetEventRegistered(event, enabled)
 		registered[event] = enabled or nil
 	end
 	function ns.UpdateRestockList() end
+	-- The Restock List window the login route opens behind the pop-up, counted.
+	local restockWindowShown = 0
+	function ns.ShowRestockWindow()
+		restockWindowShown = restockWindowShown + 1
+	end
+	function ns.SetupRestockerTooltip() end
+	-- The icon-to-name gap of a Restock List row, from Restocker-Window-Columns.lua.
+	ns.RESTOCK_ICON_TEXT_GAP = 4
 	function ns.GetCharacterKey()
 		return "Tester - Realm"
 	end
@@ -174,10 +391,25 @@ local function session(classToken, level, client)
 	ns.restockerLoaded = true
 	ns.restockSettings = { currentList = "Test", lists = { Test = {} }, starterListDismissed = {} }
 
-	-- What the pop-up takes from Options/Options-Utilities.lua.
 	function ns.GetColor()
 		return ""
 	end
+
+	local function loadAddonFile(path)
+		-- Add-on files are chunks taking (addonName, ns) as varargs, the way WoW loads them.
+		return assert(loadfile(ROOT .. "/" .. path))("Consumable-Connoisseur", ns)
+	end
+	loadAddonFile("Locales/enUS.lua")
+	ns.L = L
+	loadAddonFile("Data/Data.lua")
+	loadAddonFile("Features/Item-Cache.lua")
+
+	--[[
+	    Options-Utilities.lua is loaded for the icon checkbox it registers. The row helpers
+	    the pop-up also takes from it are then swapped for plain ones, so a layout reads as
+	    the text it was given, and the warmer for one that only remembers what it was handed.
+	]]
+	loadAddonFile("Options/Options-Utilities.lua")
 	function ns.OptionsHeader(text, order)
 		return { type = "header", name = text, order = order }
 	end
@@ -192,25 +424,53 @@ local function session(classToken, level, client)
 			warmed[itemID] = true
 		end
 	end
-
-	local function loadAddonFile(path)
-		-- Add-on files are chunks taking (addonName, ns) as varargs, the way WoW loads them.
-		return assert(loadfile(ROOT .. "/" .. path))("Consumable-Connoisseur", ns)
-	end
-	loadAddonFile("Locales/enUS.lua")
-	ns.L = L
-	loadAddonFile("Data/Data.lua")
-	loadAddonFile("Features/Item-Cache.lua")
 	loadAddonFile("Data/" .. FOLDER[client] .. "/Consumable-Upgrade-Paths-" .. FOLDER[client] .. ".lua")
 	loadAddonFile("Features/Restocker/Restocker-Upgrade.lua")
 	loadAddonFile("Features/Restocker/Restocker-List.lua")
 	loadAddonFile("Features/Restocker/Restocker-Starter-List.lua")
 	loadAddonFile("Options/Options-Starter-List-Popup.lua")
 
+	-- The real ClearRestockNewItems (Restocker-List.lua), counted: a closing window calls it once.
+	local newFlagsCleared = 0
+	local ClearRestockNewItems = ns.ClearRestockNewItems
+	function ns.ClearRestockNewItems()
+		newFlagsCleared = newFlagsCleared + 1
+		ClearRestockNewItems()
+	end
+
 	-- Core's dispatcher, reduced to the one event in play.
 	ns.restockerEventHandlers = { GET_ITEM_INFO_RECEIVED = ns.OnRestockerItemInfoReceived }
 
 	local s = { ns = ns, L = L, list = ns.restockSettings.lists.Test, warmed = warmed }
+	function s.restockWindowShown()
+		return restockWindowShown
+	end
+	s.host, s.window, s.status, s.created = host, window, status, created
+
+	-- How tall the rows the dialog laid out came to.
+	function s.rowsCameTo(height)
+		contentHeight = height
+	end
+
+	-- The frame after: every timer set so far runs.
+	function s.nextFrame()
+		local due = timers
+		timers = {}
+		for _, callback in ipairs(due) do
+			callback()
+		end
+	end
+
+	-- How many times a closing window has retired the list's New flags.
+	function s.newFlagsCleared()
+		return newFlagsCleared
+	end
+
+	-- An icon checkbox as AceGUI would build one, or nil where the type was never registered.
+	function s.newIconCheckBox(typeName)
+		local constructor = aceGUI.WidgetRegistry[typeName]
+		return constructor and constructor()
+	end
 
 	function s.resolve(...)
 		for _, itemID in ipairs({ ... }) do
@@ -284,9 +544,87 @@ local function session(classToken, level, client)
 		return s.list[itemID] and s.list[itemID].amount
 	end
 
+	--[[
+	    A fresh build of the window, top to bottom, one word per widget: a heading by its
+	    text, a row by the staples in it, anything else by its kind. A blank description is
+	    the line break the sections are spaced with.
+	]]
+	function s.layout()
+		local widgets = {}
+		for key, option in pairs(ns.BuildStarterListPopupOptions().args) do
+			widgets[#widgets + 1] = { key = key, option = option }
+		end
+		table.sort(widgets, function(a, b)
+			return a.option.order < b.option.order
+		end)
+		local words = {}
+		for index, widget in ipairs(widgets) do
+			local option = widget.option
+			if option.type == "header" then
+				words[index] = "[" .. option.name .. "]"
+			elseif option.type == "group" then
+				local cells = {}
+				for name, control in pairs(option.args) do
+					local key = name:match("^toggle(.+)$")
+					if key then
+						cells[#cells + 1] = { key = key, order = control.order }
+					end
+				end
+				table.sort(cells, function(a, b)
+					return a.order < b.order
+				end)
+				for cell = 1, #cells do
+					cells[cell] = cells[cell].key
+				end
+				words[index] = table.concat(cells, "+")
+			elseif option.name == " " then
+				words[index] = "-"
+			else
+				words[index] = widget.key
+			end
+		end
+		return table.concat(words, " ")
+	end
+
+	-- The distinct widths a fresh build gives its checkboxes beside a dropdown, its lone checkboxes, and its dropdowns.
+	function s.cellWidths()
+		local seen = { paired = {}, alone = {}, stacks = {} }
+		for _, option in pairs(ns.BuildStarterListPopupOptions().args) do
+			if option.type == "group" then
+				for name, control in pairs(option.args) do
+					local key = name:match("^toggle(.+)$")
+					if key then
+						seen[option.args["stacks" .. key] and "paired" or "alone"][control.width] = true
+					elseif name:match("^stacks") then
+						seen.stacks[control.width] = true
+					end
+				end
+			end
+		end
+		local function list(widths)
+			local sorted = {}
+			for width in pairs(widths) do
+				sorted[#sorted + 1] = width
+			end
+			table.sort(sorted)
+			return table.concat(sorted, ",")
+		end
+		return list(seen.paired), list(seen.alone), list(seen.stacks)
+	end
+
+	-- Whether the window the last Open drew carries the given text in its intro.
+	function s.introSays(text)
+		return opened ~= nil and opened.args.descIntro.name:find(text, 1, true) ~= nil
+	end
+
 	-- Whether the window the last Open drew leads with the given intro line.
 	function s.openedWithIntro(key)
-		return opened ~= nil and opened.args.descIntro.name:find(L[key], 1, true) ~= nil
+		return opened ~= nil and opened.args.descIntro.name:find(L[key], 1, true) == 1
+	end
+
+	-- The intro the last Open drew, as it is written.
+	function s.intro()
+		return opened.args.descIntro.name
 	end
 
 	return s
@@ -305,7 +643,7 @@ check("dropdown tooltip", stacks.desc(), s.L["STARTER_POPUP_STACKS_DESCRIPTION"]
 check(
 	"checkbox tooltip",
 	toggle.desc(),
-	s.L["STARTER_POPUP_ITEM_DESCRIPTION_STATIC"]:format("|cffffffff|Hitem:17033|h[Symbol of Divinity]|h|r", 5)
+	s.L["STARTER_POPUP_ITEM_DESCRIPTION_STATIC"]:format("|cffffffff|Hitem:17033|hSymbol of Divinity|h|r", 5)
 )
 
 print("2. Symbol of Kings stacks to 100, and a count picked before the tick scales by it")
@@ -410,9 +748,26 @@ s = session("PALADIN", 60)
 s.resolve(8950, 8766) -- the pre-ticked pie and dew resolve, so both land before the window opens
 s.ns.MaybeShowStarterListPopup()
 check("pre-ticks already on the list", s.amount(8950) ~= nil and s.amount(8766) ~= nil, true)
+check("the Restock List window opens behind it", s.restockWindowShown(), 1)
 check("login route leads with the empty-list intro", s.openedWithIntro("STARTER_POPUP_INTRO_EMPTY"), true)
+check(
+	"what a check does follows in the same paragraph, and the way back in is a second",
+	s.intro(),
+	"Your Restock List is empty, so let's add some items to get you started. "
+		.. "Anything you check is automatically restocked whenever you open a merchant or your bank. "
+		.. "Commodity items upgrade themselves as you level, so you'll always have the best available."
+		.. "\n\nYou can always adjust this list, or add more items later, by typing /crs|r.|r"
+)
 s.ns.ShowStarterListPopup()
-check("the List Builder button over the same list", s.openedWithIntro("STARTER_POPUP_INTRO_STOCKED"), true)
+check("the Pick Staples button over the same list", s.openedWithIntro("STARTER_POPUP_INTRO_STOCKED"), true)
+check("which opens from inside that window, so leaves it be", s.restockWindowShown(), 1)
+check(
+	"which is one paragraph, word for word",
+	s.intro(),
+	"Pick the staples you want kept stocked. "
+		.. "Anything you check is automatically restocked whenever you open a merchant or your bank. "
+		.. "Commodity items upgrade themselves as you level, so you'll always have the best available.|r"
+)
 
 print("12. Poison and reagent rows are named by the client, and sort by that name")
 s = session("ROGUE", 60)
@@ -433,6 +788,127 @@ check("a reagent ladder is named for what a tick adds", s.controls("seeds").name
 s = session("DRUID", 20)
 s.resolve(17034)
 check("which follows the character's level", s.controls("seeds").name(), "Maple Seed")
+
+print("13. One grid from the first section to the last, and each row wears its item's icon")
+s = session("ROGUE", 60)
+s.resolve(6947, 2892, 3775, 5237, 10918, 5060, 5140, 5530, 6948)
+check(
+	"the sections in order, Water the food grid's last cell, a line break around each",
+	s.layout(),
+	"descIntro - [Food & Water] - bread+cheese fish+fruit fungus+meat water - "
+		.. "[Poisons] - descPoisonsNote - crippling+deadly instant+mindnumbing wound - "
+		.. "[Ammo] - arrows+bullets - "
+		.. "[Reagents & Tools] - blindingpowder+flashpowder hearthstone+thievestools -"
+)
+local paired, alone, dropdowns = s.cellWidths()
+check("every checkbox beside a dropdown is one width", paired, "1.1")
+check("every dropdown is one width", dropdowns, "0.65")
+check("a staple with no dropdown spans the pair", alone, "1.75")
+toggle = s.controls("bread")
+check("a food row wears the icon of the item a tick adds", toggle.image(), "icon:8950")
+check("cropped to lose the stock border", table.concat(toggle.imageCoords, " "), "0.08 0.92 0.08 0.92")
+check("a poison row wears its own tier's", s.controls("instant").image(), "icon:8928")
+s = session("WARRIOR", 60)
+check(
+	"a class with no section of its own: food and water, ammo, then the Hearthstone",
+	s.layout(),
+	"descIntro - [Food & Water] - bread+cheese fish+fruit fungus+meat water - "
+		.. "[Ammo] - arrows+bullets - [Reagents & Tools] - hearthstone -"
+)
+s.resolve(8950, 8766)
+s.ns.ShowStarterListPopup()
+check("from the Pick Staples button the intro leaves /crs out", s.introSays(s.L["RESTOCKER_COMMAND"]), false)
+s = session("WARRIOR", 60)
+s.resolve(8950)
+s.ns.MaybeShowStarterListPopup()
+check("at login it says the way back in", s.introSays(s.L["RESTOCKER_COMMAND"]), true)
+
+print("14. A staple row's name stands a gap off its icon, through a press and back")
+s = session("WARRIOR", 60)
+local iconCheckBox = s.controls("bread").dialogControl
+check("a staple's checkbox is the options' icon checkbox", iconCheckBox, "Consumable-Connoisseur_IconCheckBox")
+check("and the Hearthstone's, which has no dropdown", s.controls("hearthstone").dialogControl, iconCheckBox)
+local box = s.newIconCheckBox(iconCheckBox)
+check("built by the stock constructor, under its own name", box.type, iconCheckBox)
+box:SetImage("icon:8950")
+check("the name stands the list rows' gap off the icon", box.label, "image 4 0")
+box.press()
+check("a press nudges it from there", box.label, "image 5 -1")
+box.release()
+check("and the release puts it back", box.label, "image 4 0")
+box.disabled = true
+box.press()
+check("a disabled row does not move", box.label, "image 4 0")
+box.disabled = false
+box:SetImage(nil)
+check("with no icon it is the stock checkbox's label", box.label, "box 0 0")
+box.press()
+check("through a press", box.label, "box 1 -1")
+box.release()
+check("and back", box.label, "box 0 0")
+s = session("WARRIOR", 60, "era", true)
+check("with no stock checkbox to build on, the type's name is cleared", s.ns.ICON_CHECKBOX_WIDGET_TYPE, nil)
+check("and a staple asks for no control of its own", s.controls("bread").dialogControl, nil)
+check("while keeping its icon", s.controls("bread").image(), "icon:8950")
+
+print("15. The window is drawn in to its rows, over a solid fill")
+s = session("WARRIOR", 60)
+s.rowsCameTo(300)
+s.ns.ShowStarterListPopup()
+check("opens at its cap, for the rows to be laid out in", s.status.defaultSize, "690x640")
+check("then takes the rows' height and the frame's own title and footer", s.window.height, 371)
+check("which every repaint reopens it at", s.status.height, 371)
+check("and cannot be dragged bigger", s.window.resizable, false)
+s.rowsCameTo(312)
+s.nextFrame()
+check("fitted again a frame later, once wrapped lines have settled", s.window.height, 383)
+local fill = s.created.Frame
+check("the fill is solid black", fill.fill, "0 0 0 1")
+check("hung on the host", fill:GetParent() == s.host, true)
+check("in the strata under it, whatever its parent gave it", fill:GetFrameStrata(), "FULLSCREEN")
+check("inside the host backdrop's insets", fill.points.TOPLEFT .. " " .. fill.points.BOTTOMRIGHT, "8,-8 -8,8")
+check("and showing", fill.shown, true)
+check("the don't-show-again checkbox rides the same host", s.created.CheckButton:GetParent() == s.host, true)
+s.host:Hide()
+check("closing hands the fill back, hidden", fill:GetParent() == UIParent and not fill.shown, true)
+check("and the checkbox", s.created.CheckButton:GetParent() == UIParent and not s.created.CheckButton.shown, true)
+check("and retires the list's New flags", s.newFlagsCleared(), 1)
+s.rowsCameTo(500)
+s.nextFrame()
+check("a timer that outlives the window fits nothing", s.window.height, 383)
+s.host:Show()
+s.host:Hide()
+check("the pooled frame hiding for some other window clears nothing", s.newFlagsCleared(), 1)
+s.ns.ShowStarterListPopup()
+check("opened again, the rows fit as they are now", s.window.height, 571)
+check("the same fill is hung again", s.created.Frame == fill and fill:GetParent() == s.host and fill.shown, true)
+check("and the hide hook is not stacked", #s.host.hooks, 1)
+s.host:Hide()
+check("so one close retires the flags once", s.newFlagsCleared(), 2)
+s.rowsCameTo(900)
+s.ns.ShowStarterListPopup()
+check("more rows than the cap holds keep the cap, and scroll", s.window.height, 640)
+s.host:Hide()
+s.host.backdropInfo = { edgeSize = 1 }
+s.ns.ShowStarterListPopup()
+check(
+	"a skin's flat backdrop, with no insets, is filled edge to edge",
+	fill.points.TOPLEFT .. " " .. fill.points.BOTTOMRIGHT,
+	"0,0 0,0"
+)
+s.host:Hide()
+s.host.backdropInfo = nil
+s.ns.ShowStarterListPopup()
+check(
+	"a host with no backdrop to read takes the stock insets",
+	fill.points.TOPLEFT .. " " .. fill.points.BOTTOMRIGHT,
+	"8,-8 -8,8"
+)
+s.host:Hide()
+s.host.strata, s.host.level = "BACKGROUND", 3
+s.ns.ShowStarterListPopup()
+check("a host in the lowest strata keeps the fill there", fill:GetFrameStrata(), "BACKGROUND")
+check("a level under it", fill:GetFrameLevel(), 2)
 
 print("")
 if failures == 0 then

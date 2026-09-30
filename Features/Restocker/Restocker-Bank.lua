@@ -159,12 +159,35 @@ local function NewRestockState()
 	state.cursorSteps = 0
 	state.lockedTicks = 0
 	state.overshotItems = {}
+	state.amounts = {}
 
 	setmetatable(state, RestockState)
 
 	state:Rescan()
+	for itemID, eachItem in pairs(state.currentList) do
+		state:Wanted(itemID, eachItem)
+	end
 
 	return state
+end
+
+--[[
+    The Keep amount this run works to, read once per row: as the run starts, or
+    when a row added since first turns up. The Keep box saves every keystroke,
+    so a live read would act on a number half typed (clearing the box reads 0,
+    which stores the whole stack); Enter restarts the run with the new number
+    (Restocker-Window-Rows.lua).
+
+    A hand-edited save can leave amount nil; comparing that against a count
+    throws inside the coroutine and kills the whole run, so it reads as 0.
+]]
+function RestockState:Wanted(itemID, eachItem)
+	local wanted = self.amounts[itemID]
+	if wanted == nil then
+		wanted = eachItem.amount or 0
+		self.amounts[itemID] = wanted
+	end
+	return wanted
 end
 
 --[[
@@ -237,11 +260,7 @@ function RestockState:RemainingWork()
 	for itemID, eachItem in pairs(self.currentList) do
 		local haveInBag = self.playerInventory.summary[itemID] or 0
 		local haveInBank = self.bankInventory.summary[itemID] or 0
-		--[[
-		    A hand-edited save can leave amount nil; comparing that against a count throws
-		    inside the coroutine and kills the whole run, so read it as 0.
-		]]
-		local wanted = eachItem.amount or 0
+		local wanted = self:Wanted(itemID, eachItem)
 
 		if eachItem.restockFromBank and wanted > haveInBag and haveInBank > 0 then
 			work = work + math.min(wanted - haveInBag, haveInBank)
@@ -318,7 +337,7 @@ function RestockState:StuckMessage()
 	for itemID, eachItem in pairs(self.currentList) do
 		local haveInBag = self.playerInventory.summary[itemID] or 0
 		local haveInBank = self.bankInventory.summary[itemID] or 0
-		local wanted = eachItem.amount or 0
+		local wanted = self:Wanted(itemID, eachItem)
 
 		if eachItem.restockFromBank and wanted > haveInBag and haveInBank > 0 then
 			withdrawStuck = true
@@ -361,7 +380,7 @@ local function StashToBank()
 	for itemID, eachItem in pairs(state.currentList) do
 		if eachItem.stashToBank or state.overshotItems[itemID] then
 			local haveInBag = state.playerInventory.summary[itemID] or 0
-			local wanted = eachItem.amount or 0
+			local wanted = state:Wanted(itemID, eachItem)
 			local excess = haveInBag - wanted
 			if excess > 0 then
 				ns.RestockerDebug("TRACE_TOO_MANY", eachItem.itemName, haveInBag, wanted)
@@ -386,7 +405,7 @@ local function RestockFromBank()
 		if eachItem.restockFromBank then
 			local haveInBag = state.playerInventory.summary[itemID] or 0
 			local haveInBank = state.bankInventory.summary[itemID] or 0
-			local wanted = eachItem.amount or 0
+			local wanted = state:Wanted(itemID, eachItem)
 			local short = wanted - haveInBag
 			if short > 0 and haveInBank > 0 then
 				ns.RestockerDebug("TRACE_TOO_FEW", eachItem.itemName, haveInBag, wanted)
@@ -621,17 +640,22 @@ local function RunRestockLogic()
 		state.lastRemainingWork = remaining
 
 		--[[
-		    ONE move per tick: stash an over-stocked item, otherwise pull an under-stocked one.
-		    Doing only one keeps a stash and a restock from firing in the same tick and fighting
-		    over the cursor. ALWAYS keep going (return false) even if nothing was issued -- a slot
-		    may still be locked from the previous move; the watchdog above is what stops us if
-		    we're genuinely stuck. Stashing runs first so it can free a bag slot for restocking.
+		    ONE move per tick: stash an over-stocked item or pull an under-stocked one. Doing
+		    only one keeps a stash and a restock from firing in the same tick and fighting over
+		    the cursor. ALWAYS keep going (return false) even if nothing was issued -- a slot may
+		    still be locked from the previous move; the watchdog above is what stops us if we're
+		    genuinely stuck. Stashing runs first so it can free a bag slot for restocking, except
+		    while the bank has no free slot: a stash cannot land then, and retrying it would
+		    starve every pull, so restocking runs first, and a whole stack taken out frees the
+		    slot the stash needs.
 		]]
-		if StashToBank() then
-			return false
-		end
-		if RestockFromBank() then
-			return false
+		local _, bankHasSpace = ns.GetRestockSpace()
+		if bankHasSpace then
+			if not StashToBank() then
+				RestockFromBank()
+			end
+		elseif not RestockFromBank() then
+			StashToBank()
 		end
 		return false
 	end

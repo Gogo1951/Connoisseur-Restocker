@@ -32,8 +32,6 @@ local _, ns = ...
                    Mana Gem tier is its own spell) and where the best known
                    rank is always wanted (see the note on
                    WarlockCreateSoulstone).
-
-    Soulstone rows name their max target level in the trailing comment.
 ]]
 ns.CONJURE_SPELLS = {
 	MageCreateTable = {
@@ -94,21 +92,18 @@ ns.CONJURE_SPELLS = {
 	},
 	WarlockCreateSoulstone = {
 		--[[
-		    Max Target Level: a soulstone cannot be used on players ABOVE
-		    that level. It needs no selection logic — the caps rise with
-		    rank, so casting the best known rank always satisfies the cap.
 		    The resolver passes ignoreTarget=true, which is why the second
 		    column is the learn level rather than an item usage level.
 
 		    No rank column: the resolver ignores the target, and a bare
 		    /cast already fires the best rank the warlock knows.
 		]]
-		-- {Spell ID, Spell Learn Level}, -- Conjured Item (Max Target Level)
-		{ 20757, 60 }, -- Major Soulstone (max target level 70)
-		{ 20756, 50 }, -- Greater Soulstone (max target level 60)
-		{ 20755, 40 }, -- Soulstone (max target level 50)
-		{ 20752, 30 }, -- Lesser Soulstone (max target level 40)
-		{ 693, 18 }, -- Minor Soulstone (max target level 30)
+		-- {Spell ID, Spell Learn Level}, -- Conjured Item
+		{ 20757, 60 }, -- Major Soulstone
+		{ 20756, 50 }, -- Greater Soulstone
+		{ 20755, 40 }, -- Soulstone
+		{ 20752, 30 }, -- Lesser Soulstone
+		{ 693, 18 }, -- Minor Soulstone
 	},
 }
 
@@ -123,8 +118,8 @@ ns.MISSING_SPELL_MESSAGE_IDS = {
 	noConjureFood = 587, -- Conjure Food (rank 1)
 	noConjureManaGem = 759, -- Conjure Mana Agate
 	-- Warlock conjures
-	noCreateHealthstone = 6201, -- Create Healthstone (Minor)
-	noCreateSoulstone = 693, -- Create Soulstone (Minor)
+	noCreateHealthstone = 6201, -- Create Healthstone (rank 1)
+	noCreateSoulstone = 693, -- Create Soulstone (rank 1)
 	-- Rogue poisons
 	noPoisonsSkill = 2842, -- Poisons (the rogue poison-crafting skill)
 }

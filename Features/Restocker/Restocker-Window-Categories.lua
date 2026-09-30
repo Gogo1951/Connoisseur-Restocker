@@ -162,7 +162,7 @@ local function GetCategoryRow()
 	name:SetPoint("RIGHT", count, "LEFT", -4, 0)
 	row.name = name
 
-	row:SetScript("OnClick", function(self)
+	ns.SetRestockControlClick(row, function(self)
 		ns.SelectRestockGroup(self.group)
 	end)
 

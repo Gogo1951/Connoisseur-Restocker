@@ -7,17 +7,14 @@
 
     Like Restocker-Upgrade-Level-Test, this does NOT model the logic: it loads
     the REAL Restocker-Saved-Migration.lua and logs in the way Features/Core.lua
-    does, ns.AdoptStandaloneRestockerDB, ns.RenameRestockerSavedKeys and then
-    ns.RepairBlindingPowderRows, against saved tables shaped like the ones older
-    releases wrote.
+    does, ns.RenameRestockerSavedKeys and then ns.RepairBlindingPowderRows,
+    against saved tables shaped like the ones older releases wrote.
 
     WHAT IS PINNED HERE. The saved keys were renamed (profiles to lists, profileKeys
     to listsByCharacter, currentProfile to currentList, framePos to framePosition
     with its xOfs and yOfs as xOffset and yOffset). No list, no character's list
-    assignment and no window position value may be lost, whether the old names were
-    already in ConnoisseurDB or arrived in the same login from an adopted
-    ConnoisseurRestockerDB. A new name that already holds data is never overwritten,
-    and a second login changes nothing.
+    assignment and no window position value may be lost. A new name that already
+    holds data is never overwritten, and a second login changes nothing.
 
     The Blinding Powder ladder saved Infantry Gauntlets (6510) for Blinding Powder
     (5530). On an Era client every such row becomes Blinding Powder with its amount
@@ -29,8 +26,7 @@
     its own row, and off Era a 6510 row is left alone.
 
     This file retires with the rename bridge and the Blinding Powder repair, which
-    share a date. Scenarios 3 and 5 go earlier, with the adoption (remove after
-    2026-09-29).
+    share a date.
 ]]
 
 local ROOT = arg[1] or "../.."
@@ -103,12 +99,9 @@ local function dump(value)
 	return "{" .. table.concat(parts, ",") .. "}"
 end
 
----One login, in Core's order: the adoption, the rename, then the Blinding Powder repair.
-local function login(settings, standalone)
+---One login, in Core's order: the rename, then the Blinding Powder repair.
+local function login(settings)
 	ns.db.global.restocker = settings
-	-- MIGRATION (remove after 2026-09-29): the adoption, these two lines and the standalone parameter (the other logins pass nil for it)
-	ConnoisseurRestockerDB = standalone
-	ns.AdoptStandaloneRestockerDB()
 	ns.RenameRestockerSavedKeys()
 	ns.RepairBlindingPowderRows()
 	return settings
@@ -118,7 +111,6 @@ end
 local function currentDefaults()
 	return {
 		lists = {},
-		listsByCharacter = {},
 		starterListDismissed = {},
 		framePosition = {},
 		restockReminderChat = true,
@@ -198,31 +190,17 @@ end
 
 --------------------------------------------------------------------------------
 
-print("1. Old names already in ConnoisseurDB, no legacy table")
-local settings = login(withOldKeys(currentDefaults()), nil)
+print("1. Old names in ConnoisseurDB move to the new names")
+local settings = login(withOldKeys(currentDefaults()))
 checkRenamed(settings)
 check("unrelated setting untouched", settings.restockReminderChat, true)
 
 print("2. A second login changes nothing")
 local before = dump(settings)
-login(settings, nil)
+login(settings)
 check("same saved shape", dump(settings), before)
 
--- MIGRATION (remove after 2026-09-29): this adoption scenario
-print("3. Legacy ConnoisseurRestockerDB adopted and renamed in the same login")
-local standalone = withOldKeys({
-	starterListDismissed = { ["Frostbolt - Whitemane"] = true },
-	merchantReminder = false,
-	debugMessages = true,
-})
-settings = login(currentDefaults(), standalone)
-checkRenamed(settings)
-check("dismissals adopted", settings.starterListDismissed["Frostbolt - Whitemane"], true)
-check("reminder setting adopted", settings.merchantReminder, false)
-check("debug switch left behind", settings.debugMessages, nil)
-check("legacy table cleared", ConnoisseurRestockerDB, nil)
-
-print("4. A new name that already holds data is never overwritten")
+print("3. A new name that already holds data is never overwritten")
 settings = withOldKeys(currentDefaults())
 settings.lists = { Main = { [8079] = "Consumable, Conjured Crystal Water, 60, 0, 1, 1, 0, 1, 0" } }
 settings.listsByCharacter = { ["Frostbolt - Whitemane"] = "Main" }
@@ -234,7 +212,7 @@ local newShape = dump({
 	currentList = settings.currentList,
 	framePosition = settings.framePosition,
 })
-login(settings, nil)
+login(settings)
 check(
 	"new names unchanged",
 	dump({
@@ -250,46 +228,35 @@ check("old assignments kept, not lost", dump(settings.profileKeys), dump(oldAssi
 check("old current list kept", settings.currentProfile, "Mage")
 check("old position kept, not lost", dump(settings.framePos), dump(oldPosition()))
 
--- MIGRATION (remove after 2026-09-29): this adoption scenario
-print("5. A legacy table never lands beside lists already saved under the new name")
-settings = currentDefaults()
-settings.lists = { Main = { [8079] = "Consumable, Conjured Crystal Water, 60, 0, 1, 1, 0, 1, 0" } }
-local savedLists = dump(settings.lists)
-login(settings, withOldKeys({}))
-check("lists unchanged", dump(settings.lists), savedLists)
-check("no stale copy parked under profiles", settings.profiles, nil)
-check("no stale copy parked under framePos", settings.framePos, nil)
-check("legacy table cleared", ConnoisseurRestockerDB, nil)
-
-print("6. Empty old keys are cleared rather than left in the file")
+print("4. Empty old keys are cleared rather than left in the file")
 settings = currentDefaults()
 settings.profiles = {}
 settings.profileKeys = {}
 settings.framePos = {}
-login(settings, nil)
+login(settings)
 check("profiles cleared", settings.profiles, nil)
 check("profileKeys cleared", settings.profileKeys, nil)
 check("framePos cleared", settings.framePos, nil)
 check("lists still a table", type(settings.lists), "table")
 check("framePosition still a table", type(settings.framePosition), "table")
 
-print("7. Every list's gauntlets row becomes Blinding Powder, its numbers kept")
+print("5. Every list's gauntlets row becomes Blinding Powder, its numbers kept")
 settings = currentDefaults()
 settings.lists = {
 	Rogue = { [6510] = GAUNTLETS_LINE, [5140] = FLASH_POWDER_LINE },
 	["Bank Run"] = { [6510] = "Armor, Infantry Gauntlets, 20, 0, 1, 1, 0, 1, 0" },
 }
-login(settings, nil)
+login(settings)
 check("gauntlets row gone", settings.lists.Rogue[6510], nil)
 check("Blinding Powder line, label dropped", settings.lists.Rogue[5530], "40, 1, 0, 0, 5, 0, 1")
 check("other rows untouched", settings.lists.Rogue[5140], FLASH_POWDER_LINE)
 check("second list's gauntlets row gone", settings.lists["Bank Run"][6510], nil)
 check("second list repaired too", settings.lists["Bank Run"][5530], "20, 0, 1, 1, 0, 1, 0")
 before = dump(settings)
-login(settings, nil)
+login(settings)
 check("a second login changes nothing", dump(settings), before)
 
-print("8. Login unpacks it as Blinding Powder, with the gauntlets row's own settings")
+print("6. Login unpacks it as Blinding Powder, with the gauntlets row's own settings")
 cached[5530] = true
 local row = unpacked(settings.lists.Rogue)[5530]
 local asSaved = unpacked({ [6510] = GAUNTLETS_LINE })[6510]
@@ -301,7 +268,7 @@ for _, field in ipairs({ "stashToBank", "restockFromBank", "buyFromMerchant", "r
 	check(field .. " as saved", row[field], asSaved[field])
 end
 
-print("9. Unpacked on a cold item cache it has no name, never the gauntlets', and saves that way")
+print("7. Unpacked on a cold item cache it has no name, never the gauntlets', and saves that way")
 cached[5530] = nil
 row = unpacked(settings.lists.Rogue)[5530]
 check("blank, never the gauntlets' name", row.itemName, "")
@@ -314,14 +281,14 @@ check(
 	"Blinding Powder"
 )
 
-print("10. A list that already holds Blinding Powder keeps its own row")
+print("8. A list that already holds Blinding Powder keeps its own row")
 settings = currentDefaults()
 settings.lists = { Rogue = { [6510] = GAUNTLETS_LINE, [5530] = "Reagent, Blinding Powder, 10, 0, 1, 1, 0, 1, 0" } }
-login(settings, nil)
+login(settings)
 check("gauntlets row gone", settings.lists.Rogue[6510], nil)
 check("player's own row untouched", settings.lists.Rogue[5530], "Reagent, Blinding Powder, 10, 0, 1, 1, 0, 1, 0")
 
-print("11. A table left by a crash moves the same way, gauntlets name and link cleared")
+print("9. A table left by a crash moves the same way, gauntlets name and link cleared")
 settings = currentDefaults()
 settings.lists = {
 	Rogue = {
@@ -336,7 +303,7 @@ settings.lists = {
 		},
 	},
 }
-login(settings, nil)
+login(settings)
 row = settings.lists.Rogue[5530] or {}
 check("gauntlets row gone", settings.lists.Rogue[6510], nil)
 check("itemID follows the key", row.itemID, 5530)
@@ -347,24 +314,24 @@ check("amount kept", row.amount, 40)
 check("Buy off kept", row.buyFromMerchant, false)
 check("Extra kept", row.buyExtra, true)
 
-print("12. A list still under its old name is repaired in the same login")
+print("10. A list still under its old name is repaired in the same login")
 settings = currentDefaults()
 settings.profiles = { Rogue = { [6510] = GAUNTLETS_LINE } }
-login(settings, nil)
+login(settings)
 check("renamed and repaired", (settings.lists.Rogue or {})[5530], "40, 1, 0, 0, 5, 0, 1")
 check("no gauntlets row", (settings.lists.Rogue or {})[6510], nil)
 
-print("13. Off Era, a 6510 row is one the player added, and it stays")
+print("11. Off Era, a 6510 row is one the player added, and it stays")
 ns.FLAVOR = "TBC"
 settings = currentDefaults()
 settings.lists = { Main = { [6510] = GAUNTLETS_LINE } }
-login(settings, nil)
+login(settings)
 check("gauntlets row kept", settings.lists.Main[6510], GAUNTLETS_LINE)
 check("no Blinding Powder row added", settings.lists.Main[5530], nil)
 ns.FLAVOR = "Vanilla"
 
 --[[
-    Scenarios 14 to 16 log in for real on a fresh namespace. The REAL item memo
+    Scenarios 12 to 14 log in for real on a fresh namespace. The REAL item memo
     (Features/Item-Cache.lua) and item-info handler (Restocker-List.lua) join the
     migration and the unpacking, in the order InitializeSavedVariables and
     ns.InitializeRestocker run them: repair, unpack, the first sync, then the
@@ -443,7 +410,7 @@ local function loginOnClient(lists, loadedItemIDs)
 	return session
 end
 
-print("14. Cold at login: the row waits without a name and is named when the client answers")
+print("12. Cold at login: the row waits without a name and is named when the client answers")
 local session = loginOnClient({ Rogue = { [6510] = GAUNTLETS_LINE } }, {})
 row = session.restockSettings.lists.Rogue[5530]
 check("no name yet", row.itemName, "")
@@ -454,7 +421,7 @@ check("typed too", row.itemType, "Reagent")
 check("window redrawn", client.redraws, 1)
 check("event released", client.registered, false)
 
-print("15. Warm at login: named straight away, a crash-left table included, and nothing listens")
+print("13. Warm at login: named straight away, a crash-left table included, and nothing listens")
 session = loginOnClient({
 	Rogue = { [6510] = GAUNTLETS_LINE },
 	Bank = { [6510] = { itemID = 6510, itemName = "Infantry Gauntlets", amount = 5 } },
@@ -464,7 +431,7 @@ check("table named at the first sync", session.restockSettings.lists.Bank[5530].
 check("no redraw before the window exists", client.redraws, 0)
 check("nothing listening", client.registered, false)
 
-print("16. A crash-left table on a cold client asks for Blinding Powder itself")
+print("14. A crash-left table on a cold client asks for Blinding Powder itself")
 session = loginOnClient({ Rogue = { [6510] = { itemID = 6510, itemName = "Infantry Gauntlets", amount = 40 } } }, {})
 row = session.restockSettings.lists.Rogue[5530]
 check("asked the client", client.queued[5530], true)

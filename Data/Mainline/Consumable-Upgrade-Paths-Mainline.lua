@@ -71,7 +71,7 @@ local _, ns = ...
     database calls cheese 3 and bread 4, Connoisseur calls bread 3 and cheese
     4, and it swaps fruit and fungus too -- so a FoodType pasted in raw from
     SQL would silently mislabel most of this file. Water is 0: drinks have no
-    FoodType at all, which is also why they are absent from Pet-Foods-Standard.lua.
+    FoodType at all, which is also why they are absent from Pet-Foods-Mainline.lua.
 ]]
 local WATER, MEAT, FISH, BREAD, CHEESE, FRUIT, FUNGUS = 0, 1, 2, 3, 4, 5, 6
 
@@ -136,7 +136,7 @@ ns.CONSUMABLE_UPGRADE_CHAINS = {
 	{
 		--[[
 		    Homemade Cherry Pie is BREAD, not fruit. item_template files it
-		    under FoodType 6 and the database is simply wrong -- Pet-Foods-Standard.lua
+		    under FoodType 6 and the database is simply wrong -- Pet-Foods-Mainline.lua
 		    already carries the same correction (diet 3) and says so. Taking
 		    the SQL at its word would have left bread with no tier at 45 and
 		    given fruit two.
@@ -248,7 +248,7 @@ ns.CONSUMABLE_UPGRADE_CHAINS = {
 	--[[
 	    ROGUE POISONS
 
-	    The tier rows mirror ns.POISON_DATA (Poisons-Standard.lua), which the
+	    The tier rows mirror ns.POISON_DATA (Poisons-Mainline.lua), which the
 	    Poisons macro already ships -- keep the two in step. group is
 	    ns.POISON_GROUPS' numbering (Data/Data.lua), which is how the Starter
 	    List popup finds each ladder.

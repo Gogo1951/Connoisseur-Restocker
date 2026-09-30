@@ -161,6 +161,22 @@ function ns.BuildGroceryList()
 	return list
 end
 
+--[[
+    Do the bags hold fewer of this row's item than its Keep amount? The grocery
+    list's own shortfall, asked of one row and without its Buy gate: the Restock
+    window marks every short row, not only the ones a merchant would be asked
+    for, so a row the bank is meant to fill is marked too.
+
+    Bags only and counted by the same key, so a row this calls short with Buy on
+    is always an order on the list above. A Keep of 0 asks for nothing and is
+    never short; with Store on it sends the whole stock to the bank.
+]]
+function ns.IsRestockItemShort(record)
+	local wanted = record.amount or 0
+	local key = record.itemID or record.itemName
+	return key ~= nil and wanted > 0 and (C_Item.GetItemCount(key, false, false) or 0) < wanted
+end
+
 local function UpdatePurchaseOrdersWithCraftingReagents(purchaseOrders, ingredientName, toBuy)
 	if not purchaseOrders[ingredientName] then
 		purchaseOrders[ingredientName] = NewPurchaseOrder(toBuy, ingredientName, nil, nil)
@@ -185,10 +201,11 @@ end
 
     "Needs" means an amount still to buy after bags were counted -- a reagent
     the bags already cover is not required of the vendor, so dust-only is fine
-    when the vials are in the bags. "Stocks" means the slot is purchasable
-    right now: unlimited (-1) or a limited count above zero. A sold-out
-    limited slot counts as NOT stocked -- buying the others would strand the
-    player exactly the way this rule forbids.
+    when the vials are in the bags. "Stocks" means the slot can be bought from
+    right now, for gold alone: unlimited (-1) or a limited count above zero,
+    and a slot PurchaseMerchantItem would not pass over. A sold-out limited
+    slot counts as NOT stocked -- buying the others would strand the player
+    exactly the way this rule forbids.
 
     Quantity coverage is deliberately not required: a limited slot holding 4
     of the 6 dust wanted still crafts 4 poisons, and the chunked buy loop
@@ -215,8 +232,14 @@ local function VendorStocksAllReagents(craftingPurchaseOrder)
 
 	local stockedCount = 0
 	for i = 1, GetMerchantNumItems() do
-		local itemName, _, _, _, numAvailable = ns.GetMerchantItemInfo(i)
-		if itemName and needed[itemName] and (numAvailable == -1 or numAvailable > 0) then
+		local itemName, _, _, _, numAvailable, isPurchasable, _, hasExtendedCost = ns.GetMerchantItemInfo(i)
+		if
+			itemName
+			and needed[itemName]
+			and isPurchasable
+			and not hasExtendedCost
+			and (numAvailable == -1 or numAvailable > 0)
+		then
 			needed[itemName] = nil -- count each reagent once, however many slots carry it
 			stockedCount = stockedCount + 1
 			if stockedCount == neededCount then
@@ -246,9 +269,18 @@ end
     chunk by chunk: a chunk the player cannot pay for or carry is never sent, so
     the order stops there and counts only what was. A chunk refused for room
     also sets budget.outOfSpace, so the run can say why it fell short.
+
+    A slot this character cannot buy from (a reputation item without the
+    standing) is passed over, since the server refuses every call, and so is
+    one that costs honor, tokens or items besides gold, which the run has no
+    business spending.
 ]]
 local function PurchaseMerchantItem(i, purchaseOrders, budget)
-	local itemName, _, price, batchQuantity, merchantAvailable = ns.GetMerchantItemInfo(i)
+	local itemName, _, price, batchQuantity, merchantAvailable, isPurchasable, _, hasExtendedCost =
+		ns.GetMerchantItemInfo(i)
+	if not isPurchasable or hasExtendedCost then
+		return
+	end
 	local itemLink = GetMerchantItemLink(i)
 
 	local buyItem = purchaseOrders[itemName]

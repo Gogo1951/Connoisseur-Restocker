@@ -2,8 +2,7 @@ local _, ns = ...
 
 -- TODO: Add SQL Query
 --[[
-    Source: copied from Data/Vanilla/Soulstones-Vanilla.lua until Validate Data
-    passes on this client.
+    Source: Validate Data on the WoW Forever client (1.60.1, build 70124).
 
     Rank Value: the stone's resurrection health, used as a sortable
     preference score (Minor < Lesser < Soulstone < Greater < Major).
@@ -38,11 +37,11 @@ ns.SOULSTONES = {
 
     Ranks pair one-for-one with the conjure spells.
 
-    THESE IDS ARE UNVERIFIED against a live client. Because of that the report
-    also matches on the aura's own localized name, which every rank shares and
+    Validate Data on the WoW Forever client (1.60.1, build 70124) confirms
+    these ids: each is the use spell of its rank's stone. The report also
+    matches on the aura's own localized name, which every rank shares and
     which is read from C_Spell.GetSpellName rather than written down here — so a wrong
-    id in this list costs nothing as long as one id still resolves. Confirm
-    them before relying on the id path alone.
+    id in this list costs nothing as long as one id still resolves.
 ]]
 -- buffSpellID, -- Rank, Name (conjure spell ID)
 ns.SOULSTONE_BUFF_SPELL_IDS = {

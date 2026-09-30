@@ -8,6 +8,8 @@
       * re-scan the CURRENT bag/bank contents every step and re-derive the outstanding work
         (RunRestockLogic -> RestockState:Rescan / RemainingWork)
       * issue at most one move per step, then re-scan
+      * stash before pulling, to free bag room, except while the bank has no free slot, when a
+        pull goes first and frees one
       * whole-stack moves auto-merge into existing partial stacks, overflow to a free slot
       * a partial need is split off and best-fit merged; an "uncached" item skips the merge
       * NOTHING is deducted from a running tally -- a move that gets rejected or can't be
@@ -458,6 +460,111 @@ scenario(
 		assert(total(bank2) == 4, "want the 4 excess back in bank, got " .. total(bank2))
 	end
 )
+
+--[[
+    Rows sharing one bag and one bank: each container is { free = <free slots>, items =
+    { [row name] = {counts...} } }, and rows is a list of { name, target, fromBank, stash }.
+    Only whole stacks move here, which is all scenario 13 needs. It mirrors the move order in
+    RunRestockLogic: a stash first, so it can free bag room for a pull, except while the bank
+    has no free slot, when a pull goes first to free one. A move is issued whether or not it
+    can land, as ns.MoveRestockItemToBank's is, so a stash into a full bank lands nothing.
+]]
+local function itemView(container, name)
+	container.items[name] = container.items[name] or {}
+	return { stacks = container.items[name], free = container.free }
+end
+
+local function moveWholeStack(from, to, name, index)
+	local source, destination = itemView(from, name), itemView(to, name)
+	local count = source.stacks[index]
+	local landed = addToContainer(destination, count, true)
+	to.free = destination.free
+	source.stacks[index] = count - landed
+	if source.stacks[index] == 0 then
+		table.remove(source.stacks, index)
+		from.free = from.free + 1
+	end
+end
+
+local function runRows(label, bag, bank, rows)
+	local steps, stuck, lastRemaining = 0, 0, math.huge
+	while true do
+		steps = steps + 1
+		assert(steps < 200, label .. ": did not terminate")
+
+		local remaining = 0
+		for _, row in ipairs(rows) do
+			local inBag, inBank = itemView(bag, row.name), itemView(bank, row.name)
+			remaining = remaining + remainingWork(inBag, inBank, row.target, row.fromBank, row.stash)
+		end
+		if remaining == 0 then
+			return "done", steps
+		end
+		if remaining < lastRemaining then
+			stuck = 0
+		else
+			stuck = stuck + 1
+			if stuck >= WATCHDOG_LIMIT then
+				return "stuck", steps
+			end
+		end
+		lastRemaining = remaining
+
+		-- The first row owed a move in this direction moves its smallest stack.
+		local function issue(from, to, owed)
+			for _, row in ipairs(rows) do
+				local amount = owed(row, total(itemView(bag, row.name)), total(itemView(bank, row.name)))
+				if amount > 0 then
+					local stacks = itemView(from, row.name).stacks
+					local index = smallestIndex({ stacks = stacks })
+					assert(stacks[index] <= amount, label .. ": this model moves whole stacks only")
+					moveWholeStack(from, to, row.name, index)
+					return true
+				end
+			end
+			return false
+		end
+		local function stash()
+			return issue(bag, bank, function(row, haveBag)
+				return row.stash and haveBag - row.target or 0
+			end)
+		end
+		local function pull()
+			return issue(bank, bag, function(row, haveBag, haveBank)
+				return row.fromBank and haveBank > 0 and row.target - haveBag or 0
+			end)
+		end
+
+		if bank.free > 0 then
+			if not stash() then
+				pull()
+			end
+		elseif not pull() then
+			stash()
+		end
+	end
+end
+
+--[[
+    13. A full bank, one row with extras to store and another short with stock in the bank.
+        A stash cannot land in a full bank, so stashing first retried it until the watchdog
+        stopped the run as "bank full" with nothing taken out. The pull goes first and frees
+        the slot the stash needs, and both rows end on target.
+]]
+do
+	local label = "full bank, store and take"
+	local bag = { free = 5, items = { stored = { 20, 20 }, taken = {} } }
+	local bank = { free = 0, items = { taken = { 20 } } }
+	local status, steps = runRows(label, bag, bank, {
+		{ name = "stored", target = 20, stash = true },
+		{ name = "taken", target = 20, fromBank = true },
+	})
+	print(("%-26s -> [%s, %d steps]"):format(label, status, steps))
+	assert(status == "done", "want done, got " .. status)
+	assert(total(itemView(bag, "stored")) == 20, "want the stored row on 20")
+	assert(total(itemView(bag, "taken")) == 20, "want the taken row on 20")
+	pass = pass + 1
+end
 
 --[[
     ---------------------------------------------------------------------------------------

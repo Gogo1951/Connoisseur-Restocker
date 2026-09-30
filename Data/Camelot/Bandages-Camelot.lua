@@ -2,7 +2,10 @@ local _, ns = ...
 
 --[[
     Source: copied from Data/Vanilla/Bandages-Vanilla.lua until Validate Data
-    passes on this client.
+    passes on this client. Every row was checked against WoW Forever's own
+    tables on wago.tools (build 1.60.1.70124), and the Crystal Infused and
+    Darkspear Islands rows come from there, pending Validate Data. Darkspear
+    Islands is area 16606, uiMapID 2524; the query below predates it.
 
     SELECT
         CONCAT(
@@ -48,6 +51,10 @@ ns.BANDAGES = {
 	[20065] = { 1104, 175, 75, { 1461 } }, -- Arathi Basin Mageweave Bandage
 	[20066] = { 2000, 225, 100, { 1461 } }, -- Arathi Basin Runecloth Bandage
 	[20067] = { 640, 125, 50, { 1461 } }, -- Arathi Basin Silk Bandage
+	[23684] = { 2500, 225, 1500 }, -- Crystal Infused Bandage
+	[272057] = { 1104, 175, 75, { 2524 } }, -- Darkspear Islands Mageweave Bandage
+	[272058] = { 2000, 225, 100, { 2524 } }, -- Darkspear Islands Runecloth Bandage
+	[272056] = { 640, 125, 50, { 2524 } }, -- Darkspear Islands Silk Bandage
 	[20232] = { 1104, 175, 75, { 1461 } }, -- Defiler's Mageweave Bandage
 	[20234] = { 2000, 225, 100, { 1461 } }, -- Defiler's Runecloth Bandage
 	[20235] = { 640, 125, 50, { 1461 } }, -- Defiler's Silk Bandage

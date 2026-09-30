@@ -13,11 +13,14 @@ local _, ns = ...
     value, including false, is never overridden either way.
 
     The consumable settings live under `profile`, so they are per-character:
-    each character gets its own "Name - Realm" profile and can run a
-    different set of consumables. That is the point -- a level-15 alt and
-    a raiding 60 want different buff food, and two Rogues want their own poison
-    pairs. The stock Profiles panel (Options/Options-Profiles.lua) is therefore
-    meaningful: switching, copying, or resetting a profile moves real settings.
+    each character gets a profile of its own, named as AceDB names the
+    character (its first name and surname on WoW Forever, "Name - Realm" on
+    Era and TBC), and can run a different set of consumables. That is the
+    point -- a level-15 alt and a raiding 60 want different buff food, scrolls
+    differ by class, and two Rogues want their own poison pairs. The stock
+    Profiles panel (Options/Options-Profiles.lua) is therefore meaningful:
+    switching, copying, or resetting a profile moves real settings, and two
+    characters share a setup only when the player puts both on one profile.
 
     What stays under `global` (account-wide), each for a concrete reason rather
     than convenience:
@@ -35,24 +38,41 @@ local _, ns = ...
                           contents (position etc.), so keeping it off the
                           profile means switching, resetting, or deleting a
                           profile never moves the minimap button.
-      * ignoreList     -- the account-wide half of the Ignore List, hiding an
+      * ignoreList     -- the Global half of the Ignore List, hiding an
                           item from every character's macros at once; the
-                          per-character half keeps the same key on the profile,
+                          character's half keeps the same key on the profile,
                           and Features/Ignore-List.lua reads both.
       * readiness*     -- the per-category switches under
                           readinessReportEnabled, each answered once for the
                           account like the master toggle above it. Their own
                           reasons are on the keys.
-      * restocker      -- the Restock List subsystem, account-wide in full. Its
-                          reason is on the key itself.
+      * restocker      -- the Restock Lists and the Restocker's settings,
+                          shared by the account; a profile only picks which
+                          list it uses. Its reason is on the key itself.
+      * inventoryReport, inventory -- the item-tooltip counts and the
+                          per-character snapshots behind them. Their reasons
+                          are on the keys.
 
-    The derived item cache (itemCache / itemCacheVersion) is deliberately NOT
-    declared here: ns.EnsureItemCache (Features/Item-Cache.lua) creates it on
-    the profile at login and after every profile change, and owns its
-    version-stamp invalidation, so it never needs a default.
+    The derived item cache (itemCache, with its itemCacheVersion and
+    itemCacheFolder stamps) is deliberately NOT declared here:
+    ns.EnsureItemCache (Features/Item-Cache.lua) creates it on the profile at
+    login and after every profile change, and owns its stamp invalidation, so
+    it never needs a default.
+
+    restockList, the name of the Restock List a profile uses, is not declared
+    either, because no list exists to name until a character logs in:
+    ns.InitCharacterRestockList
+    (Features/Restocker/Restocker-Saved-Lists.lua) gives a profile without one
+    a list named for the character's class.
 ]]
 ns.DATABASE_DEFAULTS = {
 	profile = {
+		--[[
+		    The character's own half of the Ignore List, itemID to true: the
+		    items hidden from the macros of whoever is on this profile. The
+		    Global half keeps the same key on `global`, and
+		    Features/Ignore-List.lua reads both.
+		]]
 		ignoreList = {},
 		--[[
 		    Use Conjured Food & Water First: the Food and Water macros rank
@@ -66,6 +86,13 @@ ns.DATABASE_DEFAULTS = {
 		]]
 		useConjuredFirst = false,
 		conjuredFirstMode = "leveling",
+		--[[
+		    Use Food & Water in Potion Macros Out of Combat: the Health Potion
+		    macro eats the Food macro's pick and the Mana Potion macro drinks
+		    the Water macro's pick while the player is out of combat, the way
+		    an older add-on's single button did. Off by default.
+		]]
+		potionsUseFoodAndWater = false,
 		combineHealthstones = false,
 		includeManaRunes = false,
 		--[[
@@ -125,16 +152,16 @@ ns.DATABASE_DEFAULTS = {
 		offHandPoisonGroup = 4,
 	},
 	global = {
-		ignoreList = {},
 		showWelcome = true,
 		--[[
-		    The Restock List subsystem, account-wide in full. None of it is an
-		    AceDB profile: `lists` here are the player's own named shopping
-		    lists and `listsByCharacter` maps a character to the one it uses, so the
-		    stock Reset Profile control must never reach them. Putting them on
-		    global is what guarantees that -- a profile switch or reset cannot
-		    empty a hand-built list or re-offer the Starter List to a character
-		    that already answered it.
+		    The Restock List subsystem. `lists` are the player's own named
+		    shopping lists, shared by every character, and the stock Reset
+		    Profile control must never reach them. Putting them on global is
+		    what guarantees that -- a profile switch or reset cannot empty a
+		    hand-built list or re-offer the Starter List to a character that
+		    already answered it. The one thing a profile holds is which list it
+		    uses, in its own restockList, so each character shops from its own
+		    list and two characters on one profile share theirs.
 
 		    The two reminder modes differ on purpose: in town you are away from
 		    your bags and the detail is the whole point, while at a merchant or
@@ -142,7 +169,6 @@ ns.DATABASE_DEFAULTS = {
 		]]
 		restocker = {
 			lists = {},
-			listsByCharacter = {},
 			starterListDismissed = {},
 			framePosition = {},
 			restockReminderChat = true,
@@ -155,6 +181,33 @@ ns.DATABASE_DEFAULTS = {
 			autoOpenAtBank = false,
 			autoOpenAtMerchant = false,
 		},
+		--[[
+		    The Inventory Report in item tooltips (Features/Inventory-Report.lua).
+		    Ships ON, unlike the opt-ins above: it only ever adds lines to a
+		    tooltip the player asked for, and never acts. The switch exists
+		    because most auction add-ons print their own counts under the same
+		    items, and a player running one wants a single set. A display
+		    preference for the account, like showMacroNames.
+		]]
+		inventoryReport = true,
+		--[[
+		    Every character's last-known bags and bank, keyed by character (the
+		    Restocker's "Name-Realm" key), each place packed into one line of
+		    "itemID:count" pairs by Features/Inventory-Report.lua. Account-wide
+		    because its whole point is showing one character what the others
+		    hold, and never a profile: switching or resetting one must not wipe
+		    what an alt was carrying. Each record also holds the character's
+		    name, realm and class, and the Restock List reads the class to color
+		    the characters on a list.
+		]]
+		inventory = {},
+		--[[
+		    The Global half of the Ignore List, itemID to true: items hidden
+		    from every character's macros, whatever profile the character is on.
+		    Outside the profiles so that it reaches all of them, and so that
+		    resetting one character's profile never empties it.
+		]]
+		ignoreList = {},
 		--[[
 		    Macro-name text on the default action bars. Off by default so the
 		    add-on hides the names Blizzard recently began showing again; the

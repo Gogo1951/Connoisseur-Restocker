@@ -22,9 +22,9 @@ ns.L = LibStub("AceLocale-3.0"):GetLocale(ns.LOCALE_NAME)
     table and the ns.GetColor accessor from this, keeping Data files logic-free.
 ]]
 ns.PALETTE = {
-	TITLE = "FFD100", -- Gold: Titles, Headers, Section Names, Field Titles
+	TITLE = "FFD100", -- Gold: Titles, Headers, Section Names
 	INFO = "00BBFF", -- Blue: Interactions, Toggles, Links, Keybinds, Slash Commands
-	BODY = "FFFFFF", -- White: Descriptions, Options Body Text
+	BODY = "FFFFFF", -- White: Descriptions, Options Body Text, Field Labels
 	HELP = "CCCCCC", -- Silver: Pro Tips, Helper Text
 	TEXT = "FFFFFF", -- White: Messages, Values, Spell Names
 	ON = "33CC33", -- Green: On
@@ -40,6 +40,12 @@ ns.PALETTE = {
 --[[
     The Restock window's own UI states, which no brand color names. Raw hex like
     ns.PALETTE; the window's files convert them with ns.HexToRGB.
+
+    Red is kept for errors. An add that did not go through is one. A Keep
+    amount the bags are short of is not, so that mark is yellow, and the orders
+    count under the list wears the same yellow, which is what tells a player
+    what the mark means. It is the brand gold's hex, held as a role of its own
+    so the mark can change without the headings following it.
 ]]
 ns.RESTOCKER_WINDOW_COLORS = {
 	DASH_OFF = "7A7A7A", -- Gray: Settings That Are Off
@@ -49,6 +55,8 @@ ns.RESTOCKER_WINDOW_COLORS = {
 	MERCHANT_LABEL = "FF4FA3", -- Pink: The Merchant Band's Name
 	MERCHANT_CAPTION = "D38EAF", -- Soft Pink: Column Headings Under Merchant
 	REPUTATION_SET = "D99959", -- Amber: A Required Reputation
+	KEEP_SHORT = "FFD100", -- Yellow: A Keep Amount the Bags Are Short Of, and the Orders Count Under the List
+	ADD_NOTICE = "FF5A4E", -- Red: Why an Add Did Not Go Through, in the Add Box
 	ROW_LABEL = "C7BDAD", -- Warm Gray: Unselected Types in the Category Pane
 	ROW_COUNT = "858075", -- Dim Warm Gray: Their Counts, a Step Quieter
 }
@@ -75,7 +83,7 @@ ns.CLASS_COLORS = {
 --------------------------------------------------------------------------------
 
 ns.CURSEFORGE_URL = "https://www.curseforge.com/wow/addons/consumable-connoisseur"
-ns.GITHUB_URL = "https://github.com/Gogo1951/Connoisseur"
+ns.GITHUB_URL = "https://github.com/Gogo1951/Connoisseur-Restocker"
 ns.DISCORD_URL = "https://discord.gg/eh8hKq992Q"
 ns.WAGO_URL = "https://addons.wago.io/addons/connoisseur"
 
@@ -141,7 +149,8 @@ ns.OPTIONS_PROMOTE_WIDTH = 0.6
 --[[
     A tree panel's sidebar eats into the pane its rows are laid out in, so rows
     inside one spend a shorter budget than ns.OPTIONS_ROW_WIDTH. AceGUI's tree
-    defaults to 175px, which truncates the longer "Name - Realm" scope keys;
+    defaults to 175px, which truncates the longer character names, a first name
+    and surname or a name shown with its realm;
     widening it costs the item pane exactly what it gains, hence the paired
     constant. The tree stays drag-resizable, and a drag wins over this seed.
 ]]
@@ -160,16 +169,25 @@ ns.OPTIONS_TREE_ROW_WIDTH = 2.3
 ]]
 ns.ITEM_LINK_WIDGET_TYPE = ADDON_NAME .. "_ItemLink"
 
+--[[
+    dialogControl name for the checkbox a toggle that stands for an item draws
+    itself with: the stock AceGUI checkbox, with a gap between its icon and its
+    label. Registered in Options/Options-Utilities.lua, which clears this again
+    where there is no stock checkbox to build on. Derived from ADDON_NAME for
+    the same reason as the name above.
+]]
+ns.ICON_CHECKBOX_WIDGET_TYPE = ADDON_NAME .. "_IconCheckBox"
+
 --------------------------------------------------------------------------------
 -- Ignore List Scopes
 --------------------------------------------------------------------------------
 
 --[[
     The Ignore List panel names one scope per list on the account. Every scope
-    but one is an AceDB profile name ("Name - Realm", never localized), so the
-    account-wide list needs a key that no profile can collide with -- hence the
-    asterisks, which the profile picker's name box would never produce. Read by
-    ns.GetIgnoreListForScope in Features/Ignore-List.lua.
+    but one is an AceDB profile name (a character's, or one the player typed),
+    so the Global list needs a key that no profile can collide with -- hence
+    the asterisks, which no character's name can hold and nobody types as a
+    profile name. Read by ns.GetIgnoreListForScope in Features/Ignore-List.lua.
 ]]
 ns.IGNORE_SCOPE_GLOBAL = "**global**"
 
@@ -378,7 +396,7 @@ ns.SCROLL_CHECK_ORDER = {
 --------------------------------------------------------------------------------
 
 --[[
-    What the List Builder window can offer, one row per checkbox.
+    What the staples pop-up can offer, one row per checkbox.
     Features/Restocker/Restocker-Starter-List.lua owns every decision made about
     these rows -- which ladder each resolves to, who is offered it, what a tick
     adds. This table only says what exists.
@@ -444,7 +462,7 @@ local POISON_GROUP = ns.POISON_GROUPS
     class); defaultFor is who gets it PRE-TICKED when the window opens. Mana
     classes get water ticked; the manaless still see the row, unticked -- a
     warrior can carry water for a druid friend, but nobody decides that for
-    them. Death Knights exist on Wrath, Mists and Standard clients, yet their
+    them. Death Knights exist on Wrath, Mists and Mainline clients, yet their
     entries need no expansion gate of their own: only the Wrath folder gives
     Corpse Dust a tier, and every other folder's empty ladder keeps the row
     from being offered.

@@ -6,7 +6,7 @@ local _, ns = ...
 
 --[[
     Source: copied from Data/Wrath/Well-Fed-Buffs-Wrath.lua: the rows a Wrath
-    client loaded from the pre-split shared tables, until a Standard TOC ships
+    client loaded from the pre-split shared tables, until a Mainline TOC ships
     and Validate Data runs there.
 ]]
 

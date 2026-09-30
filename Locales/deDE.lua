@@ -35,7 +35,7 @@ L["MACRO_WATER"] = "- Wasser"
 -- Common
 --------------------------------------------------------------------------------
 
--- Joins the items of a printed list: a Readiness Report clause, or the Restocker's "Couldn't move" list.
+-- Joins the items of a list: a Readiness Report clause, the Restocker's "Couldn't move" list, or the characters on a Restock List.
 L["LIST_SEPARATOR"] = ", "
 -- The decimal mark in a number the code prints, such as the Readiness Report's 2.5-minute choice.
 L["DECIMAL_SEPARATOR"] = ","
@@ -51,7 +51,7 @@ L["DECIMAL_SEPARATOR"] = ","
     /dump C_PetInfo.GetPetFoodTypes() on Forever). Used to build
     ns.PET_DIET_MAP in Data/Data.lua.
 
-    They are ALSO the food checkbox labels in the Starter List pop-up, so they
+    They are ALSO the food checkbox labels in the staples pop-up, so they
     read as ordinary labels while carrying that hard constraint. Translate them
     as the client's own diet words, never as the nicer label they look like --
     a locale that "improves" one here stops matching that client's strings and
@@ -168,22 +168,23 @@ L["TIP_DONT_KNOW_SPELL"] = "Du kennst %s derzeit nicht."
 L["FEATURE_BUFF_FOOD"] = "Buff-Essen"
 L["MENU_BUFF_FOOD_DESCRIPTION"] = 'Bevorzugt Essen, das den "Satt"-Buff gewährt, wenn der Buff fehlt.'
 L["FEATURE_SCROLL_BUFFS"] = "Schriftrollen-Buffs"
-L["MENU_SCROLL_BUFFS_DESCRIPTION"] =
-	"Verwandelt dein Essen-Makro in einen Schriftrollen-Anwender, wenn dir Schriftrollen-Buffs fehlen."
+L["MENU_SCROLL_BUFFS_DESCRIPTION"] = "Wendet mit deinem Essen-Makro fehlende Schriftrollen-Buffs an, bevor du isst."
 
--- Section titles and ignore-list actions in the mini-map tooltip.
+--[[
+    Item titles in the mini-map tooltip. A title sits alone on its row and its
+    item is right-aligned on the row beneath, so neither has to stay short;
+    with nothing to show, MESSAGE_NO_ITEM takes the item's row. Current Pet
+    Food opens the Attention Hunters block, and the two poison titles open the
+    Attention Rogues block.
+]]
 L["MINIMAP_BEST_FOOD"] = "Aktuelles Essen"
 L["MINIMAP_BEST_PET_FOOD"] = "Aktuelles Tierfutter"
--- Weapon-slot titles beside the rogue's resolved poison, in the Attention Rogues block.
-L["MINIMAP_MAIN_HAND"] = "Waffenhand"
-L["MINIMAP_OFF_HAND"] = "Schildhand"
---[[
-    The value shown beside an item title when nothing resolved. Kept to a single
-    word so it fits in the tooltip's right column, which never wraps -- the full
-    sentence, MESSAGE_NO_ITEM, explains it on the wrapping line underneath.
-]]
-L["MINIMAP_NONE"] = "Nichts"
+L["MINIMAP_MAIN_HAND_POISON"] = "Waffenhand-Gift"
+L["MINIMAP_OFF_HAND_POISON"] = "Schildhand-Gift"
+
+-- The Ignore List block. The count stands in for a list too long to show, so it is never one and needs no singular.
 L["MINIMAP_IGNORE_LIST"] = "Ignorierliste"
+L["MINIMAP_IGNORE_COUNT"] = "%d Gegenstände"
 L["MENU_IGNORE"] = "Ignorieren"
 L["MENU_CLEAR_IGNORE"] = "Ignorierliste leeren"
 
@@ -202,7 +203,9 @@ L["MENU_CLEAR_IGNORE"] = "Ignorierliste leeren"
     The count sits in the tooltip's right column, beside the header, so it has
     to stay short enough to read as a value rather than a sentence. The
     all-stocked case has no header and no count: STOCKED replaces the whole
-    row, on a wrapping line of its own, so it can be a full sentence.
+    row, on a wrapping line of its own, so it can be a full sentence. EMPTY is
+    the line under the header when the list holds nothing at all, which is not
+    the same as being stocked.
 
     ITEM_COUNT is the right-hand value of a listed row: { have, wanted }, the
     ratio RESTOCKER_REMINDER_ITEM prints. Wordless, so there is nothing to
@@ -212,18 +215,28 @@ L["MINIMAP_RESTOCKER_REPORT"] = "Restocker-Bericht"
 L["MINIMAP_RESTOCKER_NEEDED"] = "%d offene Posten"
 L["MINIMAP_RESTOCKER_ITEM_COUNT"] = "%d/%d"
 L["MINIMAP_RESTOCKER_STOCKED"] = "Glückwunsch, deine Vorräte sind vollständig aufgefüllt!"
+L["MINIMAP_RESTOCKER_EMPTY"] = "Deine Liste ist leer."
 
--- Options entry at the bottom of the mini-map tooltip.
+--[[
+    The Restocker List block, above the class notes: its title, a line saying
+    what the list is for, and its click, which sits beside MINIMAP_OPEN. "Your
+    list" in the description and in MINIMAP_RESTOCKER_EMPTY is this list. The
+    Options entry is always the tooltip's last block and has no action label.
+]]
+L["MENU_RESTOCKER"] = "Restocker-Liste"
+L["MENU_RESTOCKER_DESCRIPTION"] = "Kauft die Gegenstände auf deiner Liste und lagert sie in der Bank."
+L["MENU_RESTOCKER_KEYBIND"] = "Shift + Rechtsklick"
 L["MENU_OPTIONS"] = "Connoisseur-Optionen"
 L["MENU_OPTIONS_KEYBIND"] = "Shift + Mittelklick"
 
 --------------------------------------------------------------------------------
--- Class Tips
+-- Class Notes
 --------------------------------------------------------------------------------
 
 --[[
-    Class-colored headers and click tips shown in the mini-map tooltip for the
-    player's class.
+    The class block of the mini-map tooltip: a class-colored header, the items
+    the class's own macro will use (a Hunter's pet food, a Rogue's two poisons,
+    titled in the Minimap Tooltip section above), then one group per macro.
 ]]
 
 L["PREFIX_HUNTER"] = "Achtung Jäger"
@@ -232,51 +245,51 @@ L["PREFIX_ROGUE"] = "Achtung Schurken"
 L["PREFIX_WARLOCK"] = "Achtung Hexenmeister"
 
 --[[
-    Subtitle under each class header, naming the macros the tips below apply
-    to. Each tip below is one instruction, rendered on its own line. The Mage
-    and Warlock tips name the macro they belong to, since those blocks cover
-    more than one macro and a bare "Right-Click" would be ambiguous; the Hunter
-    and Rogue blocks cover one macro each, which the subtitle names.
-
-    The verb tracks the real spell names, which differ by class: mages get
-    Conjure Food / Conjure Water, warlocks get Create Healthstone / Create
-    Soulstone.
+    A group is the macro's name, then one row per click: the click on the left
+    and what it does on the right. The right-hand column never wraps, so each
+    result stays a few words. A spell the row casts is named by the client
+    (Mend Pet, Ritual of Refreshment, Ritual of Souls) and has no key here, and
+    a plain click reuses MINIMAP_LEFT_CLICK, MINIMAP_RIGHT_CLICK or
+    MINIMAP_MIDDLE_CLICK.
 ]]
-L["TIP_HUNTER_MACROS"] = "Zu deinem Tier-füttern-Makro..."
-L["TIP_MAGE_MACROS"] = "Zu deinen Essen-, Wasser- und Manastein-Makros..."
-L["TIP_ROGUE_MACROS"] = "Zu deinem Gifte-Makro..."
-L["TIP_WARLOCK_MACROS"] = "Zu deinen Gesundheitsstein- und Seelenstein-Makros..."
+L["NOTE_MACRO_FEED_PET"] = "Tier-füttern-Makro"
+L["NOTE_MACRO_FOOD_WATER"] = "Essen- und Wasser-Makros"
+L["NOTE_MACRO_MANA_GEM"] = "Manastein-Makro"
+L["NOTE_MACRO_HEALTHSTONE"] = "GS-Makro"
+L["NOTE_MACRO_SOULSTONE"] = "Seelenstein-Makro"
+L["NOTE_MACRO_POISONS"] = "Gifte-Makro"
 
-L["TIP_HUNTER_ALL_IN_ONE"] = "Tier füttern ist ein All-in-One-Tier-Button!"
-L["TIP_HUNTER_CALL"] = "Linksklick, um dein Tier automatisch zu rufen, zu füttern oder wiederzubeleben."
-L["TIP_HUNTER_MEND"] = "Rechtsklick oder im Kampf ein beliebiger Klick, um Tier heilen zu wirken."
-L["TIP_HUNTER_MODIFIERS"] = "Halte Shift, um Wiederbeleben zu erzwingen, oder Strg zum Freigeben."
+-- Hunter. NOTE_PET_MEND_CLICK is the click that casts Mend Pet: a Right-Click, or any click during combat.
+L["NOTE_PET_CALL_FEED_REVIVE"] = "Rufen, füttern oder wiederbeleben"
+L["NOTE_PET_MEND_CLICK"] = "Rechtsklick oder im Kampf"
+L["NOTE_HOLD_SHIFT"] = "Shift halten"
+L["NOTE_PET_FORCE_REVIVE"] = "Wiederbeleben erzwingen"
+L["NOTE_HOLD_CONTROL"] = "Strg halten"
+L["NOTE_PET_DISMISS"] = "Freigeben"
 
 --[[
+    Mage and Warlock. The verb tracks the real spell names, which differ by
+    class: mages Conjure, warlocks Create. A second Right-Click makes the next
+    rank down, since the bags hold one of each rank.
+
     Target downranking is per-macro, not block-wide: it applies only to the
-    mage's Food and Water and the warlock's Healthstone. Mana Gems, Soulstones,
-    and both rituals ignore the target (ignoreTarget in the resolvers), so each
-    line names what it actually affects rather than saying "the macro."
+    mage's Food and Water and the warlock's Healthstone, so each line closes
+    the group it belongs to. "One" in the warlock's line is a Healthstone.
 ]]
-L["TIP_MAGE_CONJURE"] =
-	'Rechtsklick auf dein Essen- oder Wasser-Makro, um "Essen herbeizaubern" oder "Wasser herbeizaubern" zu wirken.'
-L["TIP_MAGE_DOWNRANK"] =
-	"Wenn du einen Spieler niedrigerer Stufe anvisierst, wird Essen oder Wasser passend zu dessen Stufe herbeigezaubert."
-L["TIP_MAGE_TABLE"] = "Mittelklick auf dein Essen- oder Wasser-Makro, um Tischlein deck dich zu wirken."
-L["TIP_MAGE_GEM"] =
-	"Rechtsklick auf dein Manastein-Makro, um einen neuen Stein herbeizuzaubern. Erneuter Rechtsklick, um einen Ersatzstein niedrigeren Ranges herbeizuzaubern."
+L["NOTE_CONJURE"] = "Herbeizaubern"
+L["NOTE_CREATE"] = "Herstellen"
+L["NOTE_RIGHT_CLICK_AGAIN"] = "Erneuter Rechtsklick"
+L["NOTE_LOWER_RANK_BACKUP"] = "Ersatz niedrigeren Ranges"
+L["NOTE_MAGE_TARGET_LEVEL"] =
+	"Visiere einen Spieler niedrigerer Stufe an, um Essen oder Wasser für dessen Stufe herbeizuzaubern."
+L["NOTE_WARLOCK_TARGET_LEVEL"] =
+	"Visiere einen Spieler niedrigerer Stufe an, um einen Gesundheitsstein für dessen Stufe herzustellen."
 
-L["TIP_WARLOCK_HEALTHSTONE"] =
-	'Rechtsklick auf dein Gesundheitsstein-Makro, um "Gesundheitsstein herstellen" zu wirken. Erneuter Rechtsklick, um einen Ersatzstein niedrigeren Ranges herzustellen.'
-L["TIP_WARLOCK_DOWNRANK"] =
-	"Wenn du einen Spieler niedrigerer Stufe anvisierst, wird ein Gesundheitsstein passend zu dessen Stufe hergestellt."
-L["TIP_WARLOCK_SOULSTONE"] = 'Rechtsklick auf dein Seelenstein-Makro, um "Seelenstein herstellen" zu wirken.'
-L["TIP_WARLOCK_SOUL"] = "Mittelklick auf dein Gesundheitsstein-Makro, um Ritual der Seelen zu wirken."
-
-L["TIP_ROGUE_OFF_HAND"] = "Linksklick trägt dein Schildhand-Gift auf."
-L["TIP_ROGUE_MAIN_HAND"] = "Rechtsklick trägt dein Waffenhand-Gift auf."
-L["TIP_ROGUE_REPLACE"] = "Vorhandene Gifte werden automatisch ersetzt."
-L["TIP_ROGUE_WINDOW"] = "Mittelklick öffnet das Gifte-Fenster."
+-- Rogue. The two hands are the results of a Left-Click and a Right-Click on the Poisons macro.
+L["MINIMAP_MAIN_HAND"] = "Waffenhand"
+L["MINIMAP_OFF_HAND"] = "Schildhand"
+L["NOTE_POISONS_WINDOW"] = "Gifte-Fenster"
+L["NOTE_POISONS_REPLACED"] = "Ersetzt alte Gifte automatisch."
 
 --------------------------------------------------------------------------------
 -- Item Labels
@@ -285,7 +298,7 @@ L["TIP_ROGUE_WINDOW"] = "Mittelklick öffnet das Gifte-Fenster."
 --[[
     One label per macro type, dropped as-is into MESSAGE_NO_ITEM ("No suitable
     %s found...") from ConnoisseurNoItem and the mini-map tooltip. LABEL_WATER
-    is also the List Builder's Water checkbox.
+    is also the staples pop-up's Water checkbox.
 ]]
 
 L["LABEL_BANDAGE"] = "Verband"
@@ -309,6 +322,7 @@ L["LABEL_WATER"] = "Wasser"
 L["MINIMAP_ENABLED"] = "Aktiviert"
 L["MINIMAP_DISABLED"] = "Deaktiviert"
 L["MINIMAP_TOGGLE"] = "Umschalten"
+L["MINIMAP_OPEN"] = "Öffnen"
 L["MINIMAP_LEFT_CLICK"] = "Linksklick"
 L["MINIMAP_RIGHT_CLICK"] = "Rechtsklick"
 L["MINIMAP_MIDDLE_CLICK"] = "Mittelklick"
@@ -326,6 +340,10 @@ L["MINIMAP_SHIFT_LEFT"] = "Shift + Linksklick"
     conjured dropdown has hover text of its own. The dropdowns have no
     caption, so each value carries its own "when". Leveling means below the
     client's max level.
+
+    In the mini-map tooltip, a Buff Food or Scroll Buffs switch that is on
+    while its choice does not apply shows the choice's label in place of
+    MINIMAP_ENABLED, so every label has to read as a state too.
 ]]
 L["OPTIONS_MODE_DESCRIPTION"] =
 	'Legt fest, wann dein Essen-Makro "%s" anbietet: immer oder nur beim Solospiel, in einer Gruppe oder einem Schlachtzug, im Schlachtzug, beim Leveln oder auf Höchststufe.'
@@ -337,11 +355,37 @@ L["MODE_LEVELING"] = "Beim Leveln"
 L["MODE_MAX_LEVEL"] = "Auf Höchststufe"
 
 --------------------------------------------------------------------------------
+-- Inventory Report
+--------------------------------------------------------------------------------
+
+--[[
+    The block Features/Inventory-Report.lua adds under an item's own tooltip
+    lines. Its header is "Connoisseur & Restocker // Inventory Report": the
+    brand below, filled with ADDON_TITLE and TAB_RESTOCKER, then the title, in
+    the chat prints' branded colors. Under it, each line is a label on the left
+    with its count at the right edge: Bags, Bank, one line per other character
+    (the client's own character names, so no keys here), then Total.
+
+    Keep the labels to a word: they share a line with a number, and the tooltip
+    is as wide as its longest line. The Bags count of a Restock List item is the
+    have/keep ratio MINIMAP_RESTOCKER_ITEM_COUNT prints.
+]]
+-- { add-on name, feature name }
+L["INVENTORY_REPORT_BRAND"] = "%s & %s"
+L["INVENTORY_REPORT_TITLE"] = "Inventarbericht"
+L["INVENTORY_REPORT_BAGS"] = "Taschen"
+L["INVENTORY_REPORT_BANK"] = "Bank"
+-- In place of the Bank count, muted, until this character's bank has been opened once with the add-on running.
+L["INVENTORY_REPORT_BANK_UNKNOWN"] = "Unbekannt"
+-- Everything above it added up: this character and every other one on the realm.
+L["INVENTORY_REPORT_TOTAL"] = "Gesamt"
+
+--------------------------------------------------------------------------------
 -- Options Panel
 --------------------------------------------------------------------------------
 
 L["OPTIONS_DESCRIPTION"] =
-	"Makros, die automatisch dein bestes Essen, Buff-Essen, Wasser, Tränke, Gesundheitssteine, Verbände und Schriftrollen verwenden, dazu eine Nachschubliste, die deine Taschen gefüllt hält und deine Verbrauchsgegenstände mit deiner Stufe aufwertet. Komfort-Automatisierung für Höchstleistung."
+	"Makros, die automatisch dein bestes Essen, Wasser, Tränke, Gesundheitssteine, Verbände, Gifte und Tierfutter verwenden, dazu eine Nachschubliste, die deine Verbrauchsgegenstände automatisch kauft, in der Bank lagert und mit deiner Stufe aufwertet. Komfort-Automatisierung für Höchstleistung."
 
 -- Welcome Message
 L["OPTIONS_WELCOME_MESSAGE"] = "Willkommensnachricht aktivieren"
@@ -360,7 +404,7 @@ L["OPTIONS_COMMANDS_HEADER"] = "/Commands"
 L["OPTIONS_COMMAND"] = "/foodie"
 L["OPTIONS_COMMAND_DESCRIPTION"] = "Öffnet das Optionsmenü dieses Add-ons."
 L["RESTOCKER_COMMAND"] = "/crs"
-L["RESTOCKER_COMMAND_DESCRIPTION"] = "Öffnet das Restocker-Fenster zum Verwalten deiner Nachschubliste."
+L["RESTOCKER_COMMAND_DESCRIPTION"] = "Öffnet deine Nachschubliste."
 
 --[[
     Feedback & Support. The four service names are brand names and stay English
@@ -444,6 +488,9 @@ L["OPTIONS_CONJURED_FIRST_MODE_DESCRIPTION"] =
 L["OPTIONS_POTIONS_HEADER"] = "Tränke und Gesundheitssteine"
 L["OPTIONS_POTIONS_DESCRIPTION"] =
 	"Makros können während des Kampfes nicht geändert werden (dies ist eine Blizzard-Einschränkung). Daher wird jedes Trank- und Gesundheitsstein-Makro im Voraus mit deinem besten Gegenstand und bis zu zwei Ersatzgegenständen erstellt. Bei längeren Kämpfen können das Symbol und der Tooltip veralten und den falschen Gegenstand anzeigen, aber ein Klick auf das Makro verwendet immer den besten Gegenstand, den du tatsächlich in deinen Taschen hast."
+L["OPTIONS_POTIONS_USE_FOOD_AND_WATER"] = "Essen und Wasser außerhalb des Kampfes in Trank-Makros verwenden"
+L["OPTIONS_POTIONS_USE_FOOD_AND_WATER_DESCRIPTION"] =
+	"Außerhalb des Kampfes isst du mit deinem Heiltrank-Makro dein bestes Essen und trinkst mit deinem Manatrank-Makro dein bestes Wasser. Im Kampf verwenden die Makros wie bisher deine Tränke. Schriftrollen, Tierfutter und das Herbeizaubern bleiben bei den Essen- und Wasser-Makros."
 L["OPTIONS_COMBINE_HEALTHSTONES"] = "Gesundheitssteine mit Heiltrank-Makro kombinieren"
 L["OPTIONS_COMBINE_HEALTHSTONES_DESCRIPTION"] =
 	"Fügt deinen besten Gesundheitsstein unten an das Heiltrank-Makro an, sodass ein Tastendruck einen Trank und einen Gesundheitsstein verwendet."
@@ -534,12 +581,13 @@ L["OPTIONS_STEALTH_PICK_ONE"] =
 
 --[[
     Ignore List panel (Options-Ignore-List.lua). One tree scope per list: the
-    account-wide Global list, then the current character and every other
-    character with something ignored. The rows are items, so the copy here is
+    Global list, then the character playing and every other character with
+    something ignored, each under its profile's name, which is never
+    translated and has no key here. The rows are items, so the copy here is
     the panel description, the scope and promote labels, the add box, Remove,
     the empty-list line, and LOADING_ITEM, the placeholder shown while the
     client is still resolving an item's name (the mini-map tooltip, the Macros
-    panel, and the List Builder use it too). The mini-map tooltip's section
+    panel, and the staples pop-up use it too). The mini-map tooltip's section
     keeps its own MINIMAP_IGNORE_LIST and MENU_CLEAR_IGNORE keys.
 ]]
 L["TAB_IGNORE_LIST"] = "Ignorierliste"
@@ -566,9 +614,9 @@ L["TAB_RESTOCKER"] = "Restocker"
 L["OPTIONS_RESTOCKER_DESCRIPTION"] =
 	"Hält deine Taschen anhand deiner Nachschubliste gefüllt, indem automatisch bei Händlern eingekauft und Gegenstände zwischen Taschen und Bank verschoben werden. Gib %s ein, um die Liste zu öffnen."
 L["OPTIONS_RESTOCKER_OPEN_BANK"] = "Bei der Bank öffnen"
-L["OPTIONS_RESTOCKER_OPEN_BANK_DESCRIPTION"] = "Öffnet das Restocker-Fenster, wenn du die Bank besuchst."
+L["OPTIONS_RESTOCKER_OPEN_BANK_DESCRIPTION"] = "Öffnet deine Nachschubliste, wenn du die Bank besuchst."
 L["OPTIONS_RESTOCKER_OPEN_MERCHANT"] = "Beim Händler öffnen"
-L["OPTIONS_RESTOCKER_OPEN_MERCHANT_DESCRIPTION"] = "Öffnet das Restocker-Fenster, wenn du einen Händler besuchst."
+L["OPTIONS_RESTOCKER_OPEN_MERCHANT_DESCRIPTION"] = "Öffnet deine Nachschubliste, wenn du einen Händler besuchst."
 L["OPTIONS_RESTOCKER_REMIND"] = "Nachschub-Erinnerungen in der Stadt aktivieren"
 L["OPTIONS_RESTOCKER_REMIND_DESCRIPTION"] =
 	"Gibt eine Chat-Erinnerung aus, wenn deiner Nachschubliste etwas fehlt und du ein Gasthaus oder eine Stadt erreichst oder dich beim Anmelden bereits dort befindest."
@@ -579,14 +627,15 @@ L["OPTIONS_RESTOCKER_BANK_REMIND"] = "Nachschub-Erinnerungen bei der Bank aktivi
 L["OPTIONS_RESTOCKER_BANK_REMIND_DESCRIPTION"] = "Meldet alle offenen Nachschubposten, wenn du die Bank schließt."
 
 --[[
-    The Starter List Builder pop-up. This toggle and the pop-up's own "Don't
-    Show This Again" box are the same per-character choice read from opposite
-    ends, which is why one ships on and the other off: a settings row reads
-    naturally as "enable", a dismissal reads naturally as "stop".
+    The staples pop-up (STARTER_POPUP_TITLE below). This toggle and the
+    pop-up's own "Don't Show This Again" box are the same per-character choice
+    read from opposite ends, which is why one ships on and the other off: a
+    settings row reads naturally as "enable", a dismissal reads naturally as
+    "stop".
 ]]
-L["OPTIONS_RESTOCKER_STARTER_LIST"] = "Listen-Assistent aktivieren, wenn die Nachschubliste leer ist"
+L["OPTIONS_RESTOCKER_STARTER_LIST"] = "Grundvorräte-Fenster aktivieren, wenn die Nachschubliste leer ist"
 L["OPTIONS_RESTOCKER_STARTER_LIST_DESCRIPTION"] =
-	"Bietet beim Anmelden eine Start-Nachschubliste an, wenn die Liste dieses Charakters leer ist."
+	"Bietet beim Anmelden die Grundvorräte für deine Klasse an, wenn die Nachschubliste dieses Charakters leer ist."
 
 --[[
     How much each reminder says. Simple is the headline alone; Verbose adds a
@@ -605,7 +654,18 @@ L["OPTIONS_RESTOCKER_REMIND_SOUND_DESCRIPTION"] =
 	"Spielt zusätzlich zur Erinnerung einen Hinweiston ab, falls im Chat gerade viel los ist."
 L["OPTIONS_RESTOCKER_SOUND_PREVIEW"] = "Klicke, um den Hinweiston zu hören."
 
-L["OPTIONS_RESTOCKER_WINDOW_HEADER"] = "Restocker-Fenster"
+L["OPTIONS_RESTOCKER_WINDOW_HEADER"] = "Fenster der Nachschubliste"
+L["OPTIONS_RESTOCKER_WINDOW_DESCRIPTION"] = "Wähle, wann sich deine Nachschubliste von selbst öffnet."
+
+--[[
+    The Inventory Report's switch, under a header that is the report's own
+    title (INVENTORY_REPORT_TITLE, in the Inventory Report section above).
+]]
+L["OPTIONS_INVENTORY_REPORT_SECTION_DESCRIPTION"] =
+	"Zeigt im Tooltip eines Gegenstands an, wie viele davon du auf all deinen Charakteren dieses Realms besitzt."
+L["OPTIONS_INVENTORY_REPORT"] = "Inventarbericht in Gegenstands-Tooltips aktivieren"
+L["OPTIONS_INVENTORY_REPORT_DESCRIPTION"] =
+	"Fügt dem Tooltip eines Gegenstands hinzu, wie viele davon du in deinen Taschen, in deiner Bank und auf deinen anderen Charakteren hast. Deaktiviere den Bericht, wenn bereits ein anderes Add-on diese Zahlen anzeigt."
 
 --[[
     Praise for the adopted Restocker code. The three names are proper nouns and
@@ -630,8 +690,8 @@ L["OPTIONS_READINESS_DESCRIPTION"] =
 --[[
     The reset button under the master toggle. It needs a control of its own
     because these settings are account-wide: the stock Reset Profile reaches
-    only the character's own profile, so nothing else on any panel can return
-    them to their defaults.
+    only the active profile, so nothing else on any panel can return them to
+    their defaults.
 
     The confirm names the one consequence a player would not otherwise predict.
     Off is what the report ships as, so resetting switches it back off, and a
@@ -729,8 +789,13 @@ L["OPTIONS_READINESS_QUESTIONABLE_GEAR_DESCRIPTION"] =
 
 -- Chat messages printed by the Restocker feature (Features/Restocker/).
 L["RESTOCKER_PROFILE_EXISTS"] = 'Eine Liste namens "%s" existiert bereits.'
--- %d is the item ID the player typed.
-L["RESTOCKER_UNKNOWN_ITEM"] = "Es gibt keinen Gegenstand mit der ID %d."
+--[[
+    %d is the item ID the player typed. Written into the add box itself while
+    the window is open, so it shares that box's width with
+    RESTOCKER_ADD_PLACEHOLDER and has to stay as short; printed to chat when the
+    window is closed.
+]]
+L["RESTOCKER_UNKNOWN_ITEM"] = "Es gibt keine ID %d."
 L["RESTOCKER_BANK_NOT_OPEN"] = "Die Bank ist nicht geöffnet."
 --[[
     %s is the /crs slash command, colored at the call site. Only the bank flow
@@ -834,8 +899,7 @@ L["RESTOCKER_RESTOCKED_PARTIAL_MANY"] = "%d Nachschubposten teilweise erfüllt."
 -- Printed after the counts above when the bags ran out of room before every order was bought.
 L["RESTOCKER_BAGS_FULL_PARTIAL"] = "Deine Taschen waren voll, bevor alles gekauft war."
 
--- /crs help lines. The command literals stay in code; these are the descriptions.
-L["RESTOCKER_HELP_SHOW"] = "Zeigt das Restocker-Fenster."
+-- /crs help lines. The command literals stay in code; these are the descriptions, and the show line reuses RESTOCKER_COMMAND_DESCRIPTION.
 -- Stands for the list name the player types after a /crs profile subcommand.
 L["RESTOCKER_HELP_NAME_PLACEHOLDER"] = "[Name]"
 L["RESTOCKER_HELP_PROFILE_ADD"] = "Legt eine Liste mit diesem Namen an."
@@ -845,29 +909,37 @@ L["RESTOCKER_HELP_PROFILE_COPY"] = "Ersetzt die aktuelle Liste durch eine Kopie 
 L["RESTOCKER_HELP_PROFILE_USE"] = "Weist diesem Charakter die Liste mit diesem Namen zu."
 
 --[[
-    Starter List pop-up, the List Builder: offers staples at login when the
-    Restock List is empty, and on demand from the Restocker window
-    (Features/Restocker/Restocker-Starter-List.lua). Its title reuses
-    RESTOCKER_WINDOW_TITLE below, and the six food staples reuse the DIET_ keys
-    above, so each food row carries the client's own pet diet name.
+    Starter List pop-up, the staples window: offers staples at login when the
+    Restock List is empty, and on demand from the Restock List window's Pick
+    Staples button (Features/Restocker/Restocker-Starter-List.lua). The six
+    food staples reuse the DIET_ keys above, so each food row carries the
+    client's own pet diet name.
 
-    The intro is three short paragraphs: why the window opened, what a tick
-    does, and the way back in. Joined with blank lines at the call site, so
-    each reads as its own breath rather than one wall.
+    The title is its own, and carries the add-on's name: at login this window
+    opens with nothing else of Connoisseur's on screen, so its title bar is
+    all that says whose it is.
+
+    The intro is one paragraph: an opening sentence that answers to how the
+    window was reached (EMPTY over an empty list, STOCKED over one that has
+    items), then HOW, which says what a check does. The two are run together
+    with a space at the call site, so each has to stand as whole sentences.
+    The way back in (COMMAND_HINT) is a second paragraph, shown only when the
+    window opened by itself at login; from the Pick Staples button the list it
+    names is open right behind it.
 ]]
+L["STARTER_POPUP_TITLE"] = "Connoisseur-Grundvorräte"
 L["STARTER_POPUP_INTRO_EMPTY"] =
 	"Deine Nachschubliste ist leer, also lass uns ein paar Gegenstände hinzufügen, damit du loslegen kannst."
 -- Shown instead when the window is opened over a list that already has items on it.
-L["STARTER_POPUP_INTRO_STOCKED"] =
-	"Wähle die Grundvorräte, die aufgefüllt bleiben sollen. Was bereits auf deiner Nachschubliste steht, ist angehakt."
+L["STARTER_POPUP_INTRO_STOCKED"] = "Wähle die Grundvorräte, die aufgefüllt bleiben sollen."
 L["STARTER_POPUP_INTRO_HOW"] =
-	"Alles, was du anhakst, wird automatisch aufgefüllt, sobald du einen Händler oder deine Bank öffnest, und Standardwaren werten sich mit deiner Stufe von selbst auf, sodass du immer das Beste dabeihast."
+	"Alles, was du anhakst, wird automatisch aufgefüllt, sobald du einen Händler oder deine Bank öffnest. Standardwaren werten sich mit deiner Stufe von selbst auf, sodass du immer das Beste dabeihast."
 -- %s is the /crs slash command, colored at the call site.
 L["STARTER_POPUP_COMMAND_HINT"] =
 	"Du kannst diese Liste jederzeit anpassen oder später weitere Gegenstände hinzufügen, indem du %s eingibst."
 --[[
-    The first section's heading names the Water row beneath it as well; the
-    food-only heading is the fallback for a section with no Water row.
+    The first section's heading names the Water row that closes its grid as
+    well; the food-only heading is the fallback for a section with no Water row.
 ]]
 L["STARTER_POPUP_FOOD_AND_WATER_HEADER"] = "Essen und Wasser"
 L["STARTER_POPUP_FOOD_HEADER"] = "Essen"
@@ -888,7 +960,7 @@ L["STARTER_POPUP_POISONS_HEADER"] = "Gifte"
 L["STARTER_POPUP_POISONS_NOTE"] =
 	"%s : Setze das fertige Gift auf deine Liste, und Connoisseur kauft die Zutaten automatisch bei jedem Händler, der sie alle führt."
 --[[
-    Checkbox tooltips: { item link, amount }. The first is for ladder items;
+    Checkbox tooltips: { item name, amount }. The first is for ladder items;
     the second for single-tier reagents, which never upgrade.
 ]]
 L["STARTER_POPUP_ITEM_DESCRIPTION"] =
@@ -913,44 +985,103 @@ L["STARTER_POPUP_DISMISS"] = "Für diesen Charakter nicht mehr anzeigen"
 L["STARTER_POPUP_DISMISS_DESCRIPTION"] =
 	"Verhindert, dass diese Vorschläge bei einer Anmeldung erneut erscheinen, bei der deine Nachschubliste leer ist."
 
--- Restocker window UI.
-L["RESTOCKER_WINDOW_TITLE"] = "Connoisseur Restocker"
+-- Restock List window UI. The title names what the window holds; the feature that acts on it stays "Restocker".
+L["RESTOCKER_WINDOW_TITLE"] = "Connoisseur-Nachschubliste"
 L["RESTOCKER_FILTER_PLACEHOLDER"] = "Gegenstände filtern..."
 L["RESTOCKER_FILTER_CLEAR_TOOLTIP"] = "Leeren"
 L["RESTOCKER_ADD_BUTTON"] = "Hinzufügen"
-L["RESTOCKER_LIST_BUILDER_BUTTON"] = "Listen-Assistent öffnen"
+--[[
+    The button that opens the staples pop-up over the window, on the control
+    row and on an empty list, and its tooltip. The keys keep the pop-up's
+    earlier name, the List Builder. "Check" is the pop-up's own word
+    (STARTER_POPUP_INTRO_HOW).
+]]
+L["RESTOCKER_LIST_BUILDER_BUTTON"] = "Grundvorräte wählen"
 L["RESTOCKER_LIST_BUILDER_TOOLTIP"] =
-	"Öffnet den Listen-Assistenten mit denselben Grundvorräten, die einem neuen Charakter angeboten werden, und schließt dieses Fenster."
+	"Wähle aus den Grundvorräten für deine Klasse und Stufe: Essen, Wasser, Munition, Gifte und Reagenzien. Was du anhakst, wird dieser Liste hinzugefügt, und was du abwählst, wird entfernt."
 L["RESTOCKER_ADD_TOOLTIP_TITLE"] = "Gegenstand hinzufügen"
 L["RESTOCKER_ADD_TOOLTIP_BODY"] =
-	"Ziehe einen Gegenstand aus deinen Taschen hierher oder gib eine Gegenstands-ID ein und drücke Enter."
+	"Ziehe einen Gegenstand aus deinen Taschen hierher oder irgendwo auf dieses Fenster, oder gib eine Gegenstands-ID ein und drücke Enter."
 --[[
-    In-box placeholder for the add row; the tooltip above carries the detail.
-    Kept to a phrase rather than a sentence: both boxes on that row share a
-    fixed width sized to this English hint, and a longer one is cut off.
+    In-box placeholder for the add box; the tooltip above carries the detail.
+    Kept to a phrase rather than a sentence: the box shares its row with two
+    other fields and is sized to this English hint, so a longer one is cut off.
 ]]
-L["RESTOCKER_ADD_PLACEHOLDER"] = "Gegenstand hierher ziehen oder ID eingeben"
+L["RESTOCKER_ADD_PLACEHOLDER"] = "Ziehen oder ID eingeben"
+--[[
+    Written into the add box, in place of the placeholder above, when what was
+    typed is neither an item ID nor an item the client can place by name. Same
+    width budget as the placeholder. RESTOCKER_UNKNOWN_ITEM, for an ID with no
+    item behind it, shows the same way.
+]]
+L["RESTOCKER_ADD_NOT_FOUND"] = "Stattdessen ID eingeben."
+--[[
+    The bag menu on the control row, between the filter and the add box. The
+    caption is all the closed menu shows and is its tooltip's title; it has
+    room for about 24 characters, and a longer one is cut off. NONE is the one
+    line the open menu holds when the bags have nothing the list lacks. Title
+    case and no terminal punctuation for both, like every menu entry.
+]]
+L["RESTOCKER_ADD_FROM_BAGS"] = "Aus Taschen hinzufügen"
+L["RESTOCKER_ADD_FROM_BAGS_TOOLTIP"] =
+	"Alle Gegenstände in deinen Taschen, die noch nicht auf dieser Liste stehen. Klicke auf einen, um ihn hinzuzufügen."
+L["RESTOCKER_ADD_FROM_BAGS_NONE"] = "Nichts in deinen Taschen zum Hinzufügen"
+
+--[[
+    The list bar across the top of the window: the selector, the characters on
+    the list, and Manage Lists.
+
+    USED_BY's %s is those characters, the client's own names joined with
+    LIST_SEPARATOR, which also joins them on the selector's menu and in the
+    delete confirmation. Each name is colored by its class at the call site.
+    Keep USED_BY short: the line shares its row with the selector and the
+    Manage Lists button, and truncates when it outgrows the space. MANAGE is
+    that button's caption and the title of its tooltip.
+]]
 L["RESTOCKER_PROFILE_LABEL"] = "Liste"
 L["RESTOCKER_PROFILE_TOOLTIP"] =
 	"Klicke, um diesem Charakter eine andere Nachschubliste zuzuweisen oder eine neue anzulegen."
-L["RESTOCKER_RENAME_LABEL"] = "Umbenennen"
-L["RESTOCKER_NEW_PROFILE"] = "Neue Liste"
-L["RESTOCKER_COPY_PROFILE"] = "Kopieren"
+L["RESTOCKER_USED_BY"] = "Genutzt von %s"
+L["RESTOCKER_MANAGE"] = "Listen verwalten"
+L["RESTOCKER_MANAGE_TOOLTIP"] = "Lege eine neue Liste an oder kopiere diese, benenne sie um oder lösche sie."
 --[[
-    The three single-argument tooltips below (Copy, Delete, and the row's
-    Remove) render in ns.SetupRestockerTooltip's TITLE slot, not its body, so
-    they take title case and no terminal punctuation -- matching every other
-    title in the window. Don't "restore" the period they read as wanting.
+    The Manage Lists menu, top to bottom. Menu entries take title case and no
+    terminal punctuation, like every title in the window. New List is also the
+    last entry on the selector's own menu. The Copy and Delete keys end in
+    _TOOLTIP because they began as the tooltips of two buttons this menu
+    replaced.
 ]]
+L["RESTOCKER_NEW_PROFILE"] = "Neue Liste"
 L["RESTOCKER_COPY_PROFILE_TOOLTIP"] = "Diese Liste in eine neue kopieren"
+L["RESTOCKER_RENAME_PROFILE"] = "Diese Liste umbenennen"
+L["RESTOCKER_DELETE_PROFILE_TOOLTIP"] = "Diese Liste löschen"
 -- %s becomes "<list name> Copy"; numbered if that name is taken.
 L["RESTOCKER_PROFILE_COPY_NAME"] = "%s - Kopie"
-L["RESTOCKER_DELETE_PROFILE"] = "Löschen"
-L["RESTOCKER_DELETE_PROFILE_TOOLTIP"] = "Diese Liste löschen"
+-- The button that commits a rename, beside the field Rename This List opens, and that button's tooltip.
+L["RESTOCKER_RENAME_LABEL"] = "Umbenennen"
 L["RESTOCKER_RENAME_TOOLTIP"] = "Benennt diese Liste für jeden Charakter um, der sie verwendet."
--- %s is the list name, colored at the call site. |n are line breaks.
-L["RESTOCKER_DELETE_PROFILE_CONFIRM"] =
-	"Möchtest du diese Liste wirklich löschen?|n|n%s|n|nDas kann nicht rückgängig gemacht werden."
+--[[
+    The delete confirmation, a paragraph per fact, joined with blank lines in
+    code: QUESTION, the list's name (colored at the call site), what happens
+    next, and FINAL.
+
+    "What happens next" is SHARED followed by SWITCH or LAST, run together as
+    one paragraph, so each has to stand as a full sentence. SHARED appears only
+    when other characters are on the list; its %s is their names, joined with
+    LIST_SEPARATOR, and ONE or MANY follows how many there are.
+
+    SWITCH says where this character lands: %s is the top list in the List
+    selector, colored at the call site. LAST stands in for it when the list
+    being deleted is the only one, which is the one delete that makes a list.
+]]
+L["RESTOCKER_DELETE_LIST_QUESTION"] = "Möchtest du diese Liste wirklich löschen?"
+L["RESTOCKER_DELETE_LIST_SHARED_ONE"] =
+	"%s nutzt sie ebenfalls und findet beim nächsten Anmelden eine leere Liste mit demselben Namen vor."
+L["RESTOCKER_DELETE_LIST_SHARED_MANY"] =
+	"%s nutzen sie ebenfalls und finden beim nächsten Anmelden jeweils eine leere Liste mit demselben Namen vor."
+L["RESTOCKER_DELETE_LIST_SWITCH"] = "Du wechselst dann zu %s."
+L["RESTOCKER_DELETE_LIST_LAST"] = "Es ist die einzige verbliebene Liste, daher beginnst du mit einer neuen, leeren."
+L["RESTOCKER_DELETE_LIST_FINAL"] = "Das kann nicht rückgängig gemacht werden."
 --[[
     The Upgrade toggle. One string serves both the column heading and every
     row's checkbox, so it has to read for a single item and for the whole
@@ -990,7 +1121,24 @@ L["RESTOCKER_COLUMN_ITEM"] = "Gegenstand"
 L["RESTOCKER_COLUMN_WITHDRAW"] = "Holen"
 L["RESTOCKER_COLUMN_DEPOSIT"] = "Lagern"
 L["RESTOCKER_COLUMN_REPUTATION"] = "Ruf"
-L["RESTOCKER_COLUMN_AMOUNT"] = "Menge"
+--[[
+    The row's target, beside the item's name: how many the list keeps in the
+    bags. "Keep" rather than "Amount" because the number is a standing target,
+    not a quantity to buy, and because 0 then reads as what it does -- keep
+    none, which with Store on sends the whole stock to the bank. The keys, the
+    code and the saved rows still call it the amount.
+]]
+L["RESTOCKER_COLUMN_AMOUNT"] = "Behalten"
+
+--[[
+    A toggle column's heading sets the column for every item shown. HINT closes
+    the heading's tooltip; ON and OFF are the two entries of the menu a click on
+    the heading opens, where %d is how many of the items shown the column can be
+    set on. Menu entries: title case, no terminal punctuation.
+]]
+L["RESTOCKER_COLUMN_BULK_HINT"] = "Klicke auf die Überschrift, um dies für alle angezeigten Gegenstände festzulegen."
+L["RESTOCKER_BULK_ON"] = "%d angezeigte aktivieren"
+L["RESTOCKER_BULK_OFF"] = "%d angezeigte deaktivieren"
 
 L["RESTOCKER_GROUP_OTHER"] = "Sonstiges"
 --[[
@@ -1004,10 +1152,54 @@ L["RESTOCKER_GROUP_NEW"] = "Neu"
     to read as "everything" rather than as another type.
 ]]
 L["RESTOCKER_GROUP_ALL"] = "Alle Gegenstände"
--- Title slot, like the Copy and Delete tooltips above: title case, no terminal period.
+--[[
+    What the list area shows in place of rows. EMPTY_ is a list with nothing on
+    it: a heading (title case), a body of two sentences (the two ways to add,
+    then what the list does with what is on it), the Pick Staples button
+    (RESTOCKER_LIST_BUILDER_BUTTON), and a hint under it. NO_MATCH_ is one line
+    for a list that has items and is showing none: the filter matches nothing,
+    or the selected category just lost its last item.
+]]
+L["RESTOCKER_EMPTY_TITLE"] = "Noch nichts auf dieser Liste"
+L["RESTOCKER_EMPTY_BODY"] =
+	"Wähle Grundvorräte wie Essen, Wasser oder Klassenreagenzien aus, oder füge über das Menü oben beliebige Gegenstände aus deinen Taschen hinzu. Ausgewählte Gegenstände werden automatisch aufgefüllt oder in deiner Bank eingelagert, damit deine Taschen aufgeräumt bleiben."
+L["RESTOCKER_EMPTY_DROP_HINT"] = "Gegenstände, die du irgendwo auf dieses Fenster ziehst, werden auch hinzugefügt."
+L["RESTOCKER_NO_MATCH_FILTER"] = "Nichts auf dieser Liste passt zu deinem Filter."
+L["RESTOCKER_NO_MATCH_GROUP"] = "In dieser Kategorie ist nichts mehr übrig."
+
+--[[
+    The status line under the list. The orders count itself is
+    RESTOCKER_STILL_SHORT_ONE / _MANY above, and the all-stocked line is
+    MINIMAP_RESTOCKER_STOCKED, so the window, the reminders and the mini-map
+    tooltip say the same thing in the same words.
+
+    NO_ORDERS is the in-between: nothing for a merchant to fill, but a row with
+    Buy off is still short in the bags (its Keep number is yellow), so the
+    congratulation would be untrue. "Outstanding" stays beside the noun, as in
+    the counts.
+
+    REPORT_MORE closes the orders tooltip when the list is longer than it shows:
+    %d is how many were left out. REMOVED_ITEM's %s is the item's icon and name,
+    and UNDO is the button beside it that puts the item back; UNDO_TOOLTIP
+    renders in the title slot.
+]]
+L["RESTOCKER_NO_ORDERS"] = "Keine Nachschubposten offen."
+L["RESTOCKER_REPORT_MORE"] = "und %d weitere"
+L["RESTOCKER_REMOVED_ITEM"] = "%s entfernt."
+L["RESTOCKER_UNDO"] = "Rückgängig"
+L["RESTOCKER_UNDO_TOOLTIP"] = "Diesen Gegenstand wieder auf die Liste setzen"
+
+-- Title slot: title case, no terminal period. The line under it is body text.
 L["RESTOCKER_REMOVE_TOOLTIP"] = "Diesen Gegenstand von der Nachschubliste entfernen"
-L["RESTOCKER_AMOUNT_TOOLTIP_TITLE"] = "Aufzufüllende Menge"
-L["RESTOCKER_AMOUNT_TOOLTIP_BODY"] = "Drücke Enter, wenn du fertig bist."
+L["RESTOCKER_REMOVE_TOOLTIP_UNDO"] = "Du kannst das unten im Fenster rückgängig machen."
+--[[
+    The Keep box and its heading, which share one tooltip: the title, and KEEP
+    under it, which explains the number. There is no editing hint: the box
+    saves as it is typed in, so nothing has to be pressed.
+]]
+L["RESTOCKER_AMOUNT_TOOLTIP_TITLE"] = "In deinen Taschen behalten"
+L["RESTOCKER_AMOUNT_TOOLTIP_KEEP"] =
+	"Wie viele du in deinen Taschen behalten willst. Die Zahl wird gelb, solange deine Taschen weniger enthalten, und eine 0 schickt bei aktiviertem Lagern alles in die Bank."
 L["RESTOCKER_BUY_LABEL"] = "Kaufen"
 L["RESTOCKER_BUY_TOOLTIP_TITLE"] = "Beim Händler kaufen"
 L["RESTOCKER_BUY_TOOLTIP_BODY"] = "Kauft die benötigte Menge beim Händler, wenn das Händlerfenster geöffnet ist."
@@ -1021,15 +1213,16 @@ L["RESTOCKER_BUY_TOOLTIP_BODY"] = "Kauft die benötigte Menge beim Händler, wen
 L["RESTOCKER_EXTRA_LABEL"] = "Extra"
 L["RESTOCKER_EXTRA_TOOLTIP_TITLE"] = "Extra kaufen"
 L["RESTOCKER_EXTRA_TOOLTIP_STOCK"] =
-	"Kauft den gesamten begrenzten Vorrat eines Händlers an diesem Gegenstand, also Ware, die er nur nach und nach wieder auffüllt, auch über deine Zielmenge hinaus."
+	"Kauft den gesamten begrenzten Vorrat eines Händlers an diesem Gegenstand, also Ware, die er nur nach und nach wieder auffüllt, auch über deinen Behalten-Wert hinaus."
 L["RESTOCKER_DEPOSIT_TOOLTIP_TITLE"] = "In der Bank lagern"
 --[[
-    Names the Amount column, so it is coupled to RESTOCKER_COLUMN_AMOUNT: a
-    locale that renders that heading differently has to say the same word here,
-    or the sentence points at a column the player cannot find.
+    Both this line and the Extra one above name the Keep column, so they are
+    coupled to RESTOCKER_COLUMN_AMOUNT: a locale that renders that heading
+    differently has to say the same word here, or the sentence points at a
+    column the player cannot find.
 ]]
 L["RESTOCKER_DEPOSIT_TOOLTIP_BODY"] =
-	"Lagert überschüssige Gegenstände in der Bank, wenn die Bank geöffnet ist, oder alle, wenn in der Menge-Spalte 0 steht."
+	"Lagert überschüssige Gegenstände in der Bank, wenn die Bank geöffnet ist, oder alle, wenn in der Behalten-Spalte 0 steht."
 L["RESTOCKER_WITHDRAW_TOOLTIP_TITLE"] = "Aus der Bank holen"
 L["RESTOCKER_WITHDRAW_TOOLTIP_BODY"] = "Holt benötigte Gegenstände aus der Bank, wenn die Bank geöffnet ist."
 
@@ -1051,9 +1244,23 @@ L["RESTOCKER_REPUTATION_REVERED"] = "Respektvoll"
 L["RESTOCKER_REPUTATION_EXALTED"] = "Ehrfürchtig"
 L["RESTOCKER_REPUTATION_TOOLTIP_TITLE"] = "Benötigter Ruf beim Händler"
 --[[
-    Quotes the cell's own values, which couples this line to
-    RESTOCKER_REPUTATION_ANY and the four standings above: a locale that renders
-    a standing differently has to say so here too.
+    Quotes the cell's own values, which couples this line to the four standings
+    above: a locale that renders a standing differently has to say so here too.
+    With no standing required the cell draws a dash rather than the word "Any",
+    which is why the last sentence names the dash; "Any" is still the menu's
+    first entry.
 ]]
 L["RESTOCKER_REPUTATION_TOOLTIP_STANDING"] =
-	'Klicke, um festzulegen, welchen Ruf ein Händler voraussetzt, bevor Connoisseur bei ihm kauft ("Beliebig" kauft überall), was auch den Preis senkt: Freundlich 5%, Wohlwollend 10%, Respektvoll 15%, Ehrfürchtig 20%.'
+	"Klicke, um festzulegen, welchen Ruf ein Händler voraussetzt, bevor Connoisseur bei ihm kauft, was auch den Preis senkt: Freundlich 5%, Wohlwollend 10%, Respektvoll 15%, Ehrfürchtig 20%. Mit einem Strich wird bei jedem Händler gekauft."
+
+--[[
+    Why a cell cannot be set on its row: the tooltip a dimmed cell shows under
+    its column's title, in place of the column's own explanation. Extra and
+    Rep ride on Buy; Upgrade needs a ladder with somewhere to go, which a quest
+    item lacks outright and the Hearthstone lacks for having one tier.
+]]
+L["RESTOCKER_EXTRA_NOT_APPLICABLE"] =
+	"Kaufen ist für diesen Gegenstand deaktiviert, also gibt es nichts extra zu kaufen."
+L["RESTOCKER_REPUTATION_NOT_APPLICABLE"] =
+	"Kaufen ist für diesen Gegenstand deaktiviert, also spielt der Ruf keine Rolle."
+L["RESTOCKER_UPGRADE_NOT_APPLICABLE"] = "Für diesen Gegenstand gibt es keine bessere Version zum Aufwerten."

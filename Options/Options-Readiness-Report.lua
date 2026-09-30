@@ -78,10 +78,10 @@ end
 --[[
     Every Readiness Report setting back to what a fresh install ships with.
 
-    A control of its own, because these settings are account-wide, and under
-    the Per-Character model nothing else reaches that scope --
-    ns.db:ResetProfile() clears the profile and the profile alone -- so without
-    this button the page has no path back to its defaults at all.
+    A control of its own, because these settings are account-wide, and nothing
+    else reaches that scope -- ns.db:ResetProfile() clears the active profile
+    and the profile alone -- so without this button the page has no path back
+    to its defaults at all.
 
     The keys are derived from ns.DATABASE_DEFAULTS rather than listed again
     here, so the button can never drift from the declared defaults and a

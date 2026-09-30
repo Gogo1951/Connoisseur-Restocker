@@ -264,7 +264,9 @@ end
 
 --[[
     Finds the best available scroll for a type from bag contents.
-    Scroll entries: {[1] itemID, [2] buffID, [3] requiredLevel, [4] amount}
+    Scroll entries: {[1] itemID, [2] buffID, [3] requiredLevel, [4] amount,
+    [5] class token or nil}; a scroll with a class token is skipped for every
+    other class, since anyone can carry one but only that class can read it.
     Returns itemID, amount (or nil, nil if nothing usable is found).
 ]]
 local function FindBestScroll(scrollType, bagItemCounts)
@@ -273,13 +275,14 @@ local function FindBestScroll(scrollType, bagItemCounts)
 	end
 
 	local playerLevel = ns.cachedPlayerLevel or 1
+	local _, playerClass = UnitClass("player")
 	local items = ns.SCROLL_DATA[scrollType].items
 	for _, entry in ipairs(items) do
 		--[[
 		    The scroll override path never passes the scanner's ignore filter
 		    (it reads the raw bag counts), so it honors the Ignore List itself.
 		]]
-		if entry[3] <= playerLevel and not ns.IsIgnored(entry[1]) then
+		if entry[3] <= playerLevel and (entry[5] == nil or entry[5] == playerClass) and not ns.IsIgnored(entry[1]) then
 			if bagItemCounts[entry[1]] and bagItemCounts[entry[1]] > 0 then
 				return entry[1], entry[4]
 			end

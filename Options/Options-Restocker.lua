@@ -193,8 +193,8 @@ end
 
 --[[
     Page order: the three reminders (the only things here that speak up on
-    their own, so they lead), then the List Builder toggle, then the window's
-    auto-open behavior, then Praise.
+    their own, so they lead), then the staples pop-up's toggle, then the window's
+    auto-open behavior, then the Inventory Report's switch, then Praise.
 
     The three reminders are peers at the top level, each a toggle with the
     dropdown choosing how much it reports on the same line; the in-town
@@ -299,7 +299,7 @@ function ns.BuildRestockerOptions()
 			modeRestockerBankRemind = ReminderModeSelect("bankReminderMode", "bankReminder", 13),
 
 			--[[
-			    The starter List Builder. Reads the same per-character flag the
+			    The staples pop-up. Reads the same per-character flag the
 			    pop-up's own dismiss box writes, inverted: this row says
 			    "enable", that box says "don't show again", and one shipping on
 			    against one shipping off is what makes each read naturally where
@@ -328,11 +328,13 @@ function ns.BuildRestockerOptions()
 			spaceWindow0 = Spacer(20),
 			headerWindow = Header(L["OPTIONS_RESTOCKER_WINDOW_HEADER"], 21),
 			spaceWindow1 = Spacer(22),
+			descWindow = Desc(GetColor("BODY") .. L["OPTIONS_RESTOCKER_WINDOW_DESCRIPTION"] .. "|r", 23),
+			spaceWindow2 = Spacer(24),
 			toggleRestockerBank = {
 				type = "toggle",
 				name = L["OPTIONS_RESTOCKER_OPEN_BANK"],
 				desc = L["OPTIONS_RESTOCKER_OPEN_BANK_DESCRIPTION"],
-				order = 23,
+				order = 25,
 				width = "full",
 				get = function()
 					local settings = GetRestockerSettings()
@@ -345,11 +347,12 @@ function ns.BuildRestockerOptions()
 					end
 				end,
 			},
+			spaceWindow3 = Spacer(26),
 			toggleRestockerMerchant = {
 				type = "toggle",
 				name = L["OPTIONS_RESTOCKER_OPEN_MERCHANT"],
 				desc = L["OPTIONS_RESTOCKER_OPEN_MERCHANT_DESCRIPTION"],
-				order = 24,
+				order = 27,
 				width = "full",
 				get = function()
 					local settings = GetRestockerSettings()
@@ -359,6 +362,39 @@ function ns.BuildRestockerOptions()
 					local settings = GetRestockerSettings()
 					if settings then
 						settings.autoOpenAtMerchant = value
+					end
+				end,
+			},
+
+			--[[
+			    Inventory Report: the counts Features/Inventory-Report.lua adds to
+			    item tooltips. It sits on this panel because the block carries
+			    the Restocker's name and its Bags line is the Restock List's own
+			    have/keep count. The header is the block's title, so the panel
+			    and the tooltip cannot name it two ways.
+
+			    Read at every tooltip, so switching it takes effect on the next
+			    one without a reload. Not a Restocker settings key: it sits on
+			    ns.db.global itself (Data/Default-Settings.lua), so it goes
+			    through the database rather than the settings accessor.
+			]]
+			spaceInventory0 = Spacer(30),
+			headerInventory = Header(L["INVENTORY_REPORT_TITLE"], 31),
+			spaceInventory1 = Spacer(32),
+			descInventory = Desc(GetColor("BODY") .. L["OPTIONS_INVENTORY_REPORT_SECTION_DESCRIPTION"] .. "|r", 33),
+			spaceInventory2 = Spacer(34),
+			toggleInventoryReport = {
+				type = "toggle",
+				name = L["OPTIONS_INVENTORY_REPORT"],
+				desc = L["OPTIONS_INVENTORY_REPORT_DESCRIPTION"],
+				order = 35,
+				width = "full",
+				get = function()
+					return ns.db and ns.db.global.inventoryReport
+				end,
+				set = function(_, value)
+					if ns.db then
+						ns.db.global.inventoryReport = value
 					end
 				end,
 			},

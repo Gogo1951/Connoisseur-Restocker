@@ -6,23 +6,6 @@ local LibDataBroker = LibStub("LibDataBroker-1.1")
 local LibDBIcon = LibStub("LibDBIcon-1.0")
 
 --------------------------------------------------------------------------------
--- Class Color
---------------------------------------------------------------------------------
-
---[[
-    The class's display color as a ready-to-use "|cffRRGGBB" prefix, from
-    ns.CLASS_COLORS (Data/Data.lua) so the tooltip matches the add-on's own
-    palette; a class the table lacks gets the palette's TEXT.
-]]
-local function GetClassColorEscape(classToken)
-	local localHex = ns.CLASS_COLORS and ns.CLASS_COLORS[classToken]
-	if localHex then
-		return "|cff" .. localHex
-	end
-	return GetColor("TEXT")
-end
-
---------------------------------------------------------------------------------
 -- Registration
 --------------------------------------------------------------------------------
 
@@ -82,125 +65,137 @@ function ns.ToggleMinimapButton(value)
 end
 
 --------------------------------------------------------------------------------
--- Tooltip
+-- Tooltip Blocks
 --------------------------------------------------------------------------------
 
 local KnowsAny = ns.KnowsAny
 
--- The most restocking orders the Restocker Report lists one per row; a longer list shows only its count.
-local RESTOCKER_REPORT_MAX_ROWS = 8
+-- The most rows the Restocker Report or the Ignore List lists, one item each; a longer list shows only its count.
+local LIST_MAX_ROWS = 8
 
 --[[
-    The class tip blocks render one instruction per line, separated by blank
-    lines. Collecting the lines first and spacing them here keeps the rhythm
-    correct when a tip is gated out — an unknown spell leaves no doubled gap
-    and no trailing blank.
+    A switch's state. One that is on while its when-to-use choice does not hold
+    (When in a Raid, and the player is solo) shows the choice instead of
+    Enabled: the Food macro is not acting on it, and the label says what it is
+    waiting for. ns.MODE_VALUES is read here rather than aliased at load,
+    because Options/Options-Utilities.lua builds it after this file.
 ]]
-local function AddSpacedLines(tooltip, color, lines)
-	for index, text in ipairs(lines) do
-		if index > 1 then
-			tooltip:AddLine(" ")
-		end
-		tooltip:AddLine(color .. text .. "|r", 1, 1, 1, true)
+local function SwitchState(enabled, mode)
+	if not enabled then
+		return GetColor("OFF") .. L["MINIMAP_DISABLED"] .. "|r"
 	end
+	if ns.IsModeActive(mode) then
+		return GetColor("ON") .. L["MINIMAP_ENABLED"] .. "|r"
+	end
+	return GetColor("SEPARATOR") .. ns.MODE_VALUES[mode] .. "|r"
 end
 
---[[
-    The right-hand value of an item row: icon and name as one string, so the
-    pair can never split across the tooltip's two columns. An item link carries
-    its own quality color, so the resolved case needs no color of its own.
-
-    Nothing resolved -- or an item cache still cold -- renders the one-word
-    MINIMAP_NONE instead, leaving the full explanation to the line below it.
-]]
-local function ItemValue(itemID, itemLink)
-	if itemID and itemLink then
-		return format("|T%s:14:14|t %s", C_Item.GetItemIconByID(itemID), itemLink)
-	end
-	return GetColor("BODY") .. L["MINIMAP_NONE"] .. "|r"
-end
-
---[[
-    One "section title + resolved item" row, matching the Current Pet Food and
-    Main Hand / Off Hand sections. Title on the left, item on the right -- the
-    house pattern of a name and its current value sharing a row.
-
-    The "no suitable item" sentence stays on its own wrapping line rather than
-    moving into the right column, because that column never wraps: a sentence
-    there would stretch the tooltip to the width of the whole sentence.
-]]
-local function AddItemSection(tooltip, title, itemID, itemLink, missingLabel)
+-- A feature block: name and state, one description, click and action. A block that only opens something has no state.
+local function AddFeatureBlock(tooltip, name, state, description, keybind, action)
 	tooltip:AddLine(" ")
-	tooltip:AddDoubleLine(GetColor("TITLE") .. title .. "|r", ItemValue(itemID, itemLink))
-	if not (itemID and itemLink) then
-		tooltip:AddLine(GetColor("BODY") .. format(L["MESSAGE_NO_ITEM"], missingLabel) .. "|r", 1, 1, 1, true)
+	if state then
+		tooltip:AddDoubleLine(GetColor("TITLE") .. name .. "|r", state)
+	else
+		tooltip:AddLine(GetColor("TITLE") .. name .. "|r")
 	end
+	tooltip:AddLine(GetColor("BODY") .. description .. "|r", 1, 1, 1, true)
+	tooltip:AddDoubleLine(GetColor("INFO") .. keybind .. "|r", GetColor("INFO") .. action .. "|r")
 end
 
-UpdateTooltip = function(anchor)
-	if not (ns.db and ns.db.profile) then
+--[[
+    A title with its item right-aligned on the row beneath. The item gets a row
+    of its own so a long name never adds its width to the title's, and it is
+    its icon and its name in the link's own quality color, without the link's
+    brackets (ns.UnbracketItemLink), like every item this tooltip names. With nothing resolved -- or an item
+    cache still cold -- the "no suitable item" sentence takes that row on a
+    wrapping line, since the right column never wraps. Returns whether an item
+    was shown.
+]]
+local function AddItemBlock(tooltip, title, itemID, itemLink, missingLabel)
+	tooltip:AddLine(GetColor("TITLE") .. title .. "|r")
+	if itemID and itemLink then
+		tooltip:AddDoubleLine(
+			" ",
+			format("|T%s:14:14|t %s", C_Item.GetItemIconByID(itemID), ns.UnbracketItemLink(itemLink))
+		)
+		return true
+	end
+	tooltip:AddLine(GetColor("BODY") .. format(L["MESSAGE_NO_ITEM"], missingLabel) .. "|r", 1, 1, 1, true)
+	return false
+end
+
+--[[
+    Restocker Report -- the orders themselves while they fit, only their count
+    past LIST_MAX_ROWS: spelling out every shortfall made the tooltip taller
+    than the screen on a real Restock List, and at that length the only
+    question this block answers is "do I need to shop?".
+
+    A row is the item and have/wanted, the ratio the verbose reminder prints.
+    ns.GetItemLabel names the item even while the cache is cold; a
+    name-only row has no ID to look an icon up by, so it shows the question
+    mark the Restock List window uses.
+
+    Read straight off ns.BuildGroceryList so the tooltip and the entering-town
+    reminder can never disagree, and rendered even with nothing to buy: "fully
+    stocked" is an answer, a missing block is not. That answer is the green
+    congratulation on its own, in place of the header row -- a "Fully Stocked"
+    value above it would only say it twice. A list with no rows at all is not
+    stocked, so it says so under the header instead.
+]]
+local function AddRestockerReport(tooltip)
+	tooltip:AddLine(" ")
+	if ns.IsRestockListEmpty() then
+		tooltip:AddLine(GetColor("TITLE") .. L["MINIMAP_RESTOCKER_REPORT"] .. "|r")
+		tooltip:AddLine(GetColor("BODY") .. L["MINIMAP_RESTOCKER_EMPTY"] .. "|r", 1, 1, 1, true)
 		return
 	end
-	local settings = ns.db.profile
-	local tooltip = GameTooltip
 
-	tooltip:SetOwner(anchor, "ANCHOR_BOTTOMLEFT")
-	tooltip:ClearLines()
-
-	tooltip:AddDoubleLine(GetColor("TITLE") .. L["ADDON_TITLE"] .. "|r", GetColor("MUTED") .. ns.Version .. "|r")
-	tooltip:AddLine(" ")
-	tooltip:AddLine(" ")
-
-	-- Prioritize Buff Food
-	local buffState = settings.useBuffFood and (GetColor("ON") .. L["MINIMAP_ENABLED"] .. "|r")
-		or (GetColor("OFF") .. L["MINIMAP_DISABLED"] .. "|r")
-	tooltip:AddDoubleLine(GetColor("TITLE") .. L["FEATURE_BUFF_FOOD"] .. "|r", buffState)
-	tooltip:AddLine(GetColor("BODY") .. L["MENU_BUFF_FOOD_DESCRIPTION"] .. "|r", 1, 1, 1, true)
-	tooltip:AddDoubleLine(
-		GetColor("INFO") .. L["MINIMAP_LEFT_CLICK"] .. "|r",
-		GetColor("INFO") .. L["MINIMAP_TOGGLE"] .. "|r"
-	)
-	tooltip:AddLine(" ")
-
-	-- Enable Scroll Buffs
-	local scrollState = settings.useScrolls and (GetColor("ON") .. L["MINIMAP_ENABLED"] .. "|r")
-		or (GetColor("OFF") .. L["MINIMAP_DISABLED"] .. "|r")
-	tooltip:AddDoubleLine(GetColor("TITLE") .. L["FEATURE_SCROLL_BUFFS"] .. "|r", scrollState)
-	tooltip:AddLine(GetColor("BODY") .. L["MENU_SCROLL_BUFFS_DESCRIPTION"] .. "|r", 1, 1, 1, true)
-	tooltip:AddDoubleLine(
-		GetColor("INFO") .. L["MINIMAP_SHIFT_LEFT"] .. "|r",
-		GetColor("INFO") .. L["MINIMAP_TOGGLE"] .. "|r"
-	)
-
-	--[[
-	    Current Food. Unlike AddItemSection's shared title-and-item row, the
-	    title stands alone and the item sits in the right column of the row
-	    beneath it, so a long food name never adds its width to the title's.
-	    With nothing resolved the sentence below answers on its own (a "None"
-	    row above it would only say it twice), and the Ignore hint only
-	    belongs here when there is an item to ignore.
-	]]
-	tooltip:AddLine(" ")
-	tooltip:AddLine(GetColor("TITLE") .. L["MINIMAP_BEST_FOOD"] .. "|r")
-	if ns.bestFoodID and ns.bestFoodLink then
-		tooltip:AddDoubleLine(" ", ItemValue(ns.bestFoodID, ns.bestFoodLink))
-		tooltip:AddDoubleLine(
-			GetColor("INFO") .. L["MINIMAP_RIGHT_CLICK"] .. "|r",
-			GetColor("INFO") .. L["MENU_IGNORE"] .. "|r"
-		)
+	local groceries = ns.BuildGroceryList()
+	if #groceries == 0 then
+		tooltip:AddLine(GetColor("ON") .. L["MINIMAP_RESTOCKER_STOCKED"] .. "|r", 1, 1, 1, true)
+	elseif #groceries <= LIST_MAX_ROWS then
+		tooltip:AddLine(GetColor("TITLE") .. L["MINIMAP_RESTOCKER_REPORT"] .. "|r")
+		for _, entry in ipairs(groceries) do
+			local icon = entry.itemID and C_Item.GetItemIconByID(entry.itemID)
+				or "Interface\\ICONS\\INV_Misc_QuestionMark"
+			tooltip:AddDoubleLine(
+				format("|T%s:14:14|t %s", icon, ns.GetItemLabel(entry.itemID, entry.itemName)),
+				GetColor("BODY") .. format(L["MINIMAP_RESTOCKER_ITEM_COUNT"], entry.have, entry.wanted) .. "|r"
+			)
+		end
 	else
-		tooltip:AddLine(GetColor("BODY") .. format(L["MESSAGE_NO_ITEM"], L["LABEL_FOOD"]) .. "|r", 1, 1, 1, true)
+		tooltip:AddDoubleLine(
+			GetColor("TITLE") .. L["MINIMAP_RESTOCKER_REPORT"] .. "|r",
+			GetColor("BODY") .. format(L["MINIMAP_RESTOCKER_NEEDED"], #groceries) .. "|r"
+		)
+	end
+end
+
+--[[
+    Ignore List -- this character's own list, the one Right-Click adds to and
+    Middle-Click clears; the Global list lives in the Ignore List panel. It is
+    the one block a player can grow without limit, so past LIST_MAX_ROWS it
+    shows only its count, and it sits last before Options so that nothing above
+    it moves as it grows.
+]]
+local function AddIgnoreList(tooltip)
+	local ignoreList = ns.GetIgnoreList()
+	if not ignoreList or next(ignoreList) == nil then
+		return
 	end
 
-	--[[
-	    Ignore List (the tooltip shows the character's own list, the one the
-	    Right-Click and Middle-Click below act on; the Global list lives in the
-	    Ignore List panel).
-	]]
-	local ignoreList = ns.GetIgnoreList() or {}
-	local hasIgnoredItems = next(ignoreList) ~= nil
-	if hasIgnoredItems then
-		tooltip:AddLine(" ")
+	local count = 0
+	for _ in pairs(ignoreList) do
+		count = count + 1
+	end
+
+	tooltip:AddLine(" ")
+	if count > LIST_MAX_ROWS then
+		tooltip:AddDoubleLine(
+			GetColor("TITLE") .. L["MINIMAP_IGNORE_LIST"] .. "|r",
+			GetColor("BODY") .. format(L["MINIMAP_IGNORE_COUNT"], count) .. "|r"
+		)
+	else
 		tooltip:AddLine(GetColor("TITLE") .. L["MINIMAP_IGNORE_LIST"] .. "|r")
 
 		local sortedIgnoreList = {}
@@ -220,147 +215,269 @@ UpdateTooltip = function(anchor)
 		for _, item in ipairs(sortedIgnoreList) do
 			if item.texture then
 				local _, _, _, colorHex = C_Item.GetItemQualityColor(item.quality)
-				tooltip:AddLine(format("|T%s:14:14|t |c%s[%s]|r", item.texture, colorHex, item.name))
+				tooltip:AddLine(format("|T%s:14:14|t |c%s%s|r", item.texture, colorHex, item.name))
 			else
 				tooltip:AddLine(GetColor("MUTED") .. format(L["LOADING_ITEM"], item.id) .. "|r")
 			end
 		end
-
-		tooltip:AddDoubleLine(
-			GetColor("INFO") .. L["MINIMAP_MIDDLE_CLICK"] .. "|r",
-			GetColor("INFO") .. L["MENU_CLEAR_IGNORE"] .. "|r"
-		)
 	end
 
-	-- Class-specific conjure tips
-	local _, playerClass = UnitClass("player")
-	local descriptionColor = GetColor("BODY")
+	tooltip:AddDoubleLine(
+		GetColor("INFO") .. L["MINIMAP_MIDDLE_CLICK"] .. "|r",
+		GetColor("INFO") .. L["MENU_CLEAR_IGNORE"] .. "|r"
+	)
+end
 
-	if playerClass == "MAGE" and ns.CONJURE_SPELLS then
-		local classColor = GetClassColorEscape("MAGE")
-		local knowsTable = KnowsAny(ns.CONJURE_SPELLS.MageCreateTable)
-		local knowsFood = KnowsAny(ns.CONJURE_SPELLS.MageCreateFood)
-		local knowsWater = KnowsAny(ns.CONJURE_SPELLS.MageCreateWater)
-		local knowsManaGem = KnowsAny(ns.CONJURE_SPELLS.MageCreateManaGem)
+--------------------------------------------------------------------------------
+-- Class Notes
+--------------------------------------------------------------------------------
 
-		if knowsFood or knowsWater or knowsTable or knowsManaGem then
-			tooltip:AddLine(" ")
-			tooltip:AddLine(classColor .. L["PREFIX_MAGE"] .. "|r")
-			tooltip:AddLine(" ")
+--[[
+    One macro's notes: its name, a row per click (the click on the left, what
+    it does on the right), then an optional closing line. HELP rather than
+    INFO: these are clicks on a macro, and blue marks a click on the mini-map
+    button.
+]]
+local function AddMacroNotes(tooltip, macroName, rows, closingNote)
+	tooltip:AddLine(GetColor("TITLE") .. macroName .. "|r")
+	for _, row in ipairs(rows) do
+		tooltip:AddDoubleLine(GetColor("HELP") .. row[1] .. "|r", GetColor("HELP") .. row[2] .. "|r")
+	end
+	if closingNote then
+		tooltip:AddLine(GetColor("HELP") .. closingNote .. "|r", 1, 1, 1, true)
+	end
+end
 
-			local tips = { L["TIP_MAGE_MACROS"] }
-			if knowsFood or knowsWater then
-				tinsert(tips, L["TIP_MAGE_CONJURE"])
-				tinsert(tips, L["TIP_MAGE_DOWNRANK"])
-			end
-			if knowsTable then
-				tinsert(tips, L["TIP_MAGE_TABLE"])
-			end
-			if knowsManaGem then
-				tinsert(tips, L["TIP_MAGE_GEM"])
-			end
-			AddSpacedLines(tooltip, descriptionColor, tips)
+-- The client's own name for the first spell on the list the player knows; nil when they know none.
+local function KnownSpellName(spellList)
+	for _, data in ipairs(spellList) do
+		if ns.IsSpellKnown(data[1]) or ns.IsPlayerSpell(data[1]) then
+			return C_Spell.GetSpellName(data[1])
 		end
-	elseif playerClass == "WARLOCK" and ns.CONJURE_SPELLS then
-		local classColor = GetClassColorEscape("WARLOCK")
-		local knowsSoulwell = KnowsAny(ns.CONJURE_SPELLS.WarlockCreateSoulwell)
-		local knowsHealthstone = KnowsAny(ns.CONJURE_SPELLS.WarlockCreateHealthstone)
-		local knowsSoulstone = KnowsAny(ns.CONJURE_SPELLS.WarlockCreateSoulstone)
+	end
+	return nil
+end
 
-		if knowsHealthstone or knowsSoulstone or knowsSoulwell then
-			tooltip:AddLine(" ")
-			tooltip:AddLine(classColor .. L["PREFIX_WARLOCK"] .. "|r")
-			tooltip:AddLine(" ")
+--[[
+    Each builder returns its class's blocks in order, or nothing while the
+    character has none: an item block ({ title, itemID, itemLink,
+    missingLabel }) for each item the class's own macro will use, then a notes
+    block ({ title, rows, note }) per macro. A row is listed only for a spell
+    the character knows.
+]]
+local function HunterNotes()
+	if not ns.feedPetSpellName then
+		return nil
+	end
 
-			local tips = { L["TIP_WARLOCK_MACROS"] }
-			if knowsHealthstone then
-				tinsert(tips, L["TIP_WARLOCK_HEALTHSTONE"])
-				tinsert(tips, L["TIP_WARLOCK_DOWNRANK"])
-			end
-			if knowsSoulstone then
-				tinsert(tips, L["TIP_WARLOCK_SOULSTONE"])
-			end
-			if knowsSoulwell then
-				tinsert(tips, L["TIP_WARLOCK_SOUL"])
-			end
-			AddSpacedLines(tooltip, descriptionColor, tips)
+	local rows = { { L["MINIMAP_LEFT_CLICK"], L["NOTE_PET_CALL_FEED_REVIVE"] } }
+	if ns.mendPetSpellName then
+		tinsert(rows, { L["NOTE_PET_MEND_CLICK"], ns.mendPetSpellName })
+	end
+	tinsert(rows, { L["NOTE_HOLD_SHIFT"], L["NOTE_PET_FORCE_REVIVE"] })
+	tinsert(rows, { L["NOTE_HOLD_CONTROL"], L["NOTE_PET_DISMISS"] })
+
+	return {
+		{
+			title = L["MINIMAP_BEST_PET_FOOD"],
+			itemID = ns.bestPetFoodID,
+			itemLink = ns.bestPetFoodLink,
+			missingLabel = L["LABEL_PET_FOOD"],
+		},
+		{ title = L["NOTE_MACRO_FEED_PET"], rows = rows },
+	}
+end
+
+local function MageNotes()
+	local spells = ns.CONJURE_SPELLS
+	local knowsFoodOrWater = KnowsAny(spells.MageCreateFood) or KnowsAny(spells.MageCreateWater)
+	local ritualName = KnownSpellName(spells.MageCreateTable)
+	local blocks = {}
+
+	if knowsFoodOrWater or ritualName then
+		local rows = {}
+		if knowsFoodOrWater then
+			tinsert(rows, { L["MINIMAP_RIGHT_CLICK"], L["NOTE_CONJURE"] })
 		end
-	elseif playerClass == "ROGUE" and ns.POISONS_SPELL_ID then
-		if ns.IsSpellKnown(ns.POISONS_SPELL_ID) or ns.IsPlayerSpell(ns.POISONS_SPELL_ID) then
-			local classColor = GetClassColorEscape("ROGUE")
-			tooltip:AddLine(" ")
-			tooltip:AddLine(classColor .. L["PREFIX_ROGUE"] .. "|r")
-			tooltip:AddLine(" ")
-			AddSpacedLines(tooltip, descriptionColor, {
-				L["TIP_ROGUE_MACROS"],
-				L["TIP_ROGUE_OFF_HAND"],
-				L["TIP_ROGUE_MAIN_HAND"],
-				L["TIP_ROGUE_REPLACE"],
-				L["TIP_ROGUE_WINDOW"],
-			})
-
-			local mainID, mainLink = ns.GetBestPoisonForHand("main")
-			local offID, offLink = ns.GetBestPoisonForHand("off")
-			AddItemSection(tooltip, L["MINIMAP_MAIN_HAND"], mainID, mainLink, L["LABEL_POISONS"])
-			AddItemSection(tooltip, L["MINIMAP_OFF_HAND"], offID, offLink, L["LABEL_POISONS"])
+		if ritualName then
+			tinsert(rows, { L["MINIMAP_MIDDLE_CLICK"], ritualName })
 		end
-	elseif playerClass == "HUNTER" and ns.feedPetSpellName then
-		local classColor = GetClassColorEscape("HUNTER")
-
-		tooltip:AddLine(" ")
-		tooltip:AddLine(classColor .. L["PREFIX_HUNTER"] .. "|r")
-		tooltip:AddLine(" ")
-		AddSpacedLines(tooltip, descriptionColor, {
-			L["TIP_HUNTER_MACROS"],
-			L["TIP_HUNTER_ALL_IN_ONE"],
-			L["TIP_HUNTER_CALL"],
-			L["TIP_HUNTER_MEND"],
-			L["TIP_HUNTER_MODIFIERS"],
+		tinsert(blocks, {
+			title = L["NOTE_MACRO_FOOD_WATER"],
+			rows = rows,
+			note = knowsFoodOrWater and L["NOTE_MAGE_TARGET_LEVEL"] or nil,
 		})
-
-		AddItemSection(tooltip, L["MINIMAP_BEST_PET_FOOD"], ns.bestPetFoodID, ns.bestPetFoodLink, L["LABEL_PET_FOOD"])
 	end
 
-	--[[
-	    Restocker Report -- the orders themselves while they fit, only their
-	    count past RESTOCKER_REPORT_MAX_ROWS. Spelling out every shortfall made
-	    the tooltip taller than the screen on a real restock list, and at that
-	    length the only question this section answers is "do I need to shop?".
-	    The Restocker window itself (/crs) is where the items live.
+	if KnowsAny(spells.MageCreateManaGem) then
+		tinsert(blocks, {
+			title = L["NOTE_MACRO_MANA_GEM"],
+			rows = {
+				{ L["MINIMAP_RIGHT_CLICK"], L["NOTE_CONJURE"] },
+				{ L["NOTE_RIGHT_CLICK_AGAIN"], L["NOTE_LOWER_RANK_BACKUP"] },
+			},
+		})
+	end
 
-	    A row is the item and have/wanted, the ratio the verbose reminder
-	    prints. ns.GetItemHyperlink names the item even while the cache is
-	    cold; a name-only row has no ID to look an icon up by, so it shows the
-	    question mark the Restocker window uses.
+	return blocks
+end
 
-	    Read straight off ns.BuildGroceryList so the tooltip and the
-	    entering-town reminder can never disagree, and rendered even when
-	    empty: "fully stocked" is an answer, a missing section is not. That
-	    answer is the green congratulation on its own, in place of the header
-	    row -- a "Fully Stocked" value above it would only say it twice.
-	]]
-	local groceries = ns.BuildGroceryList()
-	tooltip:AddLine(" ")
-	if #groceries == 0 then
-		tooltip:AddLine(GetColor("ON") .. L["MINIMAP_RESTOCKER_STOCKED"] .. "|r", 1, 1, 1, true)
-	elseif #groceries <= RESTOCKER_REPORT_MAX_ROWS then
-		tooltip:AddLine(GetColor("TITLE") .. L["MINIMAP_RESTOCKER_REPORT"] .. "|r")
-		for _, entry in ipairs(groceries) do
-			local icon = entry.itemID and C_Item.GetItemIconByID(entry.itemID)
-				or "Interface\\ICONS\\INV_Misc_QuestionMark"
-			tooltip:AddDoubleLine(
-				format("|T%s:14:14|t %s", icon, ns.GetItemHyperlink(entry.itemID, entry.itemName)),
-				GetColor("BODY") .. format(L["MINIMAP_RESTOCKER_ITEM_COUNT"], entry.have, entry.wanted) .. "|r"
-			)
+local function WarlockNotes()
+	local spells = ns.CONJURE_SPELLS
+	local knowsHealthstone = KnowsAny(spells.WarlockCreateHealthstone)
+	local ritualName = KnownSpellName(spells.WarlockCreateSoulwell)
+	local blocks = {}
+
+	if knowsHealthstone or ritualName then
+		local rows = {}
+		if knowsHealthstone then
+			tinsert(rows, { L["MINIMAP_RIGHT_CLICK"], L["NOTE_CREATE"] })
+			tinsert(rows, { L["NOTE_RIGHT_CLICK_AGAIN"], L["NOTE_LOWER_RANK_BACKUP"] })
 		end
-	else
+		if ritualName then
+			tinsert(rows, { L["MINIMAP_MIDDLE_CLICK"], ritualName })
+		end
+		tinsert(blocks, {
+			title = L["NOTE_MACRO_HEALTHSTONE"],
+			rows = rows,
+			note = knowsHealthstone and L["NOTE_WARLOCK_TARGET_LEVEL"] or nil,
+		})
+	end
+
+	if KnowsAny(spells.WarlockCreateSoulstone) then
+		tinsert(blocks, {
+			title = L["NOTE_MACRO_SOULSTONE"],
+			rows = { { L["MINIMAP_RIGHT_CLICK"], L["NOTE_CREATE"] } },
+		})
+	end
+
+	return blocks
+end
+
+local function RogueNotes()
+	if not (ns.IsSpellKnown(ns.POISONS_SPELL_ID) or ns.IsPlayerSpell(ns.POISONS_SPELL_ID)) then
+		return nil
+	end
+
+	local mainID, mainLink = ns.GetBestPoisonForHand("main")
+	local offID, offLink = ns.GetBestPoisonForHand("off")
+
+	return {
+		{
+			title = L["MINIMAP_MAIN_HAND_POISON"],
+			itemID = mainID,
+			itemLink = mainLink,
+			missingLabel = L["LABEL_POISONS"],
+		},
+		{
+			title = L["MINIMAP_OFF_HAND_POISON"],
+			itemID = offID,
+			itemLink = offLink,
+			missingLabel = L["LABEL_POISONS"],
+		},
+		{
+			title = L["NOTE_MACRO_POISONS"],
+			rows = {
+				{ L["MINIMAP_LEFT_CLICK"], L["MINIMAP_OFF_HAND"] },
+				{ L["MINIMAP_RIGHT_CLICK"], L["MINIMAP_MAIN_HAND"] },
+				{ L["MINIMAP_MIDDLE_CLICK"], L["NOTE_POISONS_WINDOW"] },
+			},
+			note = L["NOTE_POISONS_REPLACED"],
+		},
+	}
+end
+
+local CLASS_NOTES = {
+	HUNTER = { header = L["PREFIX_HUNTER"], build = HunterNotes },
+	MAGE = { header = L["PREFIX_MAGE"], build = MageNotes },
+	ROGUE = { header = L["PREFIX_ROGUE"], build = RogueNotes },
+	WARLOCK = { header = L["PREFIX_WARLOCK"], build = WarlockNotes },
+}
+
+--[[
+    The class-colored header, then the class's blocks with a blank line between
+    them; the first follows the header directly. The blocks are collected before
+    anything is drawn, so a gated-out block leaves no doubled gap, and a
+    character with none gets no header.
+]]
+local function AddClassNotes(tooltip)
+	local _, playerClass = UnitClass("player")
+	local notes = CLASS_NOTES[playerClass]
+	local blocks = notes and notes.build()
+	if not blocks or #blocks == 0 then
+		return
+	end
+
+	tooltip:AddLine(" ")
+	tooltip:AddLine((ns.GetClassColor(playerClass) or GetColor("TEXT")) .. notes.header .. "|r")
+	for index, block in ipairs(blocks) do
+		if index > 1 then
+			tooltip:AddLine(" ")
+		end
+		if block.rows then
+			AddMacroNotes(tooltip, block.title, block.rows, block.note)
+		else
+			AddItemBlock(tooltip, block.title, block.itemID, block.itemLink, block.missingLabel)
+		end
+	end
+end
+
+--------------------------------------------------------------------------------
+-- Tooltip
+--------------------------------------------------------------------------------
+
+UpdateTooltip = function(anchor)
+	if not (ns.db and ns.db.profile) then
+		return
+	end
+	local settings = ns.db.profile
+	local tooltip = GameTooltip
+
+	tooltip:SetOwner(anchor, "ANCHOR_BOTTOMLEFT")
+	tooltip:ClearLines()
+
+	tooltip:AddDoubleLine(GetColor("TITLE") .. L["ADDON_TITLE"] .. "|r", GetColor("MUTED") .. ns.Version .. "|r")
+	tooltip:AddLine(" ")
+	tooltip:AddLine(" ")
+
+	-- Current Food leads, since the button's icon shows it. The Ignore hint needs an item to ignore.
+	if AddItemBlock(tooltip, L["MINIMAP_BEST_FOOD"], ns.bestFoodID, ns.bestFoodLink, L["LABEL_FOOD"]) then
 		tooltip:AddDoubleLine(
-			GetColor("TITLE") .. L["MINIMAP_RESTOCKER_REPORT"] .. "|r",
-			GetColor("BODY") .. format(L["MINIMAP_RESTOCKER_NEEDED"], #groceries) .. "|r"
+			GetColor("INFO") .. L["MINIMAP_RIGHT_CLICK"] .. "|r",
+			GetColor("INFO") .. L["MENU_IGNORE"] .. "|r"
 		)
 	end
 
-	-- Options block (always the last thing in the tooltip; no hint line below it)
+	AddFeatureBlock(
+		tooltip,
+		L["FEATURE_BUFF_FOOD"],
+		SwitchState(settings.useBuffFood, settings.buffFoodMode),
+		L["MENU_BUFF_FOOD_DESCRIPTION"],
+		L["MINIMAP_LEFT_CLICK"],
+		L["MINIMAP_TOGGLE"]
+	)
+	AddFeatureBlock(
+		tooltip,
+		L["FEATURE_SCROLL_BUFFS"],
+		SwitchState(settings.useScrolls, settings.scrollsMode),
+		L["MENU_SCROLL_BUFFS_DESCRIPTION"],
+		L["MINIMAP_SHIFT_LEFT"],
+		L["MINIMAP_TOGGLE"]
+	)
+	AddFeatureBlock(
+		tooltip,
+		L["MENU_RESTOCKER"],
+		nil,
+		L["MENU_RESTOCKER_DESCRIPTION"],
+		L["MENU_RESTOCKER_KEYBIND"],
+		L["MINIMAP_OPEN"]
+	)
+
+	AddClassNotes(tooltip)
+	AddRestockerReport(tooltip)
+	AddIgnoreList(tooltip)
+
+	-- Options: always the last block, with no hint line below it.
 	tooltip:AddLine(" ")
 	tooltip:AddLine(GetColor("TITLE") .. L["MENU_OPTIONS"] .. "|r")
 	tooltip:AddLine(GetColor("INFO") .. L["MENU_OPTIONS_KEYBIND"] .. "|r")
@@ -382,7 +499,10 @@ ns.dataBrokerObject = LibDataBroker:NewDataObject(ns.LOCALE_NAME, {
 			ns.OpenOptionsPanel()
 			return
 		end
-		if button == "RightButton" and ns.bestFoodID then
+		-- Shift + Right-Click toggles the Restocker window, the same as a bare /crs.
+		if button == "RightButton" and IsShiftKeyDown() then
+			ns.ToggleRestockWindow()
+		elseif button == "RightButton" and ns.bestFoodID then
 			ns.IgnoreItem(ns.bestFoodID)
 		elseif button == "LeftButton" and IsShiftKeyDown() then
 			ns.ToggleMacroSetting("useScrolls")

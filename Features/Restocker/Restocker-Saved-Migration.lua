@@ -1,151 +1,23 @@
 local _, ns = ...
 
 --------------------------------------------------------------------------------
--- Adopting The Standalone Saved Variable
---------------------------------------------------------------------------------
-
--- MIGRATION (remove after 2026-09-29)
---[[
-    One-time upgrade shim. Delete on the first code pass after that date, all
-    five pieces together:
-      1. this section
-      2. ConnoisseurRestockerDB in ## SavedVariables in all three flavor TOCs
-         (Consumable-Connoisseur_Vanilla.toc, _TBC.toc and _Camelot.toc)
-      3. the ns.AdoptStandaloneRestockerDB() call in Features/Core.lua
-      4. ConnoisseurRestockerDB in .luacheckrc's globals
-      5. the adoption scenarios in
-         Features/Restocker/Tests/Restocker-Saved-Migration-Test.lua
-    The file itself and its TOC lines stay for the key rename below.
-]]
-
---[[
-    Every release up to and including 2026.08.25.A kept the Restock List in its
-    own account-wide SavedVariable, ConnoisseurRestockerDB, alongside the
-    add-on's AceDB file rather than inside it. It lives at ns.db.global.restocker
-    now, so one saved table holds everything and the Restocker's settings sit
-    with the rest of the account-wide keys.
-
-    Without this step every upgrading player loses their lists, and loses them
-    for good. The new code reads an empty ns.db.global.restocker, and WoW writes
-    back only the variables the TOC declares -- so at the first logout the old
-    table is dropped from the saved file and there is nothing left to recover.
-    That makes this a first-login job: it has to run before anything reads the
-    new home, on the very first session of the new build.
-
-    ConnoisseurRestockerDB is therefore still named in ## SavedVariables, and has
-    to stay there while this runs: an undeclared variable is not one WoW owes us
-    back. Once adopted it is set to nil, so the next save writes the file without
-    it and this can never run twice on the same data.
-
-    The declaration goes out with this file, not before it -- see the retirement
-    note at the top.
-]]
-
---[[
-    The keys carried across: every key the shipped standalone build wrote that
-    the current code still reads.
-
-    debugMessages is the one it wrote that is deliberately NOT here -- it was the
-    Restocker's persisted debug switch, now a runtime-only diagnostics flag, and
-    Features/Core.lua clears it from the new table by name. Nor is anything from
-    the builds before it (loginMessage, slashCommand, sortColumn, dataVersion):
-    those keys sit in saved files as leftovers the shipped code had already
-    stopped reading, and copying them over would park them in the new file
-    forever.
-
-    profiles and profileKeys come across as they are. The item lines inside a
-    list need no conversion, since the one-line format did not change, and the
-    character keys behind profileKeys and starterListDismissed did not change
-    either, so each character comes back to the list it was already using. The
-    old key names are kept here on purpose: ns.RenameRestockerSavedKeys below
-    moves them to their current names in the same login.
-]]
-local ADOPTED_KEYS = {
-	"profiles",
-	"profileKeys",
-	"currentProfile",
-	"starterListDismissed",
-	"framePos",
-	"restockReminderChat",
-	"restockReminderSound",
-	"restockReminderMode",
-	"merchantReminder",
-	"merchantReminderMode",
-	"bankReminder",
-	"bankReminderMode",
-	"autoOpenAtBank",
-	"autoOpenAtMerchant",
-}
-
---[[
-    Whether the new table already holds a list the player built. A brand-new
-    character gets an empty class-named list from ns.InitCharacterRestockList, so
-    "has any lists" would call that a populated setup and refuse to adopt over
-    it; a single saved item is the first thing that only a real setup has. Both
-    key names count, because this runs before the rename below: lists saved by
-    an older release still sit under profiles here, and lists saved since the
-    rename sit under lists.
-]]
-local function HoldsRestockItems(settings)
-	for _, listsKey in ipairs({ "lists", "profiles" }) do
-		for _, list in pairs(settings[listsKey] or {}) do
-			if next(list) ~= nil then
-				return true
-			end
-		end
-	end
-	return false
-end
-
---[[
-    Called from InitializeSavedVariables in Features/Core.lua, after AceDB:New has built
-    ns.db and before ns.InitializeRestocker reads ns.db.global.restocker.
-]]
-function ns.AdoptStandaloneRestockerDB()
-	local standalone = ConnoisseurRestockerDB
-	if type(standalone) ~= "table" then
-		return
-	end
-
-	local settings = ns.db.global.restocker
-
-	--[[
-	    Adopt only onto an untouched table. Reaching here with real lists already
-	    in place means the adoption ran in an earlier session and the client died
-	    before the save that clears the old table, so what is in the old one is a
-	    stale copy of what is already here -- and the player has been editing the
-	    new one since.
-	]]
-	if not HoldsRestockItems(settings) then
-		for _, key in ipairs(ADOPTED_KEYS) do
-			if standalone[key] ~= nil then
-				settings[key] = standalone[key]
-			end
-		end
-	end
-
-	-- Adopted, or knowingly passed over: either way the old table has served out its life.
-	ConnoisseurRestockerDB = nil
-end
-
---------------------------------------------------------------------------------
 -- Renaming The Restocker Saved Keys
 --------------------------------------------------------------------------------
 
 -- MIGRATION (remove after 2026-10-18)
 --[[
-    One-time rename shim. The adoption above retires first, which leaves this
-    and the Blinding Powder repair below, on the same date, as the file's last
-    sections: delete on the first code pass after that date, all seven pieces
-    together:
+    One-time rename shim. This and the Blinding Powder repair below, on the same
+    date, are the file's only sections: delete on the first code pass after that
+    date, all seven pieces together:
       1. this file
       2. its line in all three flavor TOCs (Consumable-Connoisseur_Vanilla.toc,
          _TBC.toc and _Camelot.toc)
       3. the ns.RenameRestockerSavedKeys() call in Features/Core.lua
       4. the ns.RepairBlindingPowderRows() call in Features/Core.lua
       5. the ns.NameBlindingPowderRows() line in Features/Restocker/Restocker-List.lua
-      6. the ns.NameBlindingPowderRows stubs in Restocker-Cold-Item-Test.lua and
-         Restocker-Starter-List-Test.lua (Features/Restocker/Tests/)
+      6. the ns.NameBlindingPowderRows stubs in Restocker-Cold-Item-Test.lua,
+         Restocker-Starter-List-Test.lua and Restocker-Window-Test.lua
+         (Features/Restocker/Tests/)
       7. Features/Restocker/Tests/Restocker-Saved-Migration-Test.lua
 ]]
 
@@ -188,9 +60,8 @@ local function RenameSavedKeys(saved, renamedKeys)
 end
 
 --[[
-    Called from InitializeSavedVariables in Features/Core.lua right after
-    ns.AdoptStandaloneRestockerDB, so a legacy table adopted under the old names
-    is renamed in the same login, before ns.InitializeRestocker reads it.
+    Called from InitializeSavedVariables in Features/Core.lua once AceDB:New has
+    built ns.db, before ns.InitializeRestocker reads ns.db.global.restocker.
 ]]
 function ns.RenameRestockerSavedKeys()
 	local settings = ns.db.global.restocker

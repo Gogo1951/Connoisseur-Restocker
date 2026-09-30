@@ -3,7 +3,7 @@ local _, ns = ...
 -- TODO: Add SQL Query
 --[[
     Source: copied from Data/Wrath/Food-and-Water-Wrath.lua: the rows a Wrath
-    client loaded from the pre-split shared tables, until a Standard TOC ships
+    client loaded from the pre-split shared tables, until a Mainline TOC ships
     and Validate Data runs there.
 
     Buff Food flag and Food/Water % + amounts come from the spell taught
@@ -44,13 +44,13 @@ ns.FOOD_AND_WATER = {
 	[29449] = { 0, 0, 7500, 0, 0 }, -- Bladespire Bagel
 	[17404] = { 0, 0, 0, 0, 437 }, -- Blended Bean Brew
 	[13810] = { 1, 0, 1933, 0, 0 }, -- Blessed Sunfruit
-	-- Blessed Sunfruit Juice (13813) is deliberately absent; its Well Fed buff is still recognized via ns.WELL_FED_BUFF_IDS in Well-Fed-Buffs-Standard.lua.
+	-- Blessed Sunfruit Juice (13813) is deliberately absent; its Well Fed buff is still recognized via ns.WELL_FED_BUFF_IDS in Well-Fed-Buffs-Mainline.lua.
 	[3220] = { 1, 0, 243, 0, 0 }, -- Blood Sausage
 	[13546] = { 0, 0, 1392, 0, 0 }, -- Bloodbelly Fish
 	[20516] = { 1, 2, 0, 0, 0 }, -- Bobbing Apple
 	[5525] = { 1, 0, 243, 0, 0 }, -- Boiled Clams
 	[29293] = { 1, 0, 2148, 0, 0 }, -- Bonestripper Buzzard Hotwings
-	-- Bottled Alterac Spring Water (19318) is deliberately absent; its Well Fed buff is still recognized via ns.WELL_FED_BUFF_IDS in Well-Fed-Buffs-Standard.lua.
+	-- Bottled Alterac Spring Water (19318) is deliberately absent; its Well Fed buff is still recognized via ns.WELL_FED_BUFF_IDS in Well-Fed-Buffs-Mainline.lua.
 	[1119] = { 0, 0, 552, 0, 0 }, -- Bottled Spirits
 	[19300] = { 0, 0, 0, 0, 1992 }, -- Bottled Winterspring Water
 	[34021] = { 1, 0, 0, 0, 1992 }, -- Brewdoo Magic

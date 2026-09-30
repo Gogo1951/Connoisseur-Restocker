@@ -21,6 +21,9 @@ ns.RegisterMacroType({
 	end,
 	ranked = true,
 
+	-- Behind potionsUseFoodAndWater, the macro eats the Food macro's pick while out of combat.
+	outOfCombatTypeName = "Food",
+
 	--[[
 	    Healthstone stacking: when the player opts in, the Health Potion
 	    macro gets the best Healthstone's ranked /use lines appended below

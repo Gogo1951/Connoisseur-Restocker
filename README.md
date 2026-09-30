@@ -10,7 +10,7 @@ Macros that automatically use your best food, water, potions, healthstones, band
 
 🧞‍♂️ **Always the Best Item** // Your buttons rewrite themselves as your bags change, skipping anything your level, profession skill, zone, or an Arena won't let you use. Mana gems, Soulstones, and explosives get buttons too.
 
-🛒 **Restocker, Revisited** // Tick your staples in the List Builder and your Restock List is ready in seconds. A reminder speaks up when you reach town still short of something, and named lists can be shared with your alts.
+🛒 **Restocker, Revisited** // Pick your staples and your Restock List is ready in seconds. A reminder speaks up when you reach town still short of something, and named lists can be shared with your alts.
 
 🎯 **Class-Smart Macros** // Mages and Warlocks conjure straight from their macros at ranks matched to their target, Hunters get an all-in-one pet button, and Rogues poison both weapons from one.
 
@@ -24,7 +24,7 @@ Macros that automatically use your best food, water, potions, healthstones, band
 2. Log in. Connoisseur scans your bags and creates its macros in your General macro tab.
 3. Drag the dash-prefixed macros (`- Food`, `- Water`, `- Health Potion`, and the rest) onto your action bars.
 4. Optional: type `/foodie` to choose which macros exist and tune buff food, scrolls, pet food, and your class options.
-5. From level 6, tick your staples in the List Builder when it appears at login, or type `/crs` any time to build your Restock List.
+5. From level 6, pick your staples when Connoisseur Staples pops up at login, or type `/crs` any time and click Pick Staples.
 6. _"Luck favors the prepared, darling."_
 
 ## How It Works
@@ -38,7 +38,7 @@ Macros that automatically use your best food, water, potions, healthstones, band
 | `- Health Potion` | Best healing potion, optionally with your best Healthstone stacked underneath |
 | `- Mana Potion` | Best mana potion |
 | `- Healthstone` | Best Healthstone |
-| `- Mana Gem` | Best Mana Gem, optionally ranked alongside Demonic and Dark Runes |
+| `- Mana Gem` | Best Mana Gem, optionally ranked alongside runes and other mana items |
 | `- Soulstone` | Best Soulstone |
 | `- Bandage` | Best bandage your First Aid skill allows |
 | `- Explosives` | Hardest-hitting bomb, grenade, or sapper your Engineering skill allows, with Ez-Thro Dynamite open to everyone |
@@ -54,10 +54,11 @@ Macros that automatically use your best food, water, potions, healthstones, band
 * Anything you can't use is filtered out, whether that's a level requirement, a missing profession skill, or the wrong zone.
 * Inside a PvP Arena, where the game blocks ordinary food and drink, only conjured items and the arena's own drinks are offered.
 * Macros can't be edited in combat, so the Potion and Healthstone macros carry your best item plus up to two fallbacks. On a long fight the icon can go stale, but a press still uses the best item in your bags.
+* Coming from an add-on with one button for both? Turn on Use Food & Water in Potion Macros Out of Combat and your Health Potion macro eats, and your Mana Potion macro drinks, whenever you're out of combat.
 
 ### Restocker
 
-* **Build your list in ten seconds.** From level 6, the List Builder appears at login while your Restock List is empty. Tick the staples you carry (food, water, ammo, poisons, class reagents, even your Hearthstone), pick how many stacks of each, and you're done. After that, `/crs` opens the Restocker window any time, and you can drop in anything else from your bags.
+* **Build your list in ten seconds.** From level 6, Connoisseur Staples pops up at login while your Restock List is empty. Tick the staples you carry (food, water, ammo, poisons, class reagents, even your Hearthstone), pick how many stacks of each, and you're done. After that, `/crs` opens your Restock List any time: Pick Staples brings the staples back, and you can drop in anything else from your bags.
 * **Your list levels with you.** Food, water, ammo, poisons, potions, and class reagents climb their upgrade paths as you level, and every swap is announced in chat. Refreshing Spring Water becomes Ice Cold Milk at 5, Melon Juice at 15, Sweet Nectar at 25, and so on. Anything above your level, or without an upgrade path, stays exactly where you put it.
 * **Rogues get a bonus.** Put the finished poison on your list and its ingredients buy themselves at any merchant that stocks them all.
 * **Reminders** speak up when you reach an inn or a city short of something, or when you close a merchant or the bank with orders still outstanding. Pick one line or item by item, with an optional alert sound for busy chat.
@@ -77,7 +78,7 @@ Macros that automatically use your best food, water, potions, healthstones, band
 
 ### Mini-Map Button
 
-* Hover for the state of Buff Food and Scroll Buffs, your current best food, this character's Ignore List, tips for your class, and a Restocker Report of what's still short.
+* Hover for your current best food, the state of Buff Food and Scroll Buffs, the Restocker List, notes for your class, a Restocker Report of what's still short, and this character's Ignore List.
 * The icon changes to match your current best food.
 
 | Action | Effect |
@@ -85,6 +86,7 @@ Macros that automatically use your best food, water, potions, healthstones, band
 | Left-Click | Toggle Buff Food |
 | Shift + Left-Click | Toggle Scroll Buffs |
 | Right-Click | Ignore your current best food |
+| Shift + Right-Click | Open or close the Restocker List |
 | Middle-Click | Clear this character's Ignore List |
 | Shift + Middle-Click | Open the Options Interface |
 
@@ -92,17 +94,17 @@ Macros that automatically use your best food, water, potions, healthstones, band
 
 ### Options
 
-Type `/foodie` to open the Options Interface, also found under **Options > AddOns > Connoisseur**, or `/crs` to open the Restocker window.
+Type `/foodie` to open the Options Interface, also found under **Options > AddOns > Connoisseur**, or `/crs` to open your Restock List.
 
 * **Connoisseur** // The welcome message, the mini-map button, the `/foodie` and `/crs` commands, and where to reach the author.
-* **Macros** // Which macros exist and how each one picks: buff food, scroll buffs, conjured food and water, buff re-application, pet food buffs, Healthstone stacking, Demonic and Dark Runes, explosive clicks, and the class options. Connoisseur hides macro names on your action buttons unless you switch them back on here.
+* **Macros** // Which macros exist and how each one picks: buff food, scroll buffs, conjured food and water, buff re-application, pet food buffs, eating and drinking from the potion macros, Healthstone stacking, runes and other mana items, explosive clicks, and the class options. Connoisseur hides macro names on your action buttons unless you switch them back on here.
 * **Ignore List** // Items no macro will ever offer, on the Global list for every character or on one character's own list.
-* **Restocker** // Reminders and how much they say, the alert sound, opening the window at a bank or merchant, and the List Builder.
+* **Restocker** // Reminders and how much they say, the alert sound, opening the window at a bank or merchant, the Connoisseur Staples pop-up, and the Inventory Report that adds your bag, bank, and alt counts to item tooltips.
 * **Readiness Report** // What a ready check reports on. It ships switched off, so turn it on to use it.
 * **Profiles** // Copy one character's setup onto another, or reset one back to defaults.
 * **Diagnostic Tools** // Read-only probes to paste into a bug report.
 
-Most settings are per character, so your raiding 60 and your level-15 alt keep their own consumable choices. Which macros exist, the Readiness Report, and your Restock Lists are account-wide.
+Most settings are per character, so your raiding 60 and your level-15 alt keep their own consumable choices. Which macros exist, the mini-map button, the Restocker and Readiness Report settings, and your Restock Lists are account-wide, though each character picks the list it shops from.
 
 <img width="800" src="https://github.com/user-attachments/assets/5223b8ad-b718-45b3-a585-68d550b7f5e3" />
 
@@ -134,7 +136,7 @@ Most settings are per character, so your raiding 60 and your level-15 alt keep t
 
 ❤️ **You can help make this better!** Feedback, code contributions, testing, and localization assistance are always appreciated. If you'd like to get involved, please reach out.
 
-* [GitHub](https://github.com/Gogo1951/Connoisseur)
+* [GitHub](https://github.com/Gogo1951/Connoisseur-Restocker)
 * [Discord](https://discord.gg/eh8hKq992Q)
 
 ## Related Add-ons

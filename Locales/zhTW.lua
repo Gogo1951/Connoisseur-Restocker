@@ -35,7 +35,7 @@ L["MACRO_WATER"] = "- 水"
 -- Common
 --------------------------------------------------------------------------------
 
--- Joins the items of a printed list: a Readiness Report clause, or the Restocker's "Couldn't move" list.
+-- Joins the items of a list: a Readiness Report clause, the Restocker's "Couldn't move" list, or the characters on a Restock List.
 L["LIST_SEPARATOR"] = "、"
 -- The decimal mark in a number the code prints, such as the Readiness Report's 2.5-minute choice.
 L["DECIMAL_SEPARATOR"] = "."
@@ -51,7 +51,7 @@ L["DECIMAL_SEPARATOR"] = "."
     /dump C_PetInfo.GetPetFoodTypes() on Forever). Used to build
     ns.PET_DIET_MAP in Data/Data.lua.
 
-    They are ALSO the food checkbox labels in the Starter List pop-up, so they
+    They are ALSO the food checkbox labels in the staples pop-up, so they
     read as ordinary labels while carrying that hard constraint. Translate them
     as the client's own diet words, never as the nicer label they look like --
     a locale that "improves" one here stops matching that client's strings and
@@ -167,21 +167,23 @@ L["TIP_DONT_KNOW_SPELL"] = "你目前還沒有學會%s。"
 L["FEATURE_BUFF_FOOD"] = "增益食物"
 L["MENU_BUFF_FOOD_DESCRIPTION"] = '缺少"進食充分"增益時，優先使用可提供該增益的食物。'
 L["FEATURE_SCROLL_BUFFS"] = "卷軸增益"
-L["MENU_SCROLL_BUFFS_DESCRIPTION"] = "當你缺少卷軸增益時，將你的食物巨集轉變為卷軸施放器。"
+L["MENU_SCROLL_BUFFS_DESCRIPTION"] = "進食前，透過你的食物巨集補上缺少的卷軸增益。"
 
--- Section titles and ignore-list actions in the mini-map tooltip.
+--[[
+    Item titles in the mini-map tooltip. A title sits alone on its row and its
+    item is right-aligned on the row beneath, so neither has to stay short;
+    with nothing to show, MESSAGE_NO_ITEM takes the item's row. Current Pet
+    Food opens the Attention Hunters block, and the two poison titles open the
+    Attention Rogues block.
+]]
 L["MINIMAP_BEST_FOOD"] = "當前食物"
 L["MINIMAP_BEST_PET_FOOD"] = "當前寵物食物"
--- Weapon-slot titles beside the rogue's resolved poison, in the Attention Rogues block.
-L["MINIMAP_MAIN_HAND"] = "主手"
-L["MINIMAP_OFF_HAND"] = "副手"
---[[
-    The value shown beside an item title when nothing resolved. Kept to a single
-    word so it fits in the tooltip's right column, which never wraps -- the full
-    sentence, MESSAGE_NO_ITEM, explains it on the wrapping line underneath.
-]]
-L["MINIMAP_NONE"] = "無"
+L["MINIMAP_MAIN_HAND_POISON"] = "主手毒藥"
+L["MINIMAP_OFF_HAND_POISON"] = "副手毒藥"
+
+-- The Ignore List block. The count stands in for a list too long to show, so it is never one and needs no singular.
 L["MINIMAP_IGNORE_LIST"] = "忽略列表"
+L["MINIMAP_IGNORE_COUNT"] = "%d 件物品"
 L["MENU_IGNORE"] = "忽略"
 L["MENU_CLEAR_IGNORE"] = "清除忽略列表"
 
@@ -200,7 +202,9 @@ L["MENU_CLEAR_IGNORE"] = "清除忽略列表"
     The count sits in the tooltip's right column, beside the header, so it has
     to stay short enough to read as a value rather than a sentence. The
     all-stocked case has no header and no count: STOCKED replaces the whole
-    row, on a wrapping line of its own, so it can be a full sentence.
+    row, on a wrapping line of its own, so it can be a full sentence. EMPTY is
+    the line under the header when the list holds nothing at all, which is not
+    the same as being stocked.
 
     ITEM_COUNT is the right-hand value of a listed row: { have, wanted }, the
     ratio RESTOCKER_REMINDER_ITEM prints. Wordless, so there is nothing to
@@ -210,18 +214,28 @@ L["MINIMAP_RESTOCKER_REPORT"] = "Restocker 報告"
 L["MINIMAP_RESTOCKER_NEEDED"] = "%d 項未完成訂單"
 L["MINIMAP_RESTOCKER_ITEM_COUNT"] = "%d/%d"
 L["MINIMAP_RESTOCKER_STOCKED"] = "恭喜，你的補給已全部備齊！"
+L["MINIMAP_RESTOCKER_EMPTY"] = "你的清單是空的。"
 
--- Options entry at the bottom of the mini-map tooltip.
+--[[
+    The Restocker List block, above the class notes: its title, a line saying
+    what the list is for, and its click, which sits beside MINIMAP_OPEN. "Your
+    list" in the description and in MINIMAP_RESTOCKER_EMPTY is this list. The
+    Options entry is always the tooltip's last block and has no action label.
+]]
+L["MENU_RESTOCKER"] = "Restocker 清單"
+L["MENU_RESTOCKER_DESCRIPTION"] = "購買你清單上的物品，並在銀行存取。"
+L["MENU_RESTOCKER_KEYBIND"] = "Shift + 右鍵點擊"
 L["MENU_OPTIONS"] = "Connoisseur 選項"
 L["MENU_OPTIONS_KEYBIND"] = "Shift + 中鍵點擊"
 
 --------------------------------------------------------------------------------
--- Class Tips
+-- Class Notes
 --------------------------------------------------------------------------------
 
 --[[
-    Class-colored headers and click tips shown in the mini-map tooltip for the
-    player's class.
+    The class block of the mini-map tooltip: a class-colored header, the items
+    the class's own macro will use (a Hunter's pet food, a Rogue's two poisons,
+    titled in the Minimap Tooltip section above), then one group per macro.
 ]]
 
 L["PREFIX_HUNTER"] = "獵人請注意"
@@ -230,48 +244,49 @@ L["PREFIX_ROGUE"] = "盜賊請注意"
 L["PREFIX_WARLOCK"] = "術士請注意"
 
 --[[
-    Subtitle under each class header, naming the macros the tips below apply
-    to. Each tip below is one instruction, rendered on its own line. The Mage
-    and Warlock tips name the macro they belong to, since those blocks cover
-    more than one macro and a bare "Right-Click" would be ambiguous; the Hunter
-    and Rogue blocks cover one macro each, which the subtitle names.
-
-    The verb tracks the real spell names, which differ by class: mages get
-    Conjure Food / Conjure Water, warlocks get Create Healthstone / Create
-    Soulstone.
+    A group is the macro's name, then one row per click: the click on the left
+    and what it does on the right. The right-hand column never wraps, so each
+    result stays a few words. A spell the row casts is named by the client
+    (Mend Pet, Ritual of Refreshment, Ritual of Souls) and has no key here, and
+    a plain click reuses MINIMAP_LEFT_CLICK, MINIMAP_RIGHT_CLICK or
+    MINIMAP_MIDDLE_CLICK.
 ]]
-L["TIP_HUNTER_MACROS"] = "關於你的餵養寵物巨集……"
-L["TIP_MAGE_MACROS"] = "關於你的食物、水和法力寶石巨集……"
-L["TIP_ROGUE_MACROS"] = "關於你的毒藥巨集……"
-L["TIP_WARLOCK_MACROS"] = "關於你的治療石和靈魂石巨集……"
+L["NOTE_MACRO_FEED_PET"] = "餵養寵物巨集"
+L["NOTE_MACRO_FOOD_WATER"] = "食物和水巨集"
+L["NOTE_MACRO_MANA_GEM"] = "法力寶石巨集"
+L["NOTE_MACRO_HEALTHSTONE"] = "治療石巨集"
+L["NOTE_MACRO_SOULSTONE"] = "靈魂石巨集"
+L["NOTE_MACRO_POISONS"] = "毒藥巨集"
 
-L["TIP_HUNTER_ALL_IN_ONE"] = "餵養寵物是一個全能寵物按鈕！"
-L["TIP_HUNTER_CALL"] = "左鍵點擊可自動召喚、餵養或復活你的寵物。"
-L["TIP_HUNTER_MEND"] = "右鍵點擊，或在戰鬥中點擊，即可施放治療寵物。"
-L["TIP_HUNTER_MODIFIERS"] = "按住 Shift 強制復活，按住 Ctrl 解散野獸。"
+-- Hunter. NOTE_PET_MEND_CLICK is the click that casts Mend Pet: a Right-Click, or any click during combat.
+L["NOTE_PET_CALL_FEED_REVIVE"] = "召喚、餵養或復活"
+L["NOTE_PET_MEND_CLICK"] = "右鍵點擊，或戰鬥中點擊"
+L["NOTE_HOLD_SHIFT"] = "按住 Shift"
+L["NOTE_PET_FORCE_REVIVE"] = "強制復活"
+L["NOTE_HOLD_CONTROL"] = "按住 Ctrl"
+L["NOTE_PET_DISMISS"] = "解散"
 
 --[[
+    Mage and Warlock. The verb tracks the real spell names, which differ by
+    class: mages Conjure, warlocks Create. A second Right-Click makes the next
+    rank down, since the bags hold one of each rank.
+
     Target downranking is per-macro, not block-wide: it applies only to the
-    mage's Food and Water and the warlock's Healthstone. Mana Gems, Soulstones,
-    and both rituals ignore the target (ignoreTarget in the resolvers), so each
-    line names what it actually affects rather than saying "the macro."
+    mage's Food and Water and the warlock's Healthstone, so each line closes
+    the group it belongs to. "One" in the warlock's line is a Healthstone.
 ]]
-L["TIP_MAGE_CONJURE"] = "右鍵點擊你的食物或水巨集以施放造食術或造水術。"
-L["TIP_MAGE_DOWNRANK"] = "以等級較低的玩家為目標時，將製造適合其等級的食物或水。"
-L["TIP_MAGE_TABLE"] = "中鍵點擊你的食物或水巨集以施放餐點儀式。"
-L["TIP_MAGE_GEM"] =
-	"右鍵點擊你的法力寶石巨集以製造一顆新的寶石。再次右鍵點擊以製造一顆低等級備用寶石。"
+L["NOTE_CONJURE"] = "製造"
+L["NOTE_CREATE"] = "製造"
+L["NOTE_RIGHT_CLICK_AGAIN"] = "再次右鍵點擊"
+L["NOTE_LOWER_RANK_BACKUP"] = "低等級備用"
+L["NOTE_MAGE_TARGET_LEVEL"] = "以等級較低的玩家為目標，即可依其等級製造。"
+L["NOTE_WARLOCK_TARGET_LEVEL"] = "以等級較低的玩家為目標，即可依其等級製造一顆治療石。"
 
-L["TIP_WARLOCK_HEALTHSTONE"] =
-	"右鍵點擊你的治療石巨集以施放製造治療石。再次右鍵點擊以製造一顆低等級備用治療石。"
-L["TIP_WARLOCK_DOWNRANK"] = "以等級較低的玩家為目標時，將製造適合其等級的治療石。"
-L["TIP_WARLOCK_SOULSTONE"] = "右鍵點擊你的靈魂石巨集以施放製造靈魂石。"
-L["TIP_WARLOCK_SOUL"] = "中鍵點擊你的治療石巨集以施放靈魂儀式。"
-
-L["TIP_ROGUE_OFF_HAND"] = "左鍵點擊塗抹你的副手毒藥。"
-L["TIP_ROGUE_MAIN_HAND"] = "右鍵點擊塗抹你的主手毒藥。"
-L["TIP_ROGUE_REPLACE"] = "既有毒藥會自動替換。"
-L["TIP_ROGUE_WINDOW"] = "中鍵點擊開啟毒藥製作視窗。"
+-- Rogue. The two hands are the results of a Left-Click and a Right-Click on the Poisons macro.
+L["MINIMAP_MAIN_HAND"] = "主手"
+L["MINIMAP_OFF_HAND"] = "副手"
+L["NOTE_POISONS_WINDOW"] = "毒藥視窗"
+L["NOTE_POISONS_REPLACED"] = "自動替換舊毒藥。"
 
 --------------------------------------------------------------------------------
 -- Item Labels
@@ -280,7 +295,7 @@ L["TIP_ROGUE_WINDOW"] = "中鍵點擊開啟毒藥製作視窗。"
 --[[
     One label per macro type, dropped as-is into MESSAGE_NO_ITEM ("No suitable
     %s found...") from ConnoisseurNoItem and the mini-map tooltip. LABEL_WATER
-    is also the List Builder's Water checkbox.
+    is also the staples pop-up's Water checkbox.
 ]]
 
 L["LABEL_BANDAGE"] = "繃帶"
@@ -304,6 +319,7 @@ L["LABEL_WATER"] = "水"
 L["MINIMAP_ENABLED"] = "已啟用"
 L["MINIMAP_DISABLED"] = "已停用"
 L["MINIMAP_TOGGLE"] = "切換"
+L["MINIMAP_OPEN"] = "開啟"
 L["MINIMAP_LEFT_CLICK"] = "左鍵點擊"
 L["MINIMAP_RIGHT_CLICK"] = "右鍵點擊"
 L["MINIMAP_MIDDLE_CLICK"] = "中鍵點擊"
@@ -321,6 +337,10 @@ L["MINIMAP_SHIFT_LEFT"] = "Shift + 左鍵點擊"
     conjured dropdown has hover text of its own. The dropdowns have no
     caption, so each value carries its own "when". Leveling means below the
     client's max level.
+
+    In the mini-map tooltip, a Buff Food or Scroll Buffs switch that is on
+    while its choice does not apply shows the choice's label in place of
+    MINIMAP_ENABLED, so every label has to read as a state too.
 ]]
 L["OPTIONS_MODE_DESCRIPTION"] =
 	"選擇你的食物巨集何時提供%s：總是提供，或僅在單人時、隊伍或團隊中、團隊中、練等時或滿等時提供。"
@@ -332,11 +352,37 @@ L["MODE_LEVELING"] = "練等時"
 L["MODE_MAX_LEVEL"] = "滿等時"
 
 --------------------------------------------------------------------------------
+-- Inventory Report
+--------------------------------------------------------------------------------
+
+--[[
+    The block Features/Inventory-Report.lua adds under an item's own tooltip
+    lines. Its header is "Connoisseur & Restocker // Inventory Report": the
+    brand below, filled with ADDON_TITLE and TAB_RESTOCKER, then the title, in
+    the chat prints' branded colors. Under it, each line is a label on the left
+    with its count at the right edge: Bags, Bank, one line per other character
+    (the client's own character names, so no keys here), then Total.
+
+    Keep the labels to a word: they share a line with a number, and the tooltip
+    is as wide as its longest line. The Bags count of a Restock List item is the
+    have/keep ratio MINIMAP_RESTOCKER_ITEM_COUNT prints.
+]]
+-- { add-on name, feature name }
+L["INVENTORY_REPORT_BRAND"] = "%s & %s"
+L["INVENTORY_REPORT_TITLE"] = "庫存報告"
+L["INVENTORY_REPORT_BAGS"] = "背包"
+L["INVENTORY_REPORT_BANK"] = "銀行"
+-- In place of the Bank count, muted, until this character's bank has been opened once with the add-on running.
+L["INVENTORY_REPORT_BANK_UNKNOWN"] = "未知"
+-- Everything above it added up: this character and every other one on the realm.
+L["INVENTORY_REPORT_TOTAL"] = "總計"
+
+--------------------------------------------------------------------------------
 -- Options Panel
 --------------------------------------------------------------------------------
 
 L["OPTIONS_DESCRIPTION"] =
-	"自動取用你最好的食物、增益食物、水、藥水、治療石、繃帶和卷軸的巨集，外加一份補貨清單，讓你的背包始終充足，並隨著你升級自動升級消耗品。為巔峰表現打造的便利性自動化。"
+	"自動取用你最好的食物、水、藥水、治療石、繃帶、毒藥和寵物食物的巨集，外加一份補貨清單，自動購買並在銀行存取你的消耗品，還會讓它們隨等級升級。為巔峰表現打造的便利性自動化。"
 
 -- Welcome Message
 L["OPTIONS_WELCOME_MESSAGE"] = "啟用歡迎訊息"
@@ -355,7 +401,7 @@ L["OPTIONS_COMMANDS_HEADER"] = "/Commands"
 L["OPTIONS_COMMAND"] = "/foodie"
 L["OPTIONS_COMMAND_DESCRIPTION"] = "開啟此插件的選項介面。"
 L["RESTOCKER_COMMAND"] = "/crs"
-L["RESTOCKER_COMMAND_DESCRIPTION"] = "開啟 Restocker 視窗以管理你的補貨清單。"
+L["RESTOCKER_COMMAND_DESCRIPTION"] = "開啟你的補貨清單。"
 
 --[[
     Feedback & Support. The four service names are brand names and stay English
@@ -438,6 +484,9 @@ L["OPTIONS_CONJURED_FIRST_MODE_DESCRIPTION"] =
 L["OPTIONS_POTIONS_HEADER"] = "藥水與治療石"
 L["OPTIONS_POTIONS_DESCRIPTION"] =
 	"巨集在戰鬥中無法更改（這是暴雪的限制），因此每個藥水和治療石巨集都預先包含你最好的物品以及最多兩個備用物品。在較長的戰鬥中，圖示和提示可能會過時並顯示錯誤的物品，但點擊該巨集將始終使用你背包中實際擁有的最佳物品。"
+L["OPTIONS_POTIONS_USE_FOOD_AND_WATER"] = "非戰鬥時在藥水巨集中使用食物與水"
+L["OPTIONS_POTIONS_USE_FOOD_AND_WATER_DESCRIPTION"] =
+	"非戰鬥時，你的治療藥水巨集會食用你最好的食物，法力藥水巨集會飲用你最好的水。戰鬥中則照舊使用你的藥水。卷軸、寵物食物和魔法製造仍保留在食物和水巨集中。"
 L["OPTIONS_COMBINE_HEALTHSTONES"] = "將治療石合併到治療藥水巨集中"
 L["OPTIONS_COMBINE_HEALTHSTONES_DESCRIPTION"] =
 	"將你最好的治療石加入治療藥水巨集的底部，這樣按一次即可同時使用藥水和治療石。"
@@ -523,12 +572,13 @@ L["OPTIONS_STEALTH_PICK_ONE"] =
 
 --[[
     Ignore List panel (Options-Ignore-List.lua). One tree scope per list: the
-    account-wide Global list, then the current character and every other
-    character with something ignored. The rows are items, so the copy here is
+    Global list, then the character playing and every other character with
+    something ignored, each under its profile's name, which is never
+    translated and has no key here. The rows are items, so the copy here is
     the panel description, the scope and promote labels, the add box, Remove,
     the empty-list line, and LOADING_ITEM, the placeholder shown while the
     client is still resolving an item's name (the mini-map tooltip, the Macros
-    panel, and the List Builder use it too). The mini-map tooltip's section
+    panel, and the staples pop-up use it too). The mini-map tooltip's section
     keeps its own MINIMAP_IGNORE_LIST and MENU_CLEAR_IGNORE keys.
 ]]
 L["TAB_IGNORE_LIST"] = "忽略列表"
@@ -553,9 +603,9 @@ L["TAB_RESTOCKER"] = "Restocker"
 L["OPTIONS_RESTOCKER_DESCRIPTION"] =
 	"根據你的補貨清單保持背包物資充足，自動向商人購買，並在背包與銀行之間搬運物品。輸入 %s 開啟清單。"
 L["OPTIONS_RESTOCKER_OPEN_BANK"] = "在銀行開啟"
-L["OPTIONS_RESTOCKER_OPEN_BANK_DESCRIPTION"] = "造訪銀行時開啟 Restocker 視窗。"
+L["OPTIONS_RESTOCKER_OPEN_BANK_DESCRIPTION"] = "造訪銀行時開啟你的補貨清單。"
 L["OPTIONS_RESTOCKER_OPEN_MERCHANT"] = "在商人處開啟"
-L["OPTIONS_RESTOCKER_OPEN_MERCHANT_DESCRIPTION"] = "造訪商人時開啟 Restocker 視窗。"
+L["OPTIONS_RESTOCKER_OPEN_MERCHANT_DESCRIPTION"] = "造訪商人時開啟你的補貨清單。"
 L["OPTIONS_RESTOCKER_REMIND"] = "啟用城鎮補貨提醒"
 L["OPTIONS_RESTOCKER_REMIND_DESCRIPTION"] =
 	"當補貨清單尚有缺口，且你抵達旅店或城市，或登入時已身處其中，在聊天中輸出提醒。"
@@ -565,14 +615,15 @@ L["OPTIONS_RESTOCKER_BANK_REMIND"] = "啟用銀行補貨提醒"
 L["OPTIONS_RESTOCKER_BANK_REMIND_DESCRIPTION"] = "關閉銀行時，回報所有未完成的補貨訂單。"
 
 --[[
-    The Starter List Builder pop-up. This toggle and the pop-up's own "Don't
-    Show This Again" box are the same per-character choice read from opposite
-    ends, which is why one ships on and the other off: a settings row reads
-    naturally as "enable", a dismissal reads naturally as "stop".
+    The staples pop-up (STARTER_POPUP_TITLE below). This toggle and the
+    pop-up's own "Don't Show This Again" box are the same per-character choice
+    read from opposite ends, which is why one ships on and the other off: a
+    settings row reads naturally as "enable", a dismissal reads naturally as
+    "stop".
 ]]
-L["OPTIONS_RESTOCKER_STARTER_LIST"] = "補貨清單為空時啟用清單助手"
+L["OPTIONS_RESTOCKER_STARTER_LIST"] = "補貨清單為空時啟用基礎物資彈出視窗"
 L["OPTIONS_RESTOCKER_STARTER_LIST_DESCRIPTION"] =
-	"當此角色的補貨清單為空時，在登入時提供一份入門補貨清單。"
+	"當此角色的補貨清單為空時，在登入時提供適合你職業的基礎物資。"
 
 --[[
     How much each reminder says. Simple is the headline alone; Verbose adds a
@@ -590,7 +641,18 @@ L["OPTIONS_RESTOCKER_REMIND_SOUND"] = "播放音效"
 L["OPTIONS_RESTOCKER_REMIND_SOUND_DESCRIPTION"] = "在提醒的同時播放提示音，適合聊天繁忙的時候。"
 L["OPTIONS_RESTOCKER_SOUND_PREVIEW"] = "點擊試聽提示音。"
 
-L["OPTIONS_RESTOCKER_WINDOW_HEADER"] = "Restocker 視窗"
+L["OPTIONS_RESTOCKER_WINDOW_HEADER"] = "補貨清單視窗"
+L["OPTIONS_RESTOCKER_WINDOW_DESCRIPTION"] = "選擇你的補貨清單何時自動開啟。"
+
+--[[
+    The Inventory Report's switch, under a header that is the report's own
+    title (INVENTORY_REPORT_TITLE, in the Inventory Report section above).
+]]
+L["OPTIONS_INVENTORY_REPORT_SECTION_DESCRIPTION"] =
+	"在物品提示中顯示你在本伺服器所有角色上共有多少件該物品。"
+L["OPTIONS_INVENTORY_REPORT"] = "在物品提示中啟用庫存報告"
+L["OPTIONS_INVENTORY_REPORT_DESCRIPTION"] =
+	"在物品提示中加入該物品在你的背包、銀行和其他角色身上各有多少件。如果其他插件已經顯示這些數量，請將其關閉。"
 
 --[[
     Praise for the adopted Restocker code. The three names are proper nouns and
@@ -615,8 +677,8 @@ L["OPTIONS_READINESS_DESCRIPTION"] =
 --[[
     The reset button under the master toggle. It needs a control of its own
     because these settings are account-wide: the stock Reset Profile reaches
-    only the character's own profile, so nothing else on any panel can return
-    them to their defaults.
+    only the active profile, so nothing else on any panel can return them to
+    their defaults.
 
     The confirm names the one consequence a player would not otherwise predict.
     Off is what the report ships as, so resetting switches it back off, and a
@@ -712,8 +774,13 @@ L["OPTIONS_READINESS_QUESTIONABLE_GEAR_DESCRIPTION"] =
 
 -- Chat messages printed by the Restocker feature (Features/Restocker/).
 L["RESTOCKER_PROFILE_EXISTS"] = '已存在名為"%s"的清單。'
--- %d is the item ID the player typed.
-L["RESTOCKER_UNKNOWN_ITEM"] = "不存在 ID 為 %d 的物品。"
+--[[
+    %d is the item ID the player typed. Written into the add box itself while
+    the window is open, so it shares that box's width with
+    RESTOCKER_ADD_PLACEHOLDER and has to stay as short; printed to chat when the
+    window is closed.
+]]
+L["RESTOCKER_UNKNOWN_ITEM"] = "沒有 ID 為 %d 的物品。"
 L["RESTOCKER_BANK_NOT_OPEN"] = "銀行未開啟。"
 --[[
     %s is the /crs slash command, colored at the call site. Only the bank flow
@@ -815,8 +882,7 @@ L["RESTOCKER_RESTOCKED_PARTIAL_MANY"] = "有 %d 項補貨訂單僅部分完成�
 -- Printed after the counts above when the bags ran out of room before every order was bought.
 L["RESTOCKER_BAGS_FULL_PARTIAL"] = "背包在全部購買完成前就已裝滿。"
 
--- /crs help lines. The command literals stay in code; these are the descriptions.
-L["RESTOCKER_HELP_SHOW"] = "顯示 Restocker 視窗。"
+-- /crs help lines. The command literals stay in code; these are the descriptions, and the show line reuses RESTOCKER_COMMAND_DESCRIPTION.
 -- Stands for the list name the player types after a /crs profile subcommand.
 L["RESTOCKER_HELP_NAME_PLACEHOLDER"] = "[名稱]"
 L["RESTOCKER_HELP_PROFILE_ADD"] = "新增一個以該名稱命名的清單。"
@@ -826,27 +892,35 @@ L["RESTOCKER_HELP_PROFILE_COPY"] = "用該名稱的清單副本取代當前清�
 L["RESTOCKER_HELP_PROFILE_USE"] = "將此角色切換到該名稱的清單。"
 
 --[[
-    Starter List pop-up, the List Builder: offers staples at login when the
-    Restock List is empty, and on demand from the Restocker window
-    (Features/Restocker/Restocker-Starter-List.lua). Its title reuses
-    RESTOCKER_WINDOW_TITLE below, and the six food staples reuse the DIET_ keys
-    above, so each food row carries the client's own pet diet name.
+    Starter List pop-up, the staples window: offers staples at login when the
+    Restock List is empty, and on demand from the Restock List window's Pick
+    Staples button (Features/Restocker/Restocker-Starter-List.lua). The six
+    food staples reuse the DIET_ keys above, so each food row carries the
+    client's own pet diet name.
 
-    The intro is three short paragraphs: why the window opened, what a tick
-    does, and the way back in. Joined with blank lines at the call site, so
-    each reads as its own breath rather than one wall.
+    The title is its own, and carries the add-on's name: at login this window
+    opens with nothing else of Connoisseur's on screen, so its title bar is
+    all that says whose it is.
+
+    The intro is one paragraph: an opening sentence that answers to how the
+    window was reached (EMPTY over an empty list, STOCKED over one that has
+    items), then HOW, which says what a check does. The two are run together
+    with a space at the call site, so each has to stand as whole sentences.
+    The way back in (COMMAND_HINT) is a second paragraph, shown only when the
+    window opened by itself at login; from the Pick Staples button the list it
+    names is open right behind it.
 ]]
+L["STARTER_POPUP_TITLE"] = "Connoisseur 基礎物資"
 L["STARTER_POPUP_INTRO_EMPTY"] = "你的補貨清單是空的，我們來新增一些物品好讓你上手。"
 -- Shown instead when the window is opened over a list that already has items on it.
-L["STARTER_POPUP_INTRO_STOCKED"] =
-	"勾選你想保持補給的基礎物資。已在你補貨清單上的物品會顯示為已勾選。"
+L["STARTER_POPUP_INTRO_STOCKED"] = "挑選你想保持備足的基礎物資。"
 L["STARTER_POPUP_INTRO_HOW"] =
-	"你勾選的一切都會在開啟商人或銀行時自動補足，而常規物資會隨著等級提升自動升級，所以你手上永遠是目前最好的。"
+	"你勾選的一切都會在你開啟商人或銀行時自動補足。常規物資會隨著等級提升自動升級，所以你手上永遠是目前最好的。"
 -- %s is the /crs slash command, colored at the call site.
 L["STARTER_POPUP_COMMAND_HINT"] = "你隨時可以輸入 %s 來調整這份清單，或稍後新增更多物品。"
 --[[
-    The first section's heading names the Water row beneath it as well; the
-    food-only heading is the fallback for a section with no Water row.
+    The first section's heading names the Water row that closes its grid as
+    well; the food-only heading is the fallback for a section with no Water row.
 ]]
 L["STARTER_POPUP_FOOD_AND_WATER_HEADER"] = "食物與水"
 L["STARTER_POPUP_FOOD_HEADER"] = "食物"
@@ -867,7 +941,7 @@ L["STARTER_POPUP_POISONS_HEADER"] = "毒藥"
 L["STARTER_POPUP_POISONS_NOTE"] =
 	"%s ：將成品毒藥加入你的清單，Connoisseur 會在任何販售全部所需材料的商人處自動購買這些材料。"
 --[[
-    Checkbox tooltips: { item link, amount }. The first is for ladder items;
+    Checkbox tooltips: { item name, amount }. The first is for ladder items;
     the second for single-tier reagents, which never upgrade.
 ]]
 L["STARTER_POPUP_ITEM_DESCRIPTION"] =
@@ -890,41 +964,101 @@ L["STARTER_POPUP_COUNT_DESCRIPTION"] =
 L["STARTER_POPUP_DISMISS"] = "不再為此角色顯示"
 L["STARTER_POPUP_DISMISS_DESCRIPTION"] = "登入時即使補貨清單為空，也不再顯示這些建議。"
 
--- Restocker window UI.
-L["RESTOCKER_WINDOW_TITLE"] = "Connoisseur Restocker"
+-- Restock List window UI. The title names what the window holds; the feature that acts on it stays "Restocker".
+L["RESTOCKER_WINDOW_TITLE"] = "Connoisseur 補貨清單"
 L["RESTOCKER_FILTER_PLACEHOLDER"] = "篩選物品……"
 L["RESTOCKER_FILTER_CLEAR_TOOLTIP"] = "清除"
 L["RESTOCKER_ADD_BUTTON"] = "新增"
-L["RESTOCKER_LIST_BUILDER_BUTTON"] = "開啟清單助手"
-L["RESTOCKER_LIST_BUILDER_TOOLTIP"] =
-	"開啟清單助手（提供與新角色相同的基礎物資），並關閉此視窗。"
-L["RESTOCKER_ADD_TOOLTIP_TITLE"] = "新增物品"
-L["RESTOCKER_ADD_TOOLTIP_BODY"] = "從背包拖入物品，或輸入物品 ID 後按 Enter。"
 --[[
-    In-box placeholder for the add row; the tooltip above carries the detail.
-    Kept to a phrase rather than a sentence: both boxes on that row share a
-    fixed width sized to this English hint, and a longer one is cut off.
+    The button that opens the staples pop-up over the window, on the control
+    row and on an empty list, and its tooltip. The keys keep the pop-up's
+    earlier name, the List Builder. "Check" is the pop-up's own word
+    (STARTER_POPUP_INTRO_HOW).
 ]]
-L["RESTOCKER_ADD_PLACEHOLDER"] = "將物品拖曳至此，或輸入物品 ID"
+L["RESTOCKER_LIST_BUILDER_BUTTON"] = "挑選基礎物資"
+L["RESTOCKER_LIST_BUILDER_TOOLTIP"] =
+	"從適合你職業和等級的基礎物資中選擇：食物、水、彈藥、毒藥和施法材料。勾選一項即可將其加入此清單，取消勾選則會將其移除。"
+L["RESTOCKER_ADD_TOOLTIP_TITLE"] = "新增物品"
+L["RESTOCKER_ADD_TOOLTIP_BODY"] =
+	"將背包中的物品拖曳到這裡或此視窗的任意位置，或輸入物品 ID 後按 Enter。"
+--[[
+    In-box placeholder for the add box; the tooltip above carries the detail.
+    Kept to a phrase rather than a sentence: the box shares its row with two
+    other fields and is sized to this English hint, so a longer one is cut off.
+]]
+L["RESTOCKER_ADD_PLACEHOLDER"] = "拖曳物品或輸入物品 ID"
+--[[
+    Written into the add box, in place of the placeholder above, when what was
+    typed is neither an item ID nor an item the client can place by name. Same
+    width budget as the placeholder. RESTOCKER_UNKNOWN_ITEM, for an ID with no
+    item behind it, shows the same way.
+]]
+L["RESTOCKER_ADD_NOT_FOUND"] = "請改為輸入物品 ID。"
+--[[
+    The bag menu on the control row, between the filter and the add box. The
+    caption is all the closed menu shows and is its tooltip's title; it has
+    room for about 24 characters, and a longer one is cut off. NONE is the one
+    line the open menu holds when the bags have nothing the list lacks. Title
+    case and no terminal punctuation for both, like every menu entry.
+]]
+L["RESTOCKER_ADD_FROM_BAGS"] = "從背包新增物品"
+L["RESTOCKER_ADD_FROM_BAGS_TOOLTIP"] =
+	"你背包中尚未加入此清單的所有物品。點擊其中一件即可新增。"
+L["RESTOCKER_ADD_FROM_BAGS_NONE"] = "背包中沒有可新增的物品"
+
+--[[
+    The list bar across the top of the window: the selector, the characters on
+    the list, and Manage Lists.
+
+    USED_BY's %s is those characters, the client's own names joined with
+    LIST_SEPARATOR, which also joins them on the selector's menu and in the
+    delete confirmation. Each name is colored by its class at the call site.
+    Keep USED_BY short: the line shares its row with the selector and the
+    Manage Lists button, and truncates when it outgrows the space. MANAGE is
+    that button's caption and the title of its tooltip.
+]]
 L["RESTOCKER_PROFILE_LABEL"] = "清單"
 L["RESTOCKER_PROFILE_TOOLTIP"] = "點擊為此角色切換到其他補貨清單，或新建一個清單。"
-L["RESTOCKER_RENAME_LABEL"] = "重新命名"
-L["RESTOCKER_NEW_PROFILE"] = "新清單"
-L["RESTOCKER_COPY_PROFILE"] = "複製"
+L["RESTOCKER_USED_BY"] = "使用者：%s"
+L["RESTOCKER_MANAGE"] = "管理清單"
+L["RESTOCKER_MANAGE_TOOLTIP"] = "新建一個清單，或複製、重新命名、刪除此清單。"
 --[[
-    The three single-argument tooltips below (Copy, Delete, and the row's
-    Remove) render in ns.SetupRestockerTooltip's TITLE slot, not its body, so
-    they take title case and no terminal punctuation -- matching every other
-    title in the window. Don't "restore" the period they read as wanting.
+    The Manage Lists menu, top to bottom. Menu entries take title case and no
+    terminal punctuation, like every title in the window. New List is also the
+    last entry on the selector's own menu. The Copy and Delete keys end in
+    _TOOLTIP because they began as the tooltips of two buttons this menu
+    replaced.
 ]]
+L["RESTOCKER_NEW_PROFILE"] = "新清單"
 L["RESTOCKER_COPY_PROFILE_TOOLTIP"] = "將此清單複製為新清單"
+L["RESTOCKER_RENAME_PROFILE"] = "重新命名此清單"
+L["RESTOCKER_DELETE_PROFILE_TOOLTIP"] = "刪除此清單"
 -- %s becomes "<list name> Copy"; numbered if that name is taken.
 L["RESTOCKER_PROFILE_COPY_NAME"] = "%s 副本"
-L["RESTOCKER_DELETE_PROFILE"] = "刪除"
-L["RESTOCKER_DELETE_PROFILE_TOOLTIP"] = "刪除此清單"
+-- The button that commits a rename, beside the field Rename This List opens, and that button's tooltip.
+L["RESTOCKER_RENAME_LABEL"] = "重新命名"
 L["RESTOCKER_RENAME_TOOLTIP"] = "重新命名此清單，對所有使用它的角色生效。"
--- %s is the list name, colored at the call site. |n are line breaks.
-L["RESTOCKER_DELETE_PROFILE_CONFIRM"] = "確定要刪除此清單嗎？|n|n%s|n|n此操作無法復原。"
+--[[
+    The delete confirmation, a paragraph per fact, joined with blank lines in
+    code: QUESTION, the list's name (colored at the call site), what happens
+    next, and FINAL.
+
+    "What happens next" is SHARED followed by SWITCH or LAST, run together as
+    one paragraph, so each has to stand as a full sentence. SHARED appears only
+    when other characters are on the list; its %s is their names, joined with
+    LIST_SEPARATOR, and ONE or MANY follows how many there are.
+
+    SWITCH says where this character lands: %s is the top list in the List
+    selector, colored at the call site. LAST stands in for it when the list
+    being deleted is the only one, which is the one delete that makes a list.
+]]
+L["RESTOCKER_DELETE_LIST_QUESTION"] = "確定要刪除此清單嗎？"
+L["RESTOCKER_DELETE_LIST_SHARED_ONE"] = "%s 也在使用此清單，下次登入時將進入一個同名的空清單。"
+L["RESTOCKER_DELETE_LIST_SHARED_MANY"] =
+	"%s 也在使用此清單，下次登入時將各自進入一個同名的空清單。"
+L["RESTOCKER_DELETE_LIST_SWITCH"] = "你將切換到 %s。"
+L["RESTOCKER_DELETE_LIST_LAST"] = "這是僅剩的一個清單，因此你將從一個新的空清單開始。"
+L["RESTOCKER_DELETE_LIST_FINAL"] = "此操作無法復原。"
 --[[
     The Upgrade toggle. One string serves both the column heading and every
     row's checkbox, so it has to read for a single item and for the whole
@@ -964,7 +1098,24 @@ L["RESTOCKER_COLUMN_ITEM"] = "物品"
 L["RESTOCKER_COLUMN_WITHDRAW"] = "取出"
 L["RESTOCKER_COLUMN_DEPOSIT"] = "存入"
 L["RESTOCKER_COLUMN_REPUTATION"] = "聲望"
-L["RESTOCKER_COLUMN_AMOUNT"] = "數量"
+--[[
+    The row's target, beside the item's name: how many the list keeps in the
+    bags. "Keep" rather than "Amount" because the number is a standing target,
+    not a quantity to buy, and because 0 then reads as what it does -- keep
+    none, which with Store on sends the whole stock to the bank. The keys, the
+    code and the saved rows still call it the amount.
+]]
+L["RESTOCKER_COLUMN_AMOUNT"] = "保留"
+
+--[[
+    A toggle column's heading sets the column for every item shown. HINT closes
+    the heading's tooltip; ON and OFF are the two entries of the menu a click on
+    the heading opens, where %d is how many of the items shown the column can be
+    set on. Menu entries: title case, no terminal punctuation.
+]]
+L["RESTOCKER_COLUMN_BULK_HINT"] = "點擊此標題，可為目前顯示的所有物品設定此項。"
+L["RESTOCKER_BULK_ON"] = "為顯示的 %d 件物品開啟"
+L["RESTOCKER_BULK_OFF"] = "為顯示的 %d 件物品關閉"
 
 L["RESTOCKER_GROUP_OTHER"] = "未分類"
 --[[
@@ -978,10 +1129,54 @@ L["RESTOCKER_GROUP_NEW"] = "新增"
     to read as "everything" rather than as another type.
 ]]
 L["RESTOCKER_GROUP_ALL"] = "全部物品"
--- Title slot, like the Copy and Delete tooltips above: title case, no terminal period.
+--[[
+    What the list area shows in place of rows. EMPTY_ is a list with nothing on
+    it: a heading (title case), a body of two sentences (the two ways to add,
+    then what the list does with what is on it), the Pick Staples button
+    (RESTOCKER_LIST_BUILDER_BUTTON), and a hint under it. NO_MATCH_ is one line
+    for a list that has items and is showing none: the filter matches nothing,
+    or the selected category just lost its last item.
+]]
+L["RESTOCKER_EMPTY_TITLE"] = "此清單中還沒有物品"
+L["RESTOCKER_EMPTY_BODY"] =
+	"選擇食物、水或職業施法材料等基礎物資，或透過上方的選單新增背包中的任何物品。選取的物品會自動補足或存入你的銀行，讓你的背包保持整潔。"
+L["RESTOCKER_EMPTY_DROP_HINT"] = "將物品拖曳到此視窗的任意位置也能新增。"
+L["RESTOCKER_NO_MATCH_FILTER"] = "此清單中沒有符合篩選條件的物品。"
+L["RESTOCKER_NO_MATCH_GROUP"] = "此分類中已沒有物品。"
+
+--[[
+    The status line under the list. The orders count itself is
+    RESTOCKER_STILL_SHORT_ONE / _MANY above, and the all-stocked line is
+    MINIMAP_RESTOCKER_STOCKED, so the window, the reminders and the mini-map
+    tooltip say the same thing in the same words.
+
+    NO_ORDERS is the in-between: nothing for a merchant to fill, but a row with
+    Buy off is still short in the bags (its Keep number is yellow), so the
+    congratulation would be untrue. "Outstanding" stays beside the noun, as in
+    the counts.
+
+    REPORT_MORE closes the orders tooltip when the list is longer than it shows:
+    %d is how many were left out. REMOVED_ITEM's %s is the item's icon and name,
+    and UNDO is the button beside it that puts the item back; UNDO_TOOLTIP
+    renders in the title slot.
+]]
+L["RESTOCKER_NO_ORDERS"] = "沒有未完成的補貨訂單。"
+L["RESTOCKER_REPORT_MORE"] = "還有 %d 項"
+L["RESTOCKER_REMOVED_ITEM"] = "已移除 %s。"
+L["RESTOCKER_UNDO"] = "復原"
+L["RESTOCKER_UNDO_TOOLTIP"] = "將此物品放回清單"
+
+-- Title slot: title case, no terminal period. The line under it is body text.
 L["RESTOCKER_REMOVE_TOOLTIP"] = "將此物品從補貨清單中移除"
-L["RESTOCKER_AMOUNT_TOOLTIP_TITLE"] = "補貨數量"
-L["RESTOCKER_AMOUNT_TOOLTIP_BODY"] = "編輯完成後按 Enter。"
+L["RESTOCKER_REMOVE_TOOLTIP_UNDO"] = "你可以在視窗底部復原此操作。"
+--[[
+    The Keep box and its heading, which share one tooltip: the title, and KEEP
+    under it, which explains the number. There is no editing hint: the box
+    saves as it is typed in, so nothing has to be pressed.
+]]
+L["RESTOCKER_AMOUNT_TOOLTIP_TITLE"] = "在背包中保留"
+L["RESTOCKER_AMOUNT_TOOLTIP_KEEP"] =
+	'要在背包中保留多少個。背包中的數量少於此數時，該數字會顯示為黃色；若設為 0 並開啟"存入"，則會將其全部存入銀行。'
 L["RESTOCKER_BUY_LABEL"] = "購買"
 L["RESTOCKER_BUY_TOOLTIP_TITLE"] = "向商人購買"
 L["RESTOCKER_BUY_TOOLTIP_BODY"] = "商人視窗開啟時，向商人購買所需數量。"
@@ -995,15 +1190,16 @@ L["RESTOCKER_BUY_TOOLTIP_BODY"] = "商人視窗開啟時，向商人購買所需
 L["RESTOCKER_EXTRA_LABEL"] = "額外"
 L["RESTOCKER_EXTRA_TOOLTIP_TITLE"] = "額外購買"
 L["RESTOCKER_EXTRA_TOOLTIP_STOCK"] =
-	"買下商人此物品的全部限量存貨（即每次只有少量、會慢慢刷新的商品），即使超出你的目標數量。"
+	"買下商人此物品的全部限量存貨（即每次只有少量、會慢慢刷新的商品），即使超出你的保留數量。"
 L["RESTOCKER_DEPOSIT_TOOLTIP_TITLE"] = "存入銀行"
 --[[
-    Names the Amount column, so it is coupled to RESTOCKER_COLUMN_AMOUNT: a
-    locale that renders that heading differently has to say the same word here,
-    or the sentence points at a column the player cannot find.
+    Both this line and the Extra one above name the Keep column, so they are
+    coupled to RESTOCKER_COLUMN_AMOUNT: a locale that renders that heading
+    differently has to say the same word here, or the sentence points at a
+    column the player cannot find.
 ]]
 L["RESTOCKER_DEPOSIT_TOOLTIP_BODY"] =
-	"銀行開啟時，將多餘的物品存入銀行；若數量欄填寫 0，則全部存入。"
+	"銀行開啟時，將多餘的物品存入銀行；若保留欄填寫 0，則全部存入。"
 L["RESTOCKER_WITHDRAW_TOOLTIP_TITLE"] = "從銀行取出"
 L["RESTOCKER_WITHDRAW_TOOLTIP_BODY"] = "銀行開啟時，從銀行取出所需物品。"
 
@@ -1025,9 +1221,21 @@ L["RESTOCKER_REPUTATION_REVERED"] = "崇敬"
 L["RESTOCKER_REPUTATION_EXALTED"] = "崇拜"
 L["RESTOCKER_REPUTATION_TOOLTIP_TITLE"] = "所需商人聲望"
 --[[
-    Quotes the cell's own values, which couples this line to
-    RESTOCKER_REPUTATION_ANY and the four standings above: a locale that renders
-    a standing differently has to say so here too.
+    Quotes the cell's own values, which couples this line to the four standings
+    above: a locale that renders a standing differently has to say so here too.
+    With no standing required the cell draws a dash rather than the word "Any",
+    which is why the last sentence names the dash; "Any" is still the menu's
+    first entry.
 ]]
 L["RESTOCKER_REPUTATION_TOOLTIP_STANDING"] =
-	'點擊設定 Connoisseur 向商人購買前所需的聲望等級（"任意"表示在任何商人處都會購買）；聲望還會降低價格：友好 5%，尊敬 10%，崇敬 15%，崇拜 20%。'
+	"點擊設定 Connoisseur 向商人購買前所需的聲望等級；聲望還會降低價格：友好 5%，尊敬 10%，崇敬 15%，崇拜 20%。短橫線表示向任何商人購買。"
+
+--[[
+    Why a cell cannot be set on its row: the tooltip a dimmed cell shows under
+    its column's title, in place of the column's own explanation. Extra and
+    Rep ride on Buy; Upgrade needs a ladder with somewhere to go, which a quest
+    item lacks outright and the Hearthstone lacks for having one tier.
+]]
+L["RESTOCKER_EXTRA_NOT_APPLICABLE"] = '此物品的"購買"已關閉，因此無法額外購買。'
+L["RESTOCKER_REPUTATION_NOT_APPLICABLE"] = '此物品的"購買"已關閉，因此聲望要求不適用。'
+L["RESTOCKER_UPGRADE_NOT_APPLICABLE"] = "此物品沒有可升級的更好版本。"

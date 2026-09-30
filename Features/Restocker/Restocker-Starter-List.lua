@@ -97,7 +97,7 @@ end
 --[[
     Whether this character's Restock List holds nothing. The login trigger below
     trades on it, and so does the pop-up's opening line: the window is also
-    reachable from the Restocker's own List Builder button, where the list it
+    reachable from the Restock window's Pick Staples button, where the list it
     opens over is usually not empty at all.
 ]]
 function ns.IsRestockListEmpty()
@@ -192,8 +192,9 @@ function ns.AddStarterCategory(category)
 
 	--[[
 	    Into the window's "New" group, so the rows this popup creates show
-	    together with their controls ready. Closing the List Builder clears the
-	    group, so they sit in New only while it is open.
+	    together with their controls ready -- live, when the Restock window is
+	    open behind the popup. Closing the popup clears the group, so they sit
+	    in New only while it is open.
 	]]
 	ns.restockNewItems[itemID] = true
 
@@ -389,8 +390,9 @@ end
     the plain form.
 
     Nil until the item has resolved, which the pop-up shows as loading text.
-    That is checked with C_Item.GetItemInfo because ns.GetItemHyperlink never says
-    so: it hand-builds a link while the item is still cold.
+    That is checked with C_Item.GetItemInfo because ns.GetItemLabel never says
+    so: it names an item from a hand-built link while the item is still cold.
+    The name wears no brackets, like every item the add-on's own windows name.
 ]]
 function ns.DescribeStarterCategory(category)
 	local itemID = ns.BestChainItemID(category.chain, UnitLevel("player") or 1)
@@ -400,7 +402,7 @@ function ns.DescribeStarterCategory(category)
 	end
 	local template = (#category.chain.tiers > 1) and L["STARTER_POPUP_ITEM_DESCRIPTION"]
 		or L["STARTER_POPUP_ITEM_DESCRIPTION_STATIC"]
-	return string.format(template, ns.GetItemHyperlink(itemID, nil), amount)
+	return string.format(template, ns.GetItemLabel(itemID, nil), amount)
 end
 
 --------------------------------------------------------------------------------
@@ -408,7 +410,7 @@ end
 --------------------------------------------------------------------------------
 
 --[[
-    Per character, keyed like settings.listsByCharacter, and stored under
+    Per character, keyed by ns.GetCharacterKey, and stored under
     ns.db.global.restocker rather than on an AceDB profile -- a profile can be
     switched, copied or reset, and none of those should resurrect (or suppress)
     a login window a character already answered.
@@ -477,7 +479,7 @@ function ns.MaybeShowStarterListPopup()
 	    tomorrow.
 
 	    No item warming here: the pop-up warms its own items as it draws,
-	    for this route and the List Builder button alike.
+	    for this route and the Pick Staples button alike.
 	]]
 	local level = UnitLevel("player") or 1
 	local anyOffered = false
@@ -509,6 +511,13 @@ function ns.MaybeShowStarterListPopup()
 		end
 	end
 
+	--[[
+	    The Restock List window opens first and the staples over it, so a new
+	    character sees both: the pre-ticks above already on the list, and each
+	    tick landing on it. Every other route to the staples is the Pick Staples
+	    button, which is in that window, so it is already open behind them.
+	]]
+	ns.ShowRestockWindow()
 	-- Told it is the login route: the pre-ticks above mean the list no longer reads as empty.
 	ns.ShowStarterListPopup(true)
 end

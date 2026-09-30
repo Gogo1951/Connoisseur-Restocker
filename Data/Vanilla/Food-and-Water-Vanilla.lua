@@ -135,7 +135,7 @@ ns.FOOD_AND_WATER = {
 	[13928] = { 1, 0, 874, 0, 0 }, -- Grilled Squid
 	[11444] = { 0, 0, 2148, 0, 0 }, -- Grim Guzzler Boar
 	[19995] = { 0, 2, 0, 0, 0 }, -- Harvest Boar
-	[19696] = { 0, 2, 0, 0, 0, nil, 2 }, -- Harvest Bread
+	[19696] = { 0, 2, 0, 0, 0 }, -- Harvest Bread
 	[19996] = { 0, 2, 0, 0, 0 }, -- Harvest Fish
 	[19994] = { 0, 2, 0, 0, 0 }, -- Harvest Fruit
 	[19997] = { 0, 0, 0, 2, 0 }, -- Harvest Nectar
@@ -274,6 +274,6 @@ ns.FOOD_AND_WATER = {
 	[21240] = { 0, 2, 0, 0, 0 }, -- Winter Veil Candy
 	[21254] = { 1, 2, 0, 0, 0 }, -- Winter Veil Cookie
 	[21241] = { 0, 0, 0, 2, 0 }, -- Winter Veil Eggnog
-	[21236] = { 0, 2, 0, 0, 0, nil, 2 }, -- Winter Veil Loaf
+	[21236] = { 0, 2, 0, 0, 0 }, -- Winter Veil Loaf
 	[21235] = { 0, 2, 0, 0, 0 }, -- Winter Veil Roast
 }

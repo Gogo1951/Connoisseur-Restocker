@@ -95,6 +95,7 @@ function ns.BuildCraftingPurchaseOrder()
 	local settings = ns.restockSettings
 
 	local list = settings.lists[settings.currentList]
+	local reagentIDs = {}
 
 	for _, item in pairs(list) do
 		-- A row's Buy toggle governs every purchase it makes, its ingredients included (nil means on).
@@ -125,6 +126,7 @@ function ns.BuildCraftingPurchaseOrder()
 					local amountToGet = reagent.count * craftedMissing
 					local name = reagent.localizedName
 					purchaseOrder[name] = (purchaseOrder[name] or 0) + amountToGet
+					reagentIDs[name] = reagent.itemID
 				end
 			end
 		end
@@ -141,9 +143,19 @@ function ns.BuildCraftingPurchaseOrder()
 	    is what GetMerchantItemInfo reports and what the merchant restock merges
 	    these lines against. The count has to use the same key, so this is the one
 	    shortfall in the add-on that cannot be counted by ID.
+
+	    A reagent the list also keeps, with Buy on, has an order of its own for
+	    its Keep amount less the same bags (BuildPurchaseOrder), and the two are
+	    added together. The bags up to that Keep are the row's, so only the rest
+	    comes off here, and the merged order is Keep plus what the crafts need,
+	    less the bags once.
 	]]
 	for reagent, _ in pairs(purchaseOrder) do
 		local inBags = C_Item.GetItemCount(reagent, false) or 0
+		local row = list[reagentIDs[reagent]]
+		if row and row.buyFromMerchant ~= false then
+			inBags = math.max(0, inBags - (row.amount or 0))
+		end
 		if inBags > 0 then
 			local remaining = purchaseOrder[reagent] - inBags
 			purchaseOrder[reagent] = remaining > 0 and remaining or 0

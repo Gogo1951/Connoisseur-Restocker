@@ -182,18 +182,25 @@ local function DeflateSavedItems(db)
 end
 
 --[[
-    Remove empty lists that no character points at or owns (e.g. a leftover
-    "default" from an older version). Both sides of listsByCharacter are kept: the
-    list a character POINTS AT (the value), and any legacy "Name-Realm" list
-    still matching a character key -- older versions created one per character,
-    and a player who kept theirs must not lose it to a prune. New characters
-    get class-named lists and no eponymous one (see ns.InitCharacterRestockList).
+    Remove empty lists that no profile points at and no character owns (e.g.
+    a leftover "default" from an older version). Two kinds are kept: the list a
+    stored profile uses, and any legacy "Name-Realm" list still named for a
+    character AceDB knows -- older versions created one per character, and a
+    player who kept theirs must not lose it to a prune. New characters get
+    class-named lists and no eponymous one (see ns.InitCharacterRestockList).
 ]]
 function ns.PruneEmptyOrphanRestockLists(db)
 	local keep = {}
-	for characterKey, name in pairs(db.listsByCharacter or {}) do
-		keep[name] = true
-		keep[characterKey] = true
+	for _, profile in pairs(ns.db.sv.profiles or {}) do
+		if type(profile) == "table" and profile.restockList then
+			keep[profile.restockList] = true
+		end
+	end
+	for profileKey in pairs(ns.db.sv.profileKeys or {}) do
+		local name, realm = ns.SplitCharacterProfileName(profileKey)
+		if name and realm then
+			keep[name .. "-" .. (realm:gsub("%s+", ""))] = true
+		end
 	end
 	if db.currentList then
 		keep[db.currentList] = true

@@ -219,6 +219,27 @@ function ns.GetRestockItemsInBags(predicate)
 	return result
 end
 
+--[[
+    Every different item in the player's bags, once each, as the Add Item From
+    Bags menu draws them (Restocker-Window-Bag-Menu.lua): the first slot's
+    record for each, which carries the name, link and icon. A slot whose item
+    the client has not resolved has no link to name it by and is left out; it
+    is there the next time the menu opens.
+]]
+function ns.GetRestockBagItems()
+	local items, seen = {}, {}
+	for _, bag in ipairs(ns.restockPlayerBags) do
+		for slot = 1, C_Container.GetContainerNumSlots(bag.bagID) do
+			local containerItemInfo = GetRestockContainerItemInfo(bag.bagID, slot)
+			if containerItemInfo and containerItemInfo.itemID and not seen[containerItemInfo.itemID] then
+				seen[containerItemInfo.itemID] = true
+				items[#items + 1] = containerItemInfo
+			end
+		end
+	end
+	return items
+end
+
 function ns.GetRestockItemsInBank(predicate)
 	local result = ns.NewRestockInventory()
 

@@ -21,4 +21,7 @@ ns.RegisterMacroType({
 		return data.manaValue
 	end,
 	ranked = true,
+
+	-- Behind potionsUseFoodAndWater, the macro drinks the Water macro's pick while out of combat.
+	outOfCombatTypeName = "Water",
 })

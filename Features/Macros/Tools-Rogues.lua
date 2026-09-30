@@ -9,7 +9,7 @@ local MACRO_CONFIG = ns.MACRO_CONFIG
     Rogue-only, and like Feed Pet it owns its whole update cycle: the body
     doesn't fit the engine's standard tooltip+conjure+/use shape.
 
-    Click layout (see the TIP_ROGUE_* strings):
+    Click layout (the Poisons Macro rows of the mini-map tooltip's class notes):
       Left-Click   → apply the Off Hand poison group's best rank to slot 17
       Right-Click  → apply the Main Hand poison group's best rank to slot 16
       Middle-Click → open the Poisons crafting window (if known)
