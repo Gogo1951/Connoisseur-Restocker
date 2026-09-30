@@ -68,3 +68,8 @@ ns.ENGINEERING_SPELL_ID = 4036
 
 -- The Engineering specialization Diagnostics checks the player for.
 ns.GOBLIN_ENGINEER_SPELL_ID = 20222
+
+-- Their skill line IDs, for locales where the two names differ.
+ns.FIRST_AID_SKILL_LINE_ID = 129
+ns.ALCHEMY_SKILL_LINE_ID = 171
+ns.ENGINEERING_SKILL_LINE_ID = 202

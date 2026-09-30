@@ -222,7 +222,7 @@ if C_SkillInfo and C_SkillInfo.GetSkillLineInfo then
 	function ns.GetSkillLineInfo(skillIndex)
 		local info = C_SkillInfo.GetSkillLineInfo(skillIndex)
 		if info then
-			return info.name, info.isHeader, not info.isCollapsed, info.rank
+			return info.name, info.isHeader, not info.isCollapsed, info.rank, info.skillID
 		end
 	end
 else

@@ -26,8 +26,8 @@ function ns.UpdateFirstAidSkill()
 	end
 
 	for i = 1, ns.GetNumSkillLines() do
-		local skillName, isHeader, _, skillRank = ns.GetSkillLineInfo(i)
-		if not isHeader and skillName == firstAidSpellName then
+		local skillName, isHeader, _, skillRank, skillLineID = ns.GetSkillLineInfo(i)
+		if not isHeader and (skillName == firstAidSpellName or skillLineID == ns.FIRST_AID_SKILL_LINE_ID) then
 			ns.currentFirstAidSkill = skillRank
 			return
 		end
@@ -44,8 +44,8 @@ function ns.UpdateAlchemySkill()
 	end
 
 	for i = 1, ns.GetNumSkillLines() do
-		local skillName, isHeader, _, skillRank = ns.GetSkillLineInfo(i)
-		if not isHeader and skillName == alchemySpellName then
+		local skillName, isHeader, _, skillRank, skillLineID = ns.GetSkillLineInfo(i)
+		if not isHeader and (skillName == alchemySpellName or skillLineID == ns.ALCHEMY_SKILL_LINE_ID) then
 			ns.currentAlchemySkill = skillRank
 			return
 		end
@@ -62,8 +62,8 @@ function ns.UpdateEngineeringSkill()
 	end
 
 	for i = 1, ns.GetNumSkillLines() do
-		local skillName, isHeader, _, skillRank = ns.GetSkillLineInfo(i)
-		if not isHeader and skillName == engineeringSpellName then
+		local skillName, isHeader, _, skillRank, skillLineID = ns.GetSkillLineInfo(i)
+		if not isHeader and (skillName == engineeringSpellName or skillLineID == ns.ENGINEERING_SKILL_LINE_ID) then
 			ns.currentEngineeringSkill = skillRank
 			return
 		end
