@@ -18,58 +18,39 @@ ns.currentEngineeringSkill = 0
 -- Profession Skills
 --------------------------------------------------------------------------------
 
-function ns.UpdateFirstAidSkill()
-	local firstAidSpellName = C_Spell.GetSpellName(ns.FIRST_AID_SPELL_ID)
-	if not firstAidSpellName then
-		ns.currentFirstAidSkill = 0
-		return
+--[[
+    A profession's rank, read from the skill list by the name the client gives
+    its skill line ID (Game-IDs), so it matches in every locale. 0 while
+    unlearned. Never a spell's name: a profession's spell can be named apart
+    from its skill line (French First Aid is "Premiers soins" as a spell but
+    "Secourisme" as a skill line).
+]]
+local function ReadSkillRank(skillLineID)
+	local skillLineName = C_TradeSkillUI.GetTradeSkillDisplayName(skillLineID)
+	if not skillLineName or skillLineName == "" then
+		return 0
 	end
 
 	for i = 1, ns.GetNumSkillLines() do
 		local skillName, isHeader, _, skillRank = ns.GetSkillLineInfo(i)
-		if not isHeader and skillName == firstAidSpellName then
-			ns.currentFirstAidSkill = skillRank
-			return
+		if not isHeader and skillName == skillLineName then
+			return skillRank
 		end
 	end
 
-	ns.currentFirstAidSkill = 0
+	return 0
+end
+
+function ns.UpdateFirstAidSkill()
+	ns.currentFirstAidSkill = ReadSkillRank(ns.FIRST_AID_SKILL_LINE_ID)
 end
 
 function ns.UpdateAlchemySkill()
-	local alchemySpellName = C_Spell.GetSpellName(ns.ALCHEMY_SPELL_ID)
-	if not alchemySpellName then
-		ns.currentAlchemySkill = 0
-		return
-	end
-
-	for i = 1, ns.GetNumSkillLines() do
-		local skillName, isHeader, _, skillRank = ns.GetSkillLineInfo(i)
-		if not isHeader and skillName == alchemySpellName then
-			ns.currentAlchemySkill = skillRank
-			return
-		end
-	end
-
-	ns.currentAlchemySkill = 0
+	ns.currentAlchemySkill = ReadSkillRank(ns.ALCHEMY_SKILL_LINE_ID)
 end
 
 function ns.UpdateEngineeringSkill()
-	local engineeringSpellName = C_Spell.GetSpellName(ns.ENGINEERING_SPELL_ID)
-	if not engineeringSpellName then
-		ns.currentEngineeringSkill = 0
-		return
-	end
-
-	for i = 1, ns.GetNumSkillLines() do
-		local skillName, isHeader, _, skillRank = ns.GetSkillLineInfo(i)
-		if not isHeader and skillName == engineeringSpellName then
-			ns.currentEngineeringSkill = skillRank
-			return
-		end
-	end
-
-	ns.currentEngineeringSkill = 0
+	ns.currentEngineeringSkill = ReadSkillRank(ns.ENGINEERING_SKILL_LINE_ID)
 end
 
 --------------------------------------------------------------------------------

@@ -35,7 +35,7 @@ Connoisseur-Restocker/
 │   │   ├── Poison-Recipes-{Game}.lua            Crafted poison to reagent rows, with this client's counts
 │   │   ├── Elixirs-{Game}.lua                   Flask and elixir buff IDs
 │   │   ├── Questionable-Equipment-{Game}.lua    Non-combat gear the Readiness Report can only name by ID
-│   │   ├── Game-IDs-{Game}.lua                  Single spell IDs (stealth, druid forms, Poisons, pet spells, professions) and the pet buff foods
+│   │   ├── Game-IDs-{Game}.lua                  Single spell IDs (stealth, druid forms, Poisons, pet spells, Goblin Engineer), profession skill line IDs and the pet buff foods
 │   │   ├── Macro-Default-Items-{Game}.lua       The item each macro shows while the bags hold none
 │   │   ├── Conjure-Spells-{Game}.lua            Conjure spell ranks and the missing-spell tip IDs
 │   │   └── Well-Fed-Buffs-{Game}.lua            Extra Well Fed buff IDs and the Well Fed icons
