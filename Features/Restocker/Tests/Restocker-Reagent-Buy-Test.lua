@@ -127,6 +127,8 @@ mergedVialScenario("20 crafts, 45 vials held, Keep 20", 45, 20, 0)
   budget covers it and adding what was sent to the order. Returns the units and the calls;
   the fill test runs once per order, after every slot. budget models the run's own: money,
   unitPrice, and claim(chunk) standing in for ns.ClaimBagSpace. Left out, it is unlimited.
+  A chunk refused for money sets budget.outOfGold and one refused for room
+  budget.outOfSpace, which is what the run's chat lines read.
 ]]
 ---@param order table { amount, remaining, bought }
 ---@param merchantAvailable number Vendor stock; -1 is unlimited, 0 is sold out
@@ -149,7 +151,12 @@ local function purchaseMerchantItem(order, merchantAvailable, stackCount, budget
 		for n = wanted, 1, -stackCount do
 			local chunk = (n > stackCount) and stackCount or n
 			local cost = math.ceil(budget.unitPrice * chunk)
-			if cost > budget.money or (budget.claim and not budget.claim(chunk)) then
+			if cost > budget.money then
+				budget.outOfGold = true
+				break
+			end
+			if budget.claim and not budget.claim(chunk) then
+				budget.outOfSpace = true
 				break
 			end
 			budget.money = budget.money - cost
@@ -255,6 +262,74 @@ do
 	assert(first == 40 and second == 120, ("two slots: want 40 + 120 got %d + %d"):format(first, second))
 	assert(orderFilled(order), "two slots: the order is filled once, across both slots")
 	print(("  ok  %-46s -> %3d + %3d units, filled once"):format("160 dust, limited 40 then unlimited", first, second))
+	pass = pass + 1
+end
+
+--[[
+    THE GOLD RESERVE. ns.RestockFromMerchant takes the reserve off the purse before the
+    first slot, so the run can spend only what sits above it, and a purse at or below the
+    reserve has nothing to spend. Either way a chunk gold turned away sets outOfGold, the
+    one flag behind "Not enough gold to finish restocking." -- the reserve and an empty
+    purse are the same line, and room running out is not.
+]]
+local COPPER_PER_GOLD = 10000
+
+-- The run's opening money, as shipped.
+local function runMoney(purse, settings)
+	local money = purse
+	if settings.goldReserve then
+		local reserve = (settings.goldReserveAmount or 0) * COPPER_PER_GOLD
+		money = math.max(0, money - reserve)
+	end
+	return money
+end
+
+---@param label string
+---@param purse number Copper on hand
+---@param settings table { goldReserve, goldReserveAmount }
+---@param unitPrice number Copper per unit
+---@param wantUnits number
+---@param wantOutOfGold boolean
+local function reserveScenario(label, purse, settings, unitPrice, wantUnits, wantOutOfGold)
+	local budget = { money = runMoney(purse, settings), unitPrice = unitPrice }
+	local units = purchaseMerchantItem(newOrder(40), -1, 10, budget)
+	assert(units == wantUnits, ("%s: want %d units got %d"):format(label, wantUnits, units))
+	assert(
+		(budget.outOfGold == true) == wantOutOfGold,
+		("%s: outOfGold want %s got %s"):format(label, tostring(wantOutOfGold), tostring(budget.outOfGold))
+	)
+	assert(budget.money >= 0, ("%s: the run spent into the reserve"):format(label))
+	print(("  ok  %-46s -> %3d units, outOfGold=%s"):format(label, units, tostring(wantOutOfGold)))
+	pass = pass + 1
+end
+
+print("\nGOLD RESERVE")
+-- 40 dust at 50 silver each is 20 gold.
+reserveScenario("21g, reserve 1g, 20g order", 210000, { goldReserve = true, goldReserveAmount = 1 }, 5000, 40, false)
+reserveScenario("20g, reserve 1g, 20g order", 200000, { goldReserve = true, goldReserveAmount = 1 }, 5000, 30, true)
+reserveScenario("20g, reserve off, 20g order", 200000, { goldReserve = false, goldReserveAmount = 1 }, 5000, 40, false)
+reserveScenario(
+	"13g, reserve 13g: buying paused",
+	130000,
+	{ goldReserve = true, goldReserveAmount = 13 },
+	5000,
+	0,
+	true
+)
+reserveScenario("5g, reserve 55g: buying paused", 50000, { goldReserve = true, goldReserveAmount = 55 }, 5000, 0, true)
+reserveScenario("broke, reserve off", 0, { goldReserve = false, goldReserveAmount = 1 }, 5000, 0, true)
+-- A free slot costs nothing, so even a paused run takes it and says nothing about gold.
+reserveScenario("broke, reserve 1g, free item", 0, { goldReserve = true, goldReserveAmount = 1 }, 0, 40, false)
+
+-- Full bags are their own line: room running out must not read as gold running out.
+do
+	local budget = { money = runMoney(1000000, { goldReserve = true, goldReserveAmount = 1 }), unitPrice = 5000 }
+	budget.claim = function()
+		return false
+	end
+	local units = purchaseMerchantItem(newOrder(40), -1, 10, budget)
+	assert(units == 0 and budget.outOfSpace and not budget.outOfGold, "full bags: want outOfSpace alone")
+	print(("  ok  %-46s -> %3d units, outOfSpace only"):format("100g, reserve 1g, bags full", units))
 	pass = pass + 1
 end
 

@@ -115,7 +115,12 @@ local function purchaseMerchantItem(buyItem, merchantAvailable, stackCount, budg
 		for n = wanted, 1, -stackCount do
 			local chunk = (n > stackCount) and stackCount or n
 			local cost = math.ceil(budget.unitPrice * chunk)
-			if cost > budget.money or (budget.claim and not budget.claim(chunk)) then
+			if cost > budget.money then
+				budget.outOfGold = true
+				break
+			end
+			if budget.claim and not budget.claim(chunk) then
+				budget.outOfSpace = true
 				break
 			end
 			budget.money = budget.money - cost

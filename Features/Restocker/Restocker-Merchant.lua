@@ -11,6 +11,8 @@ ns.merchantBuyingSkipped = false
 -- Restock throttle: the client can fire MERCHANT_SHOW more than once per visit.
 local lastTimeRestocked = GetTime()
 
+local COPPER_PER_GOLD = 10000
+
 -- Defined just above ns.RestockFromMerchant; forward-declared for the order builders that call it first.
 local NewPurchaseOrder
 
@@ -267,8 +269,9 @@ end
 
     budget is the run's money and bag space (ns.RestockFromMerchant), spent down
     chunk by chunk: a chunk the player cannot pay for or carry is never sent, so
-    the order stops there and counts only what was. A chunk refused for room
-    also sets budget.outOfSpace, so the run can say why it fell short.
+    the order stops there and counts only what was. A chunk refused for money
+    sets budget.outOfGold and one refused for room budget.outOfSpace, so the run
+    can say why it fell short.
 
     A slot this character cannot buy from (a reputation item without the
     standing) is passed over, since the server refuses every call, and so is
@@ -342,6 +345,7 @@ local function PurchaseMerchantItem(i, purchaseOrders, budget)
 				local chunk = (n > stackCount) and stackCount or n
 				local cost = math.ceil(unitPrice * chunk)
 				if cost > budget.money then
+					budget.outOfGold = true
 					break
 				end
 				if not ns.ClaimBagSpace(budget.space, itemInfo, chunk) then
@@ -434,6 +438,19 @@ function ns.RestockFromMerchant()
 	]]
 	local budget = { money = GetMoney(), space = ns.NewBagSpace(ns.restockPlayerBags) }
 
+	--[[
+	    The Gold Reserve comes off the top, so the run can spend only what sits
+	    above it. A purse already at or below the reserve leaves nothing, which
+	    pauses buying at every vendor until the player is richer, while the bank
+	    restock, which costs nothing, carries on. Either way the shortfall reads
+	    as running out of gold, so one chat line covers the reserve and the
+	    empty purse alike.
+	]]
+	if settings.goldReserve then
+		local reserve = (settings.goldReserveAmount or 0) * COPPER_PER_GOLD
+		budget.money = math.max(0, budget.money - reserve)
+	end
+
 	-- Loop through vendor items
 	for i = 1, GetMerchantNumItems() do
 		if not ns.restockBuying then
@@ -482,6 +499,22 @@ function ns.RestockFromMerchant()
 		ns.PrintMessage(L["RESTOCKER_RESTOCKED_PARTIAL_ONE"])
 	elseif ordersPartlyFilled > 1 then
 		ns.PrintMessage(string.format(L["RESTOCKER_RESTOCKED_PARTIAL_MANY"], ordersPartlyFilled))
+	end
+
+	--[[
+	    Silent unless gold actually turned a chunk away, so a vendor that stocks
+	    nothing on the list says nothing however poor the player is. With the
+	    Gold Reserve on, the line goes on to say buying waits on the reserve,
+	    naming it, so a player who forgot setting it knows why the vendor was
+	    skipped.
+	]]
+	if budget.outOfGold then
+		if settings.goldReserve then
+			local reserve = (settings.goldReserveAmount or 0) .. ns.GOLD_ICON
+			ns.PrintMessage(string.format(L["RESTOCKER_OUT_OF_GOLD_RESERVE"], reserve))
+		else
+			ns.PrintMessage(L["RESTOCKER_OUT_OF_GOLD"])
+		end
 	end
 
 	if budget.outOfSpace then

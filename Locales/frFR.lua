@@ -632,6 +632,11 @@ L["OPTIONS_RESTOCKER_MERCHANT_REMIND_DESCRIPTION"] =
 L["OPTIONS_RESTOCKER_BANK_REMIND"] = "Activer les rappels de réapprovisionnement à la banque"
 L["OPTIONS_RESTOCKER_BANK_REMIND_DESCRIPTION"] =
 	"Signale les éventuelles commandes de réapprovisionnement en attente quand vous fermez la banque."
+L["OPTIONS_RESTOCKER_GOLD_RESERVE"] = "Activer la réserve d'or"
+L["OPTIONS_RESTOCKER_GOLD_RESERVE_DESCRIPTION"] =
+	"Le réapprovisionnement ne dépense jamais l'or que vous mettez de côté ici."
+L["OPTIONS_RESTOCKER_GOLD_RESERVE_AMOUNT_DESCRIPTION"] =
+	"La quantité d'or que le réapprovisionnement vous laisse toujours."
 
 --[[
     The staples pop-up (STARTER_POPUP_TITLE below). This toggle and the
@@ -662,6 +667,7 @@ L["OPTIONS_RESTOCKER_REMIND_SOUND_DESCRIPTION"] =
 	"Joue une alerte en même temps que le rappel, pour quand le chat est chargé."
 L["OPTIONS_RESTOCKER_SOUND_PREVIEW"] = "Cliquez pour écouter l'alerte."
 
+L["OPTIONS_RESTOCKER_REMINDERS_HEADER"] = "Rappels"
 L["OPTIONS_RESTOCKER_WINDOW_HEADER"] = "Fenêtre de la liste de réapprovisionnement"
 L["OPTIONS_RESTOCKER_WINDOW_DESCRIPTION"] = "Choisissez quand votre liste de réapprovisionnement s'ouvre d'elle-même."
 
@@ -906,6 +912,9 @@ L["RESTOCKER_RESTOCKED_PARTIAL_ONE"] = "1 commande de réapprovisionnement parti
 L["RESTOCKER_RESTOCKED_PARTIAL_MANY"] = "%d commandes de réapprovisionnement partiellement honorées."
 -- Printed after the counts above when the bags ran out of room before every order was bought.
 L["RESTOCKER_BAGS_FULL_PARTIAL"] = "Vos sacs se sont remplis avant que tout soit acheté."
+L["RESTOCKER_OUT_OF_GOLD"] = "Pas assez d'or pour terminer le réapprovisionnement."
+L["RESTOCKER_OUT_OF_GOLD_RESERVE"] =
+	"Réapprovisionnement en pause ; pas assez d'or. Il reprendra dès qu'il pourra honorer vos bons de commande sans entamer votre réserve (%s)."
 
 -- /crs help lines. The command literals stay in code; these are the descriptions, and the show line reuses RESTOCKER_COMMAND_DESCRIPTION.
 -- Stands for the list name the player types after a /crs profile subcommand.

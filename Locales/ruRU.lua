@@ -645,6 +645,11 @@ L["OPTIONS_RESTOCKER_MERCHANT_REMIND_DESCRIPTION"] =
 L["OPTIONS_RESTOCKER_BANK_REMIND"] = "Включить напоминания о пополнении в банке"
 L["OPTIONS_RESTOCKER_BANK_REMIND_DESCRIPTION"] =
 	"Сообщает о невыполненных заказах на пополнение, если такие есть, когда вы закрываете банк."
+L["OPTIONS_RESTOCKER_GOLD_RESERVE"] = "Включить запас золота"
+L["OPTIONS_RESTOCKER_GOLD_RESERVE_DESCRIPTION"] =
+	"Пополнение никогда не тратит золото, отложенное здесь."
+L["OPTIONS_RESTOCKER_GOLD_RESERVE_AMOUNT_DESCRIPTION"] =
+	"Сколько золота пополнение всегда оставляет вам."
 
 --[[
     The staples pop-up (STARTER_POPUP_TITLE below). This toggle and the
@@ -675,6 +680,7 @@ L["OPTIONS_RESTOCKER_REMIND_SOUND_DESCRIPTION"] =
 	"Проигрывает сигнал вместе с напоминанием на случай, если в чате оживлённо."
 L["OPTIONS_RESTOCKER_SOUND_PREVIEW"] = "Нажмите, чтобы прослушать сигнал."
 
+L["OPTIONS_RESTOCKER_REMINDERS_HEADER"] = "Напоминания"
 L["OPTIONS_RESTOCKER_WINDOW_HEADER"] = "Окно списка пополнения"
 L["OPTIONS_RESTOCKER_WINDOW_DESCRIPTION"] =
 	"Выберите, когда ваш список пополнения будет открываться сам."
@@ -928,6 +934,10 @@ L["RESTOCKER_RESTOCKED_PARTIAL_MANY"] =
 -- Printed after the counts above when the bags ran out of room before every order was bought.
 L["RESTOCKER_BAGS_FULL_PARTIAL"] =
 	"Сумки заполнились раньше, чем удалось всё купить."
+L["RESTOCKER_OUT_OF_GOLD"] =
+	"Недостаточно золота, чтобы завершить пополнение."
+L["RESTOCKER_OUT_OF_GOLD_RESERVE"] =
+	"Пополнение приостановлено: недостаточно золота. Оно возобновится, как только сможет выполнить ваши заказы на покупку, не трогая ваш запас (%s)."
 
 -- /crs help lines. The command literals stay in code; these are the descriptions, and the show line reuses RESTOCKER_COMMAND_DESCRIPTION.
 -- Stands for the list name the player types after a /crs profile subcommand.

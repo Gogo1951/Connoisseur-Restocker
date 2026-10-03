@@ -43,7 +43,7 @@ The Restock List window has been rebuilt. It gains:
 
 The staples pop-up becomes **Connoisseur Staples**, item tooltips gain an Inventory Report, and the mini-map tooltip is rebuilt, with Shift + Right-Click now opening the Restock List. The potion macros can eat and drink out of combat.
 
-The Restocker also changes. A bank run fixes its Keep amounts when it starts and, when the bank is full, takes before it stores. A merchant run skips what gold alone can't buy, and no longer under-buys a reagent that has a row of its own.
+The Restocker also changes. A bank run fixes its Keep amounts when it starts and, when the bank is full, takes before it stores. A merchant run skips what gold alone can't buy, keeps a Gold Reserve (on at 1 gold, step 22), and no longer under-buys a reagent that has a row of its own.
 
 WoW Forever's data is reworked, with Mage-only familiar scrolls. Validate Data waits for spell text. The Readiness Report stops asking for a Soulstone while the stones are on cooldown, and its PvP line is no longer red. Run these first, on every flavor.
 
@@ -507,6 +507,10 @@ Failure is a `(Rank N)` where the flavor casts bare, a missing rank where it pin
 - With **less** than its Keep and **Buy** on, open a vendor who stocks it: Connoisseur must buy up to the Keep and never past it.
 - Hold Shift while opening the vendor: restocking must be skipped entirely.
 - Leave exactly one free slot in your bags, with a row more than a stack short of an item that vendor sells. The run must fill the slot and stop, and chat must end with "Connoisseur // Your bags filled up before everything was bought."
+- On the **Restocker** page, **Enable Staples Pop-Up When Restock List Is Empty** and then **Enable Gold Reserve** must sit right under the page's description, above a new **Reminders** header that holds the three reminders. **Enable Gold Reserve** must be ticked, with **1** and the gold coin in its dropdown. Its dropdown must offer 1, 2, 3, 5, 8, 13, 21, 34 and 55 gold, and must hide while the box is unticked.
+- Set the reserve above the gold you carry and open a vendor who stocks a short row: nothing may be bought, and chat must print "Connoisseur // Restocking paused; not enough gold. It will resume once it can complete your purchase orders without dipping into your reserve (1).", with the gold coin after the amount you set. Bank restocking must still run.
+- Set the reserve a little under your gold, so it covers only part of a short row: the run must stop with your gold still at or above the reserve, and chat must print the same line.
+- Untick **Enable Gold Reserve**, spend down until you can't afford a short row, and open a vendor who stocks it: chat must print only "Connoisseur // Not enough gold to finish restocking.", with no reserve sentence. Then open a vendor who stocks nothing on your list: no gold line may print.
 
 *On the Rogue*, with no reagent on the list as a row of its own and the missing reagent absent from your bags:
 
@@ -575,7 +579,8 @@ Every label and tooltip must render in that language, with no raw key like `OPTI
 This release's copy needs the closest look:
 
 - **Macros page:** **Use Food & Water in Potion Macros Out of Combat**.
-- **Restocker page:** **Restock List Window** and its line, **Enable Staples Pop-Up When Restock List Is Empty**, and the **Inventory Report** section.
+- **Restocker page:** **Enable Gold Reserve** and its two tooltips, the **Reminders** header, **Restock List Window** and its line, **Enable Staples Pop-Up When Restock List Is Empty**, and the **Inventory Report** section.
+- **Chat:** both gold lines from step 22, with the gold coin after the reserve.
 - **Restock List window:** its title, the "Used by" line, **Manage Lists** and its menu, **Add Item from Bags**, the **Keep** heading and tooltip (which must call the number yellow, not red), the heading menus' "Turn On for N Shown", the removal line with **Undo**, the dimmed-cell tooltips, the line under the list with its "and N more", the empty list, the filter's nothing-found lines, and the delete confirmation.
 - **Staples window:** its title and text.
 - **Mini-map tooltip:** the Restocker List block, the item titles, and each class's notes from step 11.
