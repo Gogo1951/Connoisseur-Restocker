@@ -22,9 +22,9 @@ Macros that automatically use your best food, water, potions, healthstones, band
 
 1. Install the add-on, ideally using [CurseForge](https://www.curseforge.com/wow/addons/consumable-connoisseur) or [Wago](https://addons.wago.io/addons/connoisseur).
 2. Log in. Connoisseur scans your bags and creates its macros in your General macro tab.
-3. Drag the dash-prefixed macros (`- Food`, `- Water`, `- Health Potion`, and the rest) onto your action bars.
-4. Optional: type `/foodie` to choose which macros exist and tune buff food, scrolls, pet food, and your class options.
-5. From level 6, pick your staples when Connoisseur Staples pops up at login, or type `/crs` any time and click Pick Staples.
+3. Type `/m` to open the in-game Macro interface, then find the dash-prefixed macros (`- Food`, `- Water`, `- Health Potion`, `- Poisons`, and the rest) in the General tab and drag them onto your action bars.
+4. Pick your staples when Connoisseur Staples pops up at login, or type `/crs` any time and click **Pick Staples**. From then on, whenever you visit a vendor or your bank, Connoisseur keeps you stocked.
+5. Optional: type `/foodie` to customize settings.
 6. _"Luck favors the prepared, darling."_
 
 ## How It Works
