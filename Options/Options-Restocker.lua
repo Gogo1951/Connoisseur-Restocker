@@ -137,7 +137,17 @@ end
 
 local REMINDER_MODE_ORDER = { ns.REMINDER_SIMPLE, ns.REMINDER_VERBOSE }
 
--- A reminder's on/off toggle.
+-- The Gold Reserve amounts as the game writes money: the number and the gold coin.
+
+local function GoldReserveAmounts()
+	local values = {}
+	for _, amount in ipairs(ns.GOLD_RESERVE_AMOUNTS) do
+		values[amount] = amount .. ns.GOLD_ICON
+	end
+	return values
+end
+
+-- A reminder's on/off toggle, and the Gold Reserve's.
 local function ReminderToggle(labelKey, descKey, settingKey, order, onSet)
 	return {
 		type = "toggle",
@@ -192,11 +202,11 @@ local function ReminderModeSelect(settingKey, enabledKey, order)
 end
 
 --[[
-    Page order: the three reminders (the only things here that speak up on
-    their own, so they lead), then the staples pop-up's toggle, then the window's
-    auto-open behavior, then the Inventory Report's switch, then Praise.
+    Page order: the staples pop-up's toggle and the Gold Reserve straight under
+    the description, then the Reminders section, then the window's auto-open
+    behavior, then the Inventory Report's switch, then Praise.
 
-    The three reminders are peers at the top level, each a toggle with the
+    The three reminders are peers under their header, each a toggle with the
     dropdown choosing how much it reports on the same line; the in-town
     reminder adds a sub-row for its sound.
 ]]
@@ -214,7 +224,75 @@ function ns.BuildRestockerOptions()
 					.. "|r",
 				1
 			),
-			spaceRemind0 = Spacer(2),
+
+			--[[
+			    The staples pop-up. Reads the same per-character flag the
+			    pop-up's own dismiss box writes, inverted: this row says
+			    "enable", that box says "don't show again", and one shipping on
+			    against one shipping off is what makes each read naturally where
+			    it sits.
+
+			    Not a Restocker settings key like its neighbours -- the flag is
+			    keyed per character under ns.db.global.restocker, so it goes
+			    through its own accessors rather than the shared settings one.
+			]]
+			spaceStarter0 = Spacer(2),
+			toggleStarterList = {
+				type = "toggle",
+				name = L["OPTIONS_RESTOCKER_STARTER_LIST"],
+				desc = L["OPTIONS_RESTOCKER_STARTER_LIST_DESCRIPTION"],
+				order = 3,
+				width = "full",
+				get = function()
+					return not ns.IsStarterPopupDismissed()
+				end,
+				set = function(_, value)
+					ns.SetStarterPopupDismissed(not value)
+				end,
+			},
+
+			--[[
+			    The Gold Reserve: the floor the merchant restock never spends
+			    below. Built like a reminder row, the toggle with its dropdown on
+			    the same line, and like theirs the dropdown hides while the
+			    toggle is off.
+			]]
+			spaceGold0 = Spacer(4),
+			toggleGoldReserve = ReminderToggle(
+				"OPTIONS_RESTOCKER_GOLD_RESERVE",
+				"OPTIONS_RESTOCKER_GOLD_RESERVE_DESCRIPTION",
+				"goldReserve",
+				5,
+				Refresh
+			),
+			amountGoldReserve = {
+				type = "select",
+				name = "",
+				desc = L["OPTIONS_RESTOCKER_GOLD_RESERVE_AMOUNT_DESCRIPTION"],
+				order = 6,
+				width = ns.OPTIONS_CONTROL_WIDTH,
+				hidden = function()
+					local settings = GetRestockerSettings()
+					return not (settings and settings.goldReserve)
+				end,
+				values = GoldReserveAmounts,
+				sorting = ns.GOLD_RESERVE_AMOUNTS,
+				get = function()
+					local settings = GetRestockerSettings()
+					return (settings and settings.goldReserveAmount) or ns.GOLD_RESERVE_AMOUNTS[1]
+				end,
+				set = function(_, value)
+					local settings = GetRestockerSettings()
+					if settings then
+						settings.goldReserveAmount = value
+					end
+				end,
+			},
+
+			-- Reminders
+			spaceReminders0 = Spacer(7),
+			headerReminders = Header(L["OPTIONS_RESTOCKER_REMINDERS_HEADER"], 8),
+			spaceReminders1 = Spacer(9),
 
 			--[[
 			    In-Town Reminders. Both the chat line and the sound fire on the
@@ -227,11 +305,11 @@ function ns.BuildRestockerOptions()
 				"OPTIONS_RESTOCKER_REMIND",
 				"OPTIONS_RESTOCKER_REMIND_DESCRIPTION",
 				"restockReminderChat",
-				3,
+				10,
 				-- Reveal or hide its dropdown and sound row without a reopen.
 				Refresh
 			),
-			modeRestockerRemind = ReminderModeSelect("restockReminderMode", "restockReminderChat", 4),
+			modeRestockerRemind = ReminderModeSelect("restockReminderMode", "restockReminderChat", 11),
 
 			--[[
 			    The speaker shares this row, so the toggle takes a plain unit
@@ -243,7 +321,7 @@ function ns.BuildRestockerOptions()
 			    and bank reminders fire on a window you just closed, so you are
 			    already looking at the screen.
 			]]
-			soundRow = SubRow(5, RemindHidden, {
+			soundRow = SubRow(12, RemindHidden, {
 				{
 					type = "toggle",
 					name = SubLabel(L["OPTIONS_RESTOCKER_REMIND_SOUND"]),
@@ -278,51 +356,25 @@ function ns.BuildRestockerOptions()
 			    you get walking away from a vendor. Both stay quiet unless
 			    something is actually short.
 			]]
-			spaceMerchant0 = Spacer(8),
+			spaceMerchant0 = Spacer(13),
 			toggleRestockerMerchantRemind = ReminderToggle(
 				"OPTIONS_RESTOCKER_MERCHANT_REMIND",
 				"OPTIONS_RESTOCKER_MERCHANT_REMIND_DESCRIPTION",
 				"merchantReminder",
-				9,
+				14,
 				Refresh
 			),
-			modeRestockerMerchantRemind = ReminderModeSelect("merchantReminderMode", "merchantReminder", 10),
+			modeRestockerMerchantRemind = ReminderModeSelect("merchantReminderMode", "merchantReminder", 15),
 
-			spaceBank0 = Spacer(11),
+			spaceBank0 = Spacer(16),
 			toggleRestockerBankRemind = ReminderToggle(
 				"OPTIONS_RESTOCKER_BANK_REMIND",
 				"OPTIONS_RESTOCKER_BANK_REMIND_DESCRIPTION",
 				"bankReminder",
-				12,
+				17,
 				Refresh
 			),
-			modeRestockerBankRemind = ReminderModeSelect("bankReminderMode", "bankReminder", 13),
-
-			--[[
-			    The staples pop-up. Reads the same per-character flag the
-			    pop-up's own dismiss box writes, inverted: this row says
-			    "enable", that box says "don't show again", and one shipping on
-			    against one shipping off is what makes each read naturally where
-			    it sits.
-
-			    Not a Restocker settings key like its neighbours -- the flag is
-			    keyed per character under ns.db.global.restocker, so it goes
-			    through its own accessors rather than the shared settings one.
-			]]
-			spaceStarter0 = Spacer(14),
-			toggleStarterList = {
-				type = "toggle",
-				name = L["OPTIONS_RESTOCKER_STARTER_LIST"],
-				desc = L["OPTIONS_RESTOCKER_STARTER_LIST_DESCRIPTION"],
-				order = 15,
-				width = "full",
-				get = function()
-					return not ns.IsStarterPopupDismissed()
-				end,
-				set = function(_, value)
-					ns.SetStarterPopupDismissed(not value)
-				end,
-			},
+			modeRestockerBankRemind = ReminderModeSelect("bankReminderMode", "bankReminder", 18),
 
 			-- Restocker Window
 			spaceWindow0 = Spacer(20),

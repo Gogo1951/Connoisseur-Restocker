@@ -320,6 +320,24 @@ ns.REMINDER_VERBOSE = "verbose"
 ns.RESTOCK_ALERT_SOUND = "Interface\\AddOns\\" .. ADDON_NAME .. "\\Includes\\Sounds\\Low-Battery.ogg"
 
 --------------------------------------------------------------------------------
+-- Gold Reserve
+--------------------------------------------------------------------------------
+
+--[[
+    The amounts, in whole gold, the Restocker panel's Gold Reserve dropdown
+    offers: the Fibonacci run, so the steps widen as a purse does, from the
+    1 gold the setting ships on to 55. The merchant restock never spends below
+    the one chosen (Features/Restocker/Restocker-Merchant.lua).
+]]
+ns.GOLD_RESERVE_AMOUNTS = { 1, 2, 3, 5, 8, 13, 21, 34, 55 }
+
+--[[
+    The gold coin, written after an amount the way the game writes money, so
+    the reserve reads the same in the dropdown and in chat, in every locale.
+]]
+ns.GOLD_ICON = "|TInterface\\MoneyFrame\\UI-GoldIcon:0:0:2:0|t"
+
+--------------------------------------------------------------------------------
 -- Reputation Standings
 --------------------------------------------------------------------------------
 

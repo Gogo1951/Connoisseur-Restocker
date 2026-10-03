@@ -622,6 +622,9 @@ L["OPTIONS_RESTOCKER_MERCHANT_REMIND_DESCRIPTION"] =
 L["OPTIONS_RESTOCKER_BANK_REMIND"] = "Activar recordatorios de reabastecimiento en el banco"
 L["OPTIONS_RESTOCKER_BANK_REMIND_DESCRIPTION"] =
 	"Informa de cualquier pedido de reabastecimiento pendiente al cerrar el banco."
+L["OPTIONS_RESTOCKER_GOLD_RESERVE"] = "Activar reserva de oro"
+L["OPTIONS_RESTOCKER_GOLD_RESERVE_DESCRIPTION"] = "El reabastecimiento nunca gasta el oro que apartes aquí."
+L["OPTIONS_RESTOCKER_GOLD_RESERVE_AMOUNT_DESCRIPTION"] = "Cuánto oro te deja siempre el reabastecimiento."
 
 --[[
     The staples pop-up (STARTER_POPUP_TITLE below). This toggle and the
@@ -652,6 +655,7 @@ L["OPTIONS_RESTOCKER_REMIND_SOUND_DESCRIPTION"] =
 	"Reproduce un aviso junto al recordatorio, para cuando el chat está muy movido."
 L["OPTIONS_RESTOCKER_SOUND_PREVIEW"] = "Haz clic para oír el aviso."
 
+L["OPTIONS_RESTOCKER_REMINDERS_HEADER"] = "Recordatorios"
 L["OPTIONS_RESTOCKER_WINDOW_HEADER"] = "Ventana de la lista de reabastecimiento"
 L["OPTIONS_RESTOCKER_WINDOW_DESCRIPTION"] = "Elige cuándo se abre sola tu lista de reabastecimiento."
 
@@ -896,6 +900,9 @@ L["RESTOCKER_RESTOCKED_PARTIAL_ONE"] = "1 pedido de reabastecimiento completado 
 L["RESTOCKER_RESTOCKED_PARTIAL_MANY"] = "%d pedidos de reabastecimiento completados en parte."
 -- Printed after the counts above when the bags ran out of room before every order was bought.
 L["RESTOCKER_BAGS_FULL_PARTIAL"] = "Tus bolsas se llenaron antes de poder comprarlo todo."
+L["RESTOCKER_OUT_OF_GOLD"] = "No tienes oro suficiente para terminar el reabastecimiento."
+L["RESTOCKER_OUT_OF_GOLD_RESERVE"] =
+	"Reabastecimiento en pausa; no hay oro suficiente. Se reanudará cuando pueda completar tus órdenes de compra sin tocar tu reserva (%s)."
 
 -- /crs help lines. The command literals stay in code; these are the descriptions, and the show line reuses RESTOCKER_COMMAND_DESCRIPTION.
 -- Stands for the list name the player types after a /crs profile subcommand.

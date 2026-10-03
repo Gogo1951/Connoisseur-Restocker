@@ -63,6 +63,7 @@ Macros that automatically use your best food, water, potions, healthstones, band
 * **Rogues get a bonus.** Put the finished poison on your list and its ingredients buy themselves at any merchant that stocks them all.
 * **Reminders** speak up when you reach an inn or a city short of something, or when you close a merchant or the bank with orders still outstanding. Pick one line or item by item, with an optional alert sound for busy chat.
 * **Named lists** let a character switch loadouts or share one with an alt. Copy, rename, and delete all live in the window.
+* **A Gold Reserve** keeps restocking from spending your last gold. It starts at 1 gold, and chat tells you when it, or an empty purse, stops a merchant run.
 * **Hold Shift** while opening a merchant or the bank to skip restocking for that visit.
 
 <img width="800" src="https://github.com/user-attachments/assets/62a9acfb-6c3d-4443-bf73-3af49ae3a5ec" />
@@ -99,7 +100,7 @@ Type `/foodie` to open the Options Interface, also found under **Options > AddOn
 * **Connoisseur** // The welcome message, the mini-map button, the `/foodie` and `/crs` commands, and where to reach the author.
 * **Macros** // Which macros exist and how each one picks: buff food, scroll buffs, conjured food and water, buff re-application, pet food buffs, eating and drinking from the potion macros, Healthstone stacking, runes and other mana items, explosive clicks, and the class options. Connoisseur hides macro names on your action buttons unless you switch them back on here.
 * **Ignore List** // Items no macro will ever offer, on the Global list for every character or on one character's own list.
-* **Restocker** // Reminders and how much they say, the alert sound, opening the window at a bank or merchant, the Connoisseur Staples pop-up, and the Inventory Report that adds your bag, bank, and alt counts to item tooltips.
+* **Restocker** // Reminders and how much they say, the alert sound, the Gold Reserve, opening the window at a bank or merchant, the Connoisseur Staples pop-up, and the Inventory Report that adds your bag, bank, and alt counts to item tooltips.
 * **Readiness Report** // What a ready check reports on. It ships switched off, so turn it on to use it.
 * **Profiles** // Copy one character's setup onto another, or reset one back to defaults.
 * **Diagnostic Tools** // Read-only probes to paste into a bug report.

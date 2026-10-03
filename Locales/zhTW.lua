@@ -613,6 +613,9 @@ L["OPTIONS_RESTOCKER_MERCHANT_REMIND"] = "啟用商人補貨提醒"
 L["OPTIONS_RESTOCKER_MERCHANT_REMIND_DESCRIPTION"] = "關閉商人視窗時，回報所有未完成的補貨訂單。"
 L["OPTIONS_RESTOCKER_BANK_REMIND"] = "啟用銀行補貨提醒"
 L["OPTIONS_RESTOCKER_BANK_REMIND_DESCRIPTION"] = "關閉銀行時，回報所有未完成的補貨訂單。"
+L["OPTIONS_RESTOCKER_GOLD_RESERVE"] = "啟用金幣儲備"
+L["OPTIONS_RESTOCKER_GOLD_RESERVE_DESCRIPTION"] = "補貨絕不會花掉你在此預留的金幣。"
+L["OPTIONS_RESTOCKER_GOLD_RESERVE_AMOUNT_DESCRIPTION"] = "補貨始終為你保留的金幣數量。"
 
 --[[
     The staples pop-up (STARTER_POPUP_TITLE below). This toggle and the
@@ -641,6 +644,7 @@ L["OPTIONS_RESTOCKER_REMIND_SOUND"] = "播放音效"
 L["OPTIONS_RESTOCKER_REMIND_SOUND_DESCRIPTION"] = "在提醒的同時播放提示音，適合聊天繁忙的時候。"
 L["OPTIONS_RESTOCKER_SOUND_PREVIEW"] = "點擊試聽提示音。"
 
+L["OPTIONS_RESTOCKER_REMINDERS_HEADER"] = "提醒"
 L["OPTIONS_RESTOCKER_WINDOW_HEADER"] = "補貨清單視窗"
 L["OPTIONS_RESTOCKER_WINDOW_DESCRIPTION"] = "選擇你的補貨清單何時自動開啟。"
 
@@ -881,6 +885,9 @@ L["RESTOCKER_RESTOCKED_PARTIAL_ONE"] = "有 1 項補貨訂單僅部分完成。"
 L["RESTOCKER_RESTOCKED_PARTIAL_MANY"] = "有 %d 項補貨訂單僅部分完成。"
 -- Printed after the counts above when the bags ran out of room before every order was bought.
 L["RESTOCKER_BAGS_FULL_PARTIAL"] = "背包在全部購買完成前就已裝滿。"
+L["RESTOCKER_OUT_OF_GOLD"] = "金幣不足，無法完成補貨。"
+L["RESTOCKER_OUT_OF_GOLD_RESERVE"] =
+	"補貨已暫停；金幣不足。一旦能在不動用你的儲備（%s）的情況下完成採購訂單，補貨就會繼續。"
 
 -- /crs help lines. The command literals stay in code; these are the descriptions, and the show line reuses RESTOCKER_COMMAND_DESCRIPTION.
 -- Stands for the list name the player types after a /crs profile subcommand.

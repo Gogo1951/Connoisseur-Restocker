@@ -628,6 +628,10 @@ L["OPTIONS_RESTOCKER_MERCHANT_REMIND_DESCRIPTION"] =
 L["OPTIONS_RESTOCKER_BANK_REMIND"] = "은행 보충 알림 사용"
 L["OPTIONS_RESTOCKER_BANK_REMIND_DESCRIPTION"] =
 	"은행을 닫을 때 미완료 보충 주문이 있으면 알려 줍니다."
+L["OPTIONS_RESTOCKER_GOLD_RESERVE"] = "예비 골드 사용"
+L["OPTIONS_RESTOCKER_GOLD_RESERVE_DESCRIPTION"] =
+	"여기서 따로 남겨 둔 골드는 보충에 절대 사용하지 않습니다."
+L["OPTIONS_RESTOCKER_GOLD_RESERVE_AMOUNT_DESCRIPTION"] = "보충 후에도 항상 남겨 둘 골드 양입니다."
 
 --[[
     The staples pop-up (STARTER_POPUP_TITLE below). This toggle and the
@@ -657,6 +661,7 @@ L["OPTIONS_RESTOCKER_REMIND_SOUND_DESCRIPTION"] =
 	"대화창이 바쁠 때를 위해 알림과 함께 경고음을 재생합니다."
 L["OPTIONS_RESTOCKER_SOUND_PREVIEW"] = "클릭하면 경고음을 들어 볼 수 있습니다."
 
+L["OPTIONS_RESTOCKER_REMINDERS_HEADER"] = "알림"
 L["OPTIONS_RESTOCKER_WINDOW_HEADER"] = "보충 목록 창"
 L["OPTIONS_RESTOCKER_WINDOW_DESCRIPTION"] = "보충 목록이 자동으로 열릴 시점을 선택하세요."
 
@@ -900,6 +905,9 @@ L["RESTOCKER_RESTOCKED_PARTIAL_ONE"] = "보충 주문 1건을 일부만 채웠�
 L["RESTOCKER_RESTOCKED_PARTIAL_MANY"] = "보충 주문 %d건을 일부만 채웠습니다."
 -- Printed after the counts above when the bags ran out of room before every order was bought.
 L["RESTOCKER_BAGS_FULL_PARTIAL"] = "모든 아이템을 구매하기 전에 가방이 가득 찼습니다."
+L["RESTOCKER_OUT_OF_GOLD"] = "보충을 마치기에 골드가 부족합니다."
+L["RESTOCKER_OUT_OF_GOLD_RESERVE"] =
+	"보충 일시 중지: 골드가 부족합니다. 예비 골드(%s)를 건드리지 않고 구매 주문을 완료할 수 있게 되면 다시 시작합니다."
 
 -- /crs help lines. The command literals stay in code; these are the descriptions, and the show line reuses RESTOCKER_COMMAND_DESCRIPTION.
 -- Stands for the list name the player types after a /crs profile subcommand.

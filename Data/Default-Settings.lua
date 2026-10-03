@@ -166,6 +166,10 @@ ns.DATABASE_DEFAULTS = {
 		    The two reminder modes differ on purpose: in town you are away from
 		    your bags and the detail is the whole point, while at a merchant or
 		    a bank you are already looking at the window that fixes it.
+
+		    The Gold Reserve ships on at 1 gold, a floor low enough that nobody
+		    notices it until a merchant run would otherwise leave them broke.
+		    goldReserveAmount is whole gold, one of ns.GOLD_RESERVE_AMOUNTS.
 		]]
 		restocker = {
 			lists = {},
@@ -180,6 +184,8 @@ ns.DATABASE_DEFAULTS = {
 			bankReminderMode = "simple",
 			autoOpenAtBank = false,
 			autoOpenAtMerchant = false,
+			goldReserve = true,
+			goldReserveAmount = 1,
 		},
 		--[[
 		    The Inventory Report in item tooltips (Features/Inventory-Report.lua).

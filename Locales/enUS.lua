@@ -618,6 +618,15 @@ L["OPTIONS_RESTOCKER_BANK_REMIND"] = "Enable At-Bank Restock Reminders"
 L["OPTIONS_RESTOCKER_BANK_REMIND_DESCRIPTION"] = "Reports any outstanding restocking orders when you close the bank."
 
 --[[
+    The Gold Reserve: the floor the merchant restock never spends below. The
+    dropdown beside it writes each amount as a number and the gold coin, so
+    it has no strings of its own.
+]]
+L["OPTIONS_RESTOCKER_GOLD_RESERVE"] = "Enable Gold Reserve"
+L["OPTIONS_RESTOCKER_GOLD_RESERVE_DESCRIPTION"] = "Restocking never spends the gold you set aside here."
+L["OPTIONS_RESTOCKER_GOLD_RESERVE_AMOUNT_DESCRIPTION"] = "How much gold restocking always leaves you."
+
+--[[
     The staples pop-up (STARTER_POPUP_TITLE below). This toggle and the
     pop-up's own "Don't Show This Again" box are the same per-character choice
     read from opposite ends, which is why one ships on and the other off: a
@@ -644,6 +653,7 @@ L["OPTIONS_RESTOCKER_REMIND_SOUND"] = "Play Sound"
 L["OPTIONS_RESTOCKER_REMIND_SOUND_DESCRIPTION"] = "Plays an alert alongside the reminder, for when chat is busy."
 L["OPTIONS_RESTOCKER_SOUND_PREVIEW"] = "Click to hear the alert."
 
+L["OPTIONS_RESTOCKER_REMINDERS_HEADER"] = "Reminders"
 L["OPTIONS_RESTOCKER_WINDOW_HEADER"] = "Restock List Window"
 L["OPTIONS_RESTOCKER_WINDOW_DESCRIPTION"] = "Choose when your Restock List opens on its own."
 
@@ -883,6 +893,11 @@ L["RESTOCKER_RESTOCKED_PARTIAL_ONE"] = "1 restocking order partly filled."
 L["RESTOCKER_RESTOCKED_PARTIAL_MANY"] = "%d restocking orders partly filled."
 -- Printed after the counts above when the bags ran out of room before every order was bought.
 L["RESTOCKER_BAGS_FULL_PARTIAL"] = "Your bags filled up before everything was bought."
+-- Printed after the counts above when gold ran out, or the Gold Reserve was reached, before every order was bought.
+L["RESTOCKER_OUT_OF_GOLD"] = "Not enough gold to finish restocking."
+-- RESTOCKER_OUT_OF_GOLD's line while the Gold Reserve is on, whole so each locale joins its sentences its own way. %s is the reserve with the gold coin.
+L["RESTOCKER_OUT_OF_GOLD_RESERVE"] =
+	"Restocking paused; not enough gold. It will resume once it can complete your purchase orders without dipping into your reserve (%s)."
 
 -- /crs help lines. The command literals stay in code; these are the descriptions, and the show line reuses RESTOCKER_COMMAND_DESCRIPTION.
 -- Stands for the list name the player types after a /crs profile subcommand.
