@@ -448,7 +448,7 @@ L["OPTIONS_MACRO_TOGGLE_DESCRIPTION"] = "创建并维护此宏，取消勾选时
 ]]
 L["OPTIONS_FOOD_WATER_HEADER"] = "食物与水"
 L["OPTIONS_FOOD_WATER_DESCRIPTION"] =
-	"你的食物和水宏会使用背包中最好的食物和饮料。这些选项可以让增益食物、卷轴或魔法制造的食物和水优先。"
+	"你的食物和水宏会使用背包中最好的食物和饮料。这些选项可以让增益食物、卷轴或魔法制造的食物和水优先，并让补货清单中的食物和水最后使用。"
 
 --[[
     Buff Food, the first option under Food & Water. Its hover text is a key of
@@ -479,6 +479,11 @@ L["OPTIONS_CONJURED_FIRST_DESCRIPTION"] =
 	'魔法制造的食物和水不花钱，并会在你下线后不久消失，因此你的食物和水宏会优先使用它们，即使背包里有恢复量更高的物品。开启"优先增益食物"时，增益食物仍然最先使用。'
 L["OPTIONS_CONJURED_FIRST_MODE_DESCRIPTION"] =
 	"选择魔法制造的食物和水何时优先：总是优先，或仅在单人时、小队或团队中、团队中、练级时或满级时优先。"
+
+-- Use Restock List Food & Water Last, the fourth option under Food & Water.
+L["OPTIONS_RESTOCK_LAST"] = "最后使用补货清单中的食物与水"
+L["OPTIONS_RESTOCK_LAST_DESCRIPTION"] =
+	"当两种食物或饮料恢复量相同时，你的食物和水宏会先使用不在补货清单上的那种，把补货清单购买的留到以后。"
 
 -- Potions & Healthstones
 L["OPTIONS_POTIONS_HEADER"] = "药水与治疗石"

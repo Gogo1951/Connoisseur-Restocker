@@ -50,6 +50,7 @@ Macros that automatically use your best food, water, potions, healthstones, band
 * A percentage restore beats a flat one, then the biggest restore wins.
 * Buff food jumps the queue when Buff Food is on and you're missing Well Fed.
 * Conjured food and water can jump it too: turn on Use Conjured Food & Water First and your Food and Water macros eat and drink it before anything that restores more, while you're leveling or whenever else you choose.
+* Turn on Use Restock List Food & Water Last and, between two items that restore the same amount, your Food and Water macros use the one that isn't on your Restock List.
 * Ties go to whatever loses its worth soonest: conjured items first, then items that only work in one zone, then soulbound ones, then whatever vendors for least.
 * Anything you can't use is filtered out, whether that's a level requirement, a missing profession skill, or the wrong zone.
 * Inside a PvP Arena, where the game blocks ordinary food and drink, only conjured items and the arena's own drinks are offered.

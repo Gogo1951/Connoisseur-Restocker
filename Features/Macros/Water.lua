@@ -13,9 +13,10 @@ ns.RegisterMacroType({
 	    buff-food gate matches Food's — a buff drink only competes while
 	    ns.allowBuffFood is on — and so does conjured-first: while
 	    ns.allowConjuredFirst holds, a conjured drink beats anything but a
-	    buff drink. Unlike Food, ties prefer the DEDICATED drink
-	    (preferHybrid = false): the hybrid is better saved for the Food
-	    slot, and Water never stores a link (nothing reads one).
+	    buff drink. Restock-last matches too: a drink off the Restock List
+	    beats an equal one on it. Unlike Food, ties prefer the DEDICATED
+	    drink (preferHybrid = false): the hybrid is better saved for the
+	    Food slot, and Water never stores a link (nothing reads one).
 	]]
 	itemTypes = { water = true, foodwater = true },
 	accepts = function(data)
@@ -26,6 +27,7 @@ ns.RegisterMacroType({
 	end,
 	allowBuffFood = true,
 	allowConjuredFirst = true,
+	allowRestockLast = true,
 	preferHybrid = false,
 	--[[
 	    Mage conjure: shared Water/Food resolution (Refreshment Table on

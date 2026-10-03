@@ -213,6 +213,9 @@ local function session(level)
 	function ns.RefreshRestockColumnHeader() end
 	-- The start of a redraw closes the bag menu (Restocker-Window-Bag-Menu.lua), which is never open here.
 	function ns.CloseRestockBagMenu() end
+	-- The macro rebuild a redraw requests (Core.lua), for Use Restock List Food & Water Last.
+	function ns.RequestUpdate() end
+	ns.db = { profile = {} }
 	-- The end of a redraw: the empty list's panel (Restocker-Window.lua) and the status line (Restocker-Window-Footer.lua).
 	function ns.UpdateRestockEmptyState() end
 	function ns.UpdateRestockStatus() end

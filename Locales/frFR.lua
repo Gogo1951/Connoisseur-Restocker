@@ -451,7 +451,7 @@ L["OPTIONS_MACRO_TOGGLE_DESCRIPTION"] = "Crée et gère cette macro, et la suppr
 ]]
 L["OPTIONS_FOOD_WATER_HEADER"] = "Nourriture et eau"
 L["OPTIONS_FOOD_WATER_DESCRIPTION"] =
-	"Vos macros Nourriture et Eau utilisent la meilleure nourriture et la meilleure boisson de vos sacs. Ces options peuvent faire passer en premier la nourriture à amélioration, les parchemins ou la nourriture et l'eau invoquées."
+	"Vos macros Nourriture et Eau utilisent la meilleure nourriture et la meilleure boisson de vos sacs. Ces options peuvent faire passer en premier la nourriture à amélioration, les parchemins ou la nourriture et l'eau invoquées, et en dernier la nourriture et l'eau de la liste de réapprovisionnement."
 
 --[[
     Buff Food, the first option under Food & Water. Its hover text is a key of
@@ -482,6 +482,11 @@ L["OPTIONS_CONJURED_FIRST_DESCRIPTION"] =
 	'Vos macros Nourriture et Eau utilisent la nourriture et l\'eau invoquées avant tout le reste, même si un objet de vos sacs rend davantage, car elles ne coûtent rien et disparaissent peu après la déconnexion. La nourriture à amélioration reste prioritaire tant que "Prioriser la nourriture à amélioration" est activé.'
 L["OPTIONS_CONJURED_FIRST_MODE_DESCRIPTION"] =
 	"Détermine quand la nourriture et l'eau invoquées passent en premier : toujours, ou uniquement en solo, en groupe ou en raid, en raid, en montant en niveau ou au niveau maximum."
+
+-- Use Restock List Food & Water Last, the fourth option under Food & Water.
+L["OPTIONS_RESTOCK_LAST"] = "Utiliser en dernier la nourriture et la boisson de la liste de réapprovisionnement"
+L["OPTIONS_RESTOCK_LAST_DESCRIPTION"] =
+	"Entre deux nourritures ou boissons qui rendent la même quantité, vos macros Nourriture et Eau utilisent celle qui n'est pas sur votre liste de réapprovisionnement, et gardent pour plus tard ce que la liste achète."
 
 -- Potions & Healthstones
 L["OPTIONS_POTIONS_HEADER"] = "Potions et Pierres de soins"

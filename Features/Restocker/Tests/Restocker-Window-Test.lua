@@ -577,6 +577,8 @@ local function session(opts)
 		printed[#printed + 1] = message
 	end
 	function ns.SetEventRegistered() end
+	-- The macro rebuild a redraw requests (Core.lua), for Use Restock List Food & Water Last.
+	function ns.RequestUpdate() end
 	function ns.HasPendingStarterAdds()
 		return false
 	end

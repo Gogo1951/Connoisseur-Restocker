@@ -452,7 +452,7 @@ L["OPTIONS_MACRO_TOGGLE_DESCRIPTION"] = "Cria e mantém esta macro, e a remove q
 ]]
 L["OPTIONS_FOOD_WATER_HEADER"] = "Comida e água"
 L["OPTIONS_FOOD_WATER_DESCRIPTION"] =
-	"Suas macros de Comida e Água usam a melhor comida e bebida das suas bolsas. Estas opções podem colocar primeiro a comida com buff, os pergaminhos ou a comida e água conjuradas."
+	"Suas macros de Comida e Água usam a melhor comida e bebida das suas bolsas. Estas opções podem colocar primeiro a comida com buff, os pergaminhos ou a comida e água conjuradas, e por último a comida e água da lista de reabastecimento."
 
 --[[
     Buff Food, the first option under Food & Water. Its hover text is a key of
@@ -483,6 +483,11 @@ L["OPTIONS_CONJURED_FIRST_DESCRIPTION"] =
 	'Suas macros de Comida e Água usam comida e água conjuradas antes de qualquer outra coisa, mesmo quando algo nas suas bolsas restaurar mais, já que elas não custam nada e somem pouco depois que você sai do jogo. A comida com buff continua vindo primeiro enquanto "Priorizar Comida com Buff" estiver ativado.'
 L["OPTIONS_CONJURED_FIRST_MODE_DESCRIPTION"] =
 	"Escolhe quando comida e água conjuradas vêm primeiro: sempre, ou apenas quando você estiver jogando sozinho, em grupo ou raide, em raide, subindo de nível ou no nível máximo."
+
+-- Use Restock List Food & Water Last, the fourth option under Food & Water.
+L["OPTIONS_RESTOCK_LAST"] = "Usar por último comida e água da lista de reabastecimento"
+L["OPTIONS_RESTOCK_LAST_DESCRIPTION"] =
+	"Entre duas comidas ou bebidas que restauram a mesma quantidade, suas macros de Comida e Água usam a que não está na sua lista de reabastecimento, guardando para depois o que a lista compra."
 
 -- Potions & Healthstones
 L["OPTIONS_POTIONS_HEADER"] = "Poções e Pedras de Vida"

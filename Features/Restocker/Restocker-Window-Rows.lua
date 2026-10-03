@@ -837,6 +837,11 @@ function ns.UpdateRestockList()
 	ns.CloseRestockColumnMenu()
 	ns.CloseRestockBagMenu()
 
+	-- Every list edit redraws through here, and Use Restock List Food & Water Last reads the list.
+	if ns.db.profile.useRestockLast then
+		ns.RequestUpdate()
+	end
+
 	local settings = ns.restockSettings
 	local currentList = settings.lists[settings.currentList]
 

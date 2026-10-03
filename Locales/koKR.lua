@@ -454,7 +454,7 @@ L["OPTIONS_MACRO_TOGGLE_DESCRIPTION"] =
 ]]
 L["OPTIONS_FOOD_WATER_HEADER"] = "음식 및 물"
 L["OPTIONS_FOOD_WATER_DESCRIPTION"] =
-	"음식 및 물 매크로는 가방에 있는 가장 좋은 음식과 음료를 사용합니다. 이 옵션들로 버프 음식, 두루마리, 창조된 음식과 물을 먼저 사용하게 할 수 있습니다."
+	"음식 및 물 매크로는 가방에 있는 가장 좋은 음식과 음료를 사용합니다. 이 옵션들로 버프 음식, 두루마리, 창조된 음식과 물을 먼저 사용하고, 보충 목록의 음식과 물은 나중에 사용하게 할 수 있습니다."
 
 --[[
     Buff Food, the first option under Food & Water. Its hover text is a key of
@@ -485,6 +485,11 @@ L["OPTIONS_CONJURED_FIRST_DESCRIPTION"] =
 	'창조된 음식과 물은 비용이 들지 않고 접속을 종료하면 곧 사라지므로, 가방에 더 많이 회복하는 아이템이 있더라도 음식 및 물 매크로가 이를 가장 먼저 사용합니다. "버프 음식 우선"이 켜져 있으면 버프 음식이 여전히 가장 먼저입니다.'
 L["OPTIONS_CONJURED_FIRST_MODE_DESCRIPTION"] =
 	"창조된 음식과 물을 항상 먼저 사용할지, 아니면 혼자일 때, 파티 또는 공격대에 있을 때, 공격대에 있을 때, 레벨업 중일 때, 최고 레벨일 때만 먼저 사용할지 선택합니다."
+
+-- Use Restock List Food & Water Last, the fourth option under Food & Water.
+L["OPTIONS_RESTOCK_LAST"] = "보충 목록의 음식 및 물 나중에 사용"
+L["OPTIONS_RESTOCK_LAST_DESCRIPTION"] =
+	"회복량이 같은 음식이나 음료가 둘 있으면, 음식 및 물 매크로가 보충 목록에 없는 것을 먼저 사용하고 보충 목록으로 구매한 것은 나중을 위해 남겨 둡니다."
 
 -- Potions & Healthstones
 L["OPTIONS_POTIONS_HEADER"] = "물약 및 생명석"

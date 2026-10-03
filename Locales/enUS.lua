@@ -448,7 +448,7 @@ L["OPTIONS_MACRO_TOGGLE_DESCRIPTION"] = "Creates and maintains this macro, and r
 ]]
 L["OPTIONS_FOOD_WATER_HEADER"] = "Food & Water"
 L["OPTIONS_FOOD_WATER_DESCRIPTION"] =
-	"Your Food and Water macros use the best food and drink in your bags. These options can put buff food, scrolls, or conjured food and water first."
+	"Your Food and Water macros use the best food and drink in your bags. These options can put buff food, scrolls, or conjured food and water first, and Restock List food and water last."
 
 --[[
     Buff Food, the first option under Food & Water. Its hover text is a key of
@@ -479,6 +479,11 @@ L["OPTIONS_CONJURED_FIRST_DESCRIPTION"] =
 	"Your Food and Water macros use conjured food and water before anything else, even when something in your bags restores more, since it costs nothing and vanishes soon after you log out. Buff food still comes first while Prioritize Buff Food is on."
 L["OPTIONS_CONJURED_FIRST_MODE_DESCRIPTION"] =
 	"Chooses when conjured food and water comes first: always, or only while you're solo, in a party or raid, in a raid, still leveling, or at max level."
+
+-- Use Restock List Food & Water Last, the fourth option under Food & Water.
+L["OPTIONS_RESTOCK_LAST"] = "Use Restock List Food & Water Last"
+L["OPTIONS_RESTOCK_LAST_DESCRIPTION"] =
+	"Between two foods or drinks that restore the same amount, your Food and Water macros use the one that isn't on your Restock List, saving what the Restocker buys for later."
 
 -- Potions & Healthstones
 L["OPTIONS_POTIONS_HEADER"] = "Potions & Healthstones"

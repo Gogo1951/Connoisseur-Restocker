@@ -87,6 +87,12 @@ ns.DATABASE_DEFAULTS = {
 		useConjuredFirst = false,
 		conjuredFirstMode = "leveling",
 		--[[
+		    Use Restock List Food & Water Last: between two items that restore
+		    the same amount, the Food and Water macros pick the one not on the
+		    current Restock List, whatever its Keep amount. Off by default.
+		]]
+		useRestockLast = false,
+		--[[
 		    Use Food & Water in Potion Macros Out of Combat: the Health Potion
 		    macro eats the Food macro's pick and the Mana Potion macro drinks
 		    the Water macro's pick while the player is out of combat, the way

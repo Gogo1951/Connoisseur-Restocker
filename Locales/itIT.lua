@@ -450,7 +450,7 @@ L["OPTIONS_MACRO_TOGGLE_DESCRIPTION"] = "Crea e mantiene questa macro e la rimuo
 ]]
 L["OPTIONS_FOOD_WATER_HEADER"] = "Cibo e acqua"
 L["OPTIONS_FOOD_WATER_DESCRIPTION"] =
-	"Le tue macro Cibo e Acqua usano il miglior cibo e la miglior bevanda nelle tue borse. Queste opzioni possono mettere al primo posto il cibo con buff, le pergamene o il cibo e l'acqua evocati."
+	"Le tue macro Cibo e Acqua usano il miglior cibo e la miglior bevanda nelle tue borse. Queste opzioni possono mettere al primo posto il cibo con buff, le pergamene o il cibo e l'acqua evocati, e all'ultimo posto il cibo e l'acqua della lista di rifornimento."
 
 --[[
     Buff Food, the first option under Food & Water. Its hover text is a key of
@@ -481,6 +481,11 @@ L["OPTIONS_CONJURED_FIRST_DESCRIPTION"] =
 	'Le tue macro Cibo e Acqua usano cibo e acqua evocati prima di qualsiasi altra cosa, anche se qualcosa nelle tue borse ripristina di più, perché non costano nulla e svaniscono poco dopo la disconnessione. Il cibo con buff resta comunque al primo posto finché "Dai priorità al cibo con buff" è attivo.'
 L["OPTIONS_CONJURED_FIRST_MODE_DESCRIPTION"] =
 	"Determina quando cibo e acqua evocati hanno la precedenza: sempre, oppure soltanto quando giochi da solo, sei in gruppo o incursione, sei in incursione, stai salendo di livello o sei al livello massimo."
+
+-- Use Restock List Food & Water Last, the fourth option under Food & Water.
+L["OPTIONS_RESTOCK_LAST"] = "Usa per ultimi cibo e acqua della lista di rifornimento"
+L["OPTIONS_RESTOCK_LAST_DESCRIPTION"] =
+	"Tra due cibi o bevande che ripristinano la stessa quantità, le tue macro Cibo e Acqua usano quello che non è nella tua lista di rifornimento, conservando per dopo ciò che la lista acquista."
 
 -- Potions & Healthstones
 L["OPTIONS_POTIONS_HEADER"] = "Pozioni e Pietre della Salute"

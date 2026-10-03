@@ -338,7 +338,8 @@ function ns.BuildMacrosOptions()
 		--[[
 		    Food & Water -- what the Food and Water macros put ahead of your
 		    best food and drink: buff food, scrolls, then conjured food and
-		    water. One description serves the section, so each option's own
+		    water, and what they save for last: Restock List food and water.
+		    One description serves the section, so each option's own
 		    hover text says what it does. Each mode dropdown shows on its
 		    toggle's line while the toggle is on, and a break follows every
 		    row, the house rhythm the Rogue, Restocker and Readiness rows
@@ -424,6 +425,21 @@ function ns.BuildMacrosOptions()
 			ConjuredFirstActive,
 			34
 		),
+		spaceConjuredFirst = Spacer(35),
+		toggleRestockLast = {
+			type = "toggle",
+			name = L["OPTIONS_RESTOCK_LAST"],
+			desc = L["OPTIONS_RESTOCK_LAST_DESCRIPTION"],
+			order = 36,
+			width = "full",
+			get = function()
+				local settings = GetSettings()
+				return settings and settings.useRestockLast
+			end,
+			set = function(_, value)
+				ns.ToggleMacroSetting("useRestockLast", value)
+			end,
+		},
 
 		-- Potions & Healthstones
 		spacePotions0 = Spacer(40),
