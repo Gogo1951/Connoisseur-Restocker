@@ -241,7 +241,7 @@ A `forced` rebuild wipes the standard macros' state table ahead of both deferral
    /use item:13446
    ```
 
-   It is the scanned item alone, buff food included, whether or not the Food or Water macro is enabled: scroll-only mode, the pet-buff override, conjure clicks and the stealth lines stay on the Food and Water macros. A `/stopmacro` is used rather than a `[combat]` guard on every `/use` line because it costs fewer bytes once the fallbacks and stacked Healthstones are in, and leaves the trim untouched. The Druid Macro Helper body carries the same two lines above its guards, and a body with no potion keeps them above its no-item line.
+   It is the scanned item alone, buff food included, whether or not the Food or Water macro is enabled: scroll-only mode, the pet-buff override and conjure clicks stay on the Food and Water macros. Their stealth comes along: when that type's definition answers `stealthSpell` (Food's Stealth Eating, Water's Stealth Drinking, the same gates as their `appendBlock`), a `/cast [nocombat,nostealth] <spell>` goes between the `/use` and the `/stopmacro`, so eating or drinking from a potion macro hides you the way the Food or Water macro would, and a press in combat never stealths. A `/stopmacro` is used rather than a `[combat]` guard on every `/use` line because it costs fewer bytes once the fallbacks and stacked Healthstones are in, and leaves the trim untouched. The Druid Macro Helper body carries the same lines above its guards, and a body with no potion keeps them above its no-item line.
 
    Custom definitions (Feed Pet, Poisons) then run their own `customUpdate` and never reach the ranking ladder.
 3. **Write.** `ns.WriteMacroBody()` is the one writer for every macro, standard or custom. It creates a missing macro in the shared General tab with the question-mark icon, so `#showtooltip` decides what the button shows, and edits only when the body differs. The state key is recorded only when the write landed, so a create that failed on a full macro book retries on the next pass. Creation respects `ns.MACRO_SLOT_CUSHION` (0, so it pauses only when the General book is full), warns once per session and retries on every later update pass, so it resumes once a slot frees.
@@ -275,10 +275,10 @@ A miss is remembered only while somebody is waiting on `GET_ITEM_INFO_RECEIVED`,
 Every input that affects a macro body must appear in its state key, or the macro goes stale. Standard keys are item-led:
 
 ```
-ITEMIDS(+HS:stackIDs)?(_C(_M:id)?(_R:id)?(_MR:key)?(_MM:key)?(_NI:key)?)?(_EX:mode)?(_SM|_SE)?(_OOC:id)?
+ITEMIDS(+HS:stackIDs)?(_C(_M:id)?(_R:id)?(_MR:key)?(_MM:key)?(_NI:key)?)?(_EX:mode)?(_SM|_SE)?(_OOC:id(:S)?)?
 ```
 
-`ITEMIDS` is the single itemID, the literal `none` when there is no item, or the comma-joined ranked list for the multi-use types, so a change in any fallback rank also rewrites. `+HS:` carries Health Potion's stacked Healthstones, the `_C` group carries the conjure clicks and their not-yet-learned tips, `_EX:` carries the Explosive click layout, `_SM` / `_SE` mark the Shadowmeld drinking and Stealth Eating lines, and `_OOC:` carries the food or water a potion macro uses out of combat (`+OOC:` on a `DMH:` key).
+`ITEMIDS` is the single itemID, the literal `none` when there is no item, or the comma-joined ranked list for the multi-use types, so a change in any fallback rank also rewrites. `+HS:` carries Health Potion's stacked Healthstones, the `_C` group carries the conjure clicks and their not-yet-learned tips, `_EX:` carries the Explosive click layout, `_SM` / `_SE` mark the Shadowmeld drinking and Stealth Eating lines, and `_OOC:` carries the food or water a potion macro uses out of combat (`+OOC:` on a `DMH:` key), with `:S` while it stealths too.
 
 Namespaces are disjoint by prefix, so any transition into or out of a mode forces a rewrite: Food's scroll-only mode keys under `SCROLLS:` and the Druid Macro Helper override under `DMH:`, which also carries the return form's spell ID, so learning Dire Bear Form rewrites a body still returning to Bear Form. Poisons (`K` or `NK` plus each hand's item) and Feed Pet (knowledge tier, food item, dead-pet flag) keep their own keys under the same lossless rule.
 

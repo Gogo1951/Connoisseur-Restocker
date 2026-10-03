@@ -71,7 +71,12 @@ local AceConfigRegistry = LibStub("AceConfigRegistry-3.0")
                            uses instead while out of combat, behind
                            potionsUseFoodAndWater (Health Potion: "Food",
                            Mana Potion: "Water"). The scanned item only: no
-                           scrolls, pet food, conjure clicks or stealth line
+                           scrolls, pet food or conjure clicks. Its stealth
+                           comes along, from that type's stealthSpell
+      stealthSpell()    -- (spellName, stateFlag) the definition's macro casts
+                           while eating or drinking, or nil while off: Food's
+                           Stealth Eating, Water's Stealth Drinking. Read by
+                           a potion macro whose outOfCombatTypeName names it
       buildModeOverride(context) -- full-body takeover; returns body, stateKey
                            or nil (Food's scroll-only mode). Mode state keys
                            MUST use their own prefix (e.g. "SCROLLS:") so they
@@ -125,7 +130,11 @@ ns.REGISTERED_MACRO_DEFINITIONS = macroDefinitions
 ]]
 ns.REGISTERED_CUSTOM_MACRO_DEFINITIONS = customDefinitions
 
+-- Every definition by typeName, so a potion macro can reach its outOfCombatTypeName's hooks.
+local definitionsByType = {}
+
 function ns.RegisterMacroType(definition)
+	definitionsByType[definition.typeName] = definition
 	if definition.customUpdate then
 		customDefinitions[#customDefinitions + 1] = definition
 	else
@@ -338,10 +347,16 @@ function ns.UpdateMacros(forced)
 			    stands, buff food included, whether or not that type's own
 			    macro is enabled; none in bags leaves the body as it was.
 			]]
-			local outOfCombatID
+			local outOfCombatID, outOfCombatStealth
 			if definition.outOfCombatTypeName and ns.db.profile.potionsUseFoodAndWater then
 				local outOfCombatEntry = best[definition.outOfCombatTypeName]
 				outOfCombatID = outOfCombatEntry and outOfCombatEntry.id
+
+				-- Its own macro's stealth, so eating from the potion macro hides you the same way.
+				local source = definitionsByType[definition.outOfCombatTypeName]
+				if outOfCombatID and source and source.stealthSpell then
+					outOfCombatStealth = source.stealthSpell()
+				end
 			end
 
 			--[[
@@ -351,8 +366,14 @@ function ns.UpdateMacros(forced)
 			]]
 			local classBody, classStateID
 			if itemID then
-				classBody, classStateID =
-					ns.BuildDruidMacroOverride(overrideTypeName, itemID, useIDs, stackIDs, outOfCombatID)
+				classBody, classStateID = ns.BuildDruidMacroOverride(
+					overrideTypeName,
+					itemID,
+					useIDs,
+					stackIDs,
+					outOfCombatID,
+					outOfCombatStealth
+				)
 			end
 
 			--[[
@@ -404,8 +425,16 @@ function ns.UpdateMacros(forced)
 					appendText, appendFlag = definition.appendBlock(itemID)
 				end
 
-				local stateID =
-					ns.BuildStateKey(definition, itemID, useIDs, stackIDs, conjureInfo, appendFlag, outOfCombatID)
+				local stateID = ns.BuildStateKey(
+					definition,
+					itemID,
+					useIDs,
+					stackIDs,
+					conjureInfo,
+					appendFlag,
+					outOfCombatID,
+					outOfCombatStealth
+				)
 
 				if currentMacroState[typeName] ~= stateID or forced then
 					local body = ns.BuildStandardBody(
@@ -415,7 +444,8 @@ function ns.UpdateMacros(forced)
 						stackIDs,
 						conjureInfo,
 						appendText,
-						outOfCombatID
+						outOfCombatID,
+						outOfCombatStealth
 					)
 					WriteMacro(config.macro, body, stateID, typeName)
 				end

@@ -346,6 +346,7 @@ Under **Potions & Healthstones**, **Use Food & Water in Potion Macros Out of Com
 - Pull a mob: both icons must switch to the potions, and a press must drink the potion.
 - Bank the potions: out of combat `- Health Potion` must still eat, and in combat it must print "Connoisseur // No suitable Health Potion found in your bags."
 - Tick **Combine Healthstones into Health Potion Macro** with a Healthstone in your bags: it must eat out of combat and use the stone in combat.
+- *On a Rogue*, tick **Enable Stealth Eating**: out of combat, `- Health Potion` must eat and stealth on one press, and in combat a press must drink the potion without stealthing. *On a Night Elf* that isn't a Rogue, do the same with **Enable Stealth Eating** (Shadowmeld on `- Health Potion`) and then **Enable Stealth Drinking** (Shadowmeld on `- Mana Potion`). Untick each again: its potion macro must lose its `/cast` line.
 - Untick the new option: both bodies must lose their `[nocombat]` lines.
 
 Failure is any of these:

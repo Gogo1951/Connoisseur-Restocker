@@ -53,7 +53,7 @@ local function GetDruidReturnForm()
 	return key, nil, nil
 end
 
-local function BuildDruidMacroHelperBody(typeName, useIDs, stackIDs, formName, outOfCombatID)
+local function BuildDruidMacroHelperBody(typeName, useIDs, stackIDs, formName, outOfCombatID, outOfCombatStealth)
 	local lines = {
 		"#showtooltip item:" .. useIDs[1],
 		"/run ConnoisseurFire(" .. useIDs[1] .. ")",
@@ -62,13 +62,17 @@ local function BuildDruidMacroHelperBody(typeName, useIDs, stackIDs, formName, o
 	    Food or water out of combat (potionsUseFoodAndWater): the same lines
 	    the standard body carries, above the guards so an out-of-combat press
 	    never starts a powershift. A druid in a form has to leave it to eat,
-	    as with the Food and Water macros.
+	    as with the Food and Water macros. A Night Elf druid's Shadowmeld,
+	    with Stealth Eating or Stealth Drinking on, comes along too.
 	]]
 	if outOfCombatID then
 		lines[1] = ns.OutOfCombatTooltipLine(useIDs[1], outOfCombatID)
 		lines[2] = "/run ConnoisseurFire(" .. useIDs[1] .. "," .. outOfCombatID .. ")"
 		lines[3] = "/use [nocombat] item:" .. outOfCombatID
-		lines[4] = "/stopmacro [nocombat]"
+		if outOfCombatStealth then
+			lines[#lines + 1] = "/cast [nocombat,nostealth] " .. outOfCombatStealth
+		end
+		lines[#lines + 1] = "/stopmacro [nocombat]"
 	end
 	for _, guard in ipairs(ns.DRUID_MACRO_HELPER_GUARDS[typeName]) do
 		lines[#lines + 1] = guard
@@ -133,7 +137,7 @@ end
     rewrites a body that still returns to Bear Form.
 ]]
 
-function ns.BuildDruidMacroOverride(typeName, itemID, rankedIDs, stackIDs, outOfCombatID)
+function ns.BuildDruidMacroOverride(typeName, itemID, rankedIDs, stackIDs, outOfCombatID, outOfCombatStealth)
 	if not itemID then
 		return nil
 	end
@@ -151,13 +155,13 @@ function ns.BuildDruidMacroOverride(typeName, itemID, rankedIDs, stackIDs, outOf
 		useIDs = { itemID }
 	end
 
-	local body = BuildDruidMacroHelperBody(typeName, useIDs, stackIDs, formName, outOfCombatID)
+	local body = BuildDruidMacroHelperBody(typeName, useIDs, stackIDs, formName, outOfCombatID, outOfCombatStealth)
 	local stateID = "DMH:" .. formKey .. ":" .. formSpellID .. ":" .. table.concat(useIDs, ",")
 	if stackIDs then
 		stateID = stateID .. "+HS:" .. table.concat(stackIDs, ",")
 	end
 	if outOfCombatID then
-		stateID = stateID .. "+OOC:" .. outOfCombatID
+		stateID = stateID .. "+OOC:" .. outOfCombatID .. (outOfCombatStealth and ":S" or "")
 	end
 	return body, stateID
 end

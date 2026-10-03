@@ -31,9 +31,18 @@ end
     below. A /stopmacro costs fewer bytes than a [combat] guard on each of up
     to six /use lines, and leaves those lines, and the trim that sheds them,
     as they are without it.
+
+    stealthName is the stealth the food or water's own macro casts while
+    eating or drinking (its definition's stealthSpell: Stealth Eating or
+    Stealth Drinking), cast right after it the way that macro does, and only
+    out of combat, so a press in combat never stealths.
 ]]
-function ns.OutOfCombatBlock(outOfCombatID)
-	return "/use [nocombat] item:" .. outOfCombatID .. "\n/stopmacro [nocombat]\n"
+function ns.OutOfCombatBlock(outOfCombatID, stealthName)
+	local block = "/use [nocombat] item:" .. outOfCombatID .. "\n"
+	if stealthName then
+		block = block .. "/cast [nocombat,nostealth] " .. stealthName .. "\n"
+	end
+	return block .. "/stopmacro [nocombat]\n"
 end
 
 -- The tooltip line of a body with an out-of-combat item: the potion in combat, the food or water out of it.
@@ -155,7 +164,8 @@ end
       /use item:<stackID>     -- definition.getStackIDs ids appended below the main
                                  block (Health Potion's healthstone stacking)
       /use [nocombat] item:<id>  -- definition.outOfCombatTypeName's best item with
-      /stopmacro [nocombat]      its stop, above the action (the potion macros'
+      /cast [nocombat,nostealth] <spell>  its macro's stealth when that is on,
+      /stopmacro [nocombat]      and its stop, above the action (the potion macros'
                                  food or water, behind potionsUseFoodAndWater);
                                  the tooltip line then shows it out of combat
                                  and ConnoisseurFire takes it as a second id
@@ -168,7 +178,16 @@ end
     Ends with the macro-length trim, which sheds stacked healthstone lines and
     then ranked fallback /use lines from the bottom up.
 ]]
-function ns.BuildStandardBody(definition, itemID, useIDs, stackIDs, conjureInfo, appendText, outOfCombatID)
+function ns.BuildStandardBody(
+	definition,
+	itemID,
+	useIDs,
+	stackIDs,
+	conjureInfo,
+	appendText,
+	outOfCombatID,
+	outOfCombatStealth
+)
 	local tooltipLine, actionBlock
 
 	-- Everything above the /use lines; the macro-length trim rebuilds only what follows it.
@@ -179,7 +198,7 @@ function ns.BuildStandardBody(definition, itemID, useIDs, stackIDs, conjureInfo,
 		actionHead = StateWriteLine(outOfCombatID)
 	end
 	if outOfCombatID then
-		actionHead = actionHead .. ns.OutOfCombatBlock(outOfCombatID)
+		actionHead = actionHead .. ns.OutOfCombatBlock(outOfCombatID, outOfCombatStealth)
 	end
 
 	if itemID then
@@ -273,7 +292,7 @@ end
 --[[
     State encoding — captures every input that affects the written body.
     Format:
-      ITEMIDS(+HS:stackIDs)?(_C(_M:mid)?(_R:rid)?(_MR:key)?(_MM:key)?(_NI:key)?)?(_EX:mode)?(_SM|_SE)?(_OOC:id)?
+      ITEMIDS(+HS:stackIDs)?(_C(_M:mid)?(_R:rid)?(_MR:key)?(_MM:key)?(_NI:key)?)?(_EX:mode)?(_SM|_SE)?(_OOC:id(:S)?)?
     where ITEMIDS is the single itemID, or a comma-joined ranked list for
     multi-use types so a change in any fallback rank also triggers a
     rewrite. +HS: carries the stacked Healthstone ids (Health Potion's
@@ -281,13 +300,22 @@ end
     click layout), so flipping the dropdown rewrites the macro; _SM and _SE
     are the append-block flags (Water's Shadowmeld line and Food's Stealth
     Eating line). _OOC:id is the food or water a potion macro uses out of
-    combat. Mode overrides use their own prefix
+    combat, with :S added while it stealths as it does. Mode overrides use their own prefix
     ("SCROLLS:...") instead, so the key spaces never collide and a
     transition between modes always triggers a rewrite. Every input that
     affects the body MUST appear in the key — a lossy key causes stale
     macros.
 ]]
-function ns.BuildStateKey(definition, itemID, useIDs, stackIDs, conjureInfo, appendFlag, outOfCombatID)
+function ns.BuildStateKey(
+	definition,
+	itemID,
+	useIDs,
+	stackIDs,
+	conjureInfo,
+	appendFlag,
+	outOfCombatID,
+	outOfCombatStealth
+)
 	local itemKey = itemID and tostring(itemID) or "none"
 	if useIDs then
 		itemKey = table.concat(useIDs, ",")
@@ -330,7 +358,7 @@ function ns.BuildStateKey(definition, itemID, useIDs, stackIDs, conjureInfo, app
 		stateParts[#stateParts + 1] = appendFlag
 	end
 	if outOfCombatID then
-		stateParts[#stateParts + 1] = "OOC:" .. outOfCombatID
+		stateParts[#stateParts + 1] = "OOC:" .. outOfCombatID .. (outOfCombatStealth and ":S" or "")
 	end
 	return table.concat(stateParts, "_")
 end
