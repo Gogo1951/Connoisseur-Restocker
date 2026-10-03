@@ -55,7 +55,7 @@ Macros that automatically use your best food, water, potions, healthstones, band
 * Anything you can't use is filtered out, whether that's a level requirement, a missing profession skill, or the wrong zone.
 * Inside a PvP Arena, where the game blocks ordinary food and drink, only conjured items and the arena's own drinks are offered.
 * Macros can't be edited in combat, so the Potion and Healthstone macros carry your best item plus up to two fallbacks. On a long fight the icon can go stale, but a press still uses the best item in your bags.
-* Coming from an add-on with one button for both? Turn on Use Food & Water in Potion Macros Out of Combat and your Health Potion macro eats, and your Mana Potion macro drinks, whenever you're out of combat.
+* Coming from an add-on with one button for both? Turn on Use Food & Water in Potion Macros Out of Combat and your Health Potion macro eats, and your Mana Potion macro drinks, whenever you're out of combat, stealthing as it does if you use Stealth Eating or Stealth Drinking.
 
 ### Restocker
 

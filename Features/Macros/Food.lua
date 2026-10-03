@@ -46,6 +46,25 @@ local function BuildScrollOnlyBody(scrollList)
 	return table.concat(lines, "\n") .. "\n"
 end
 
+--[[
+    Stealth Eating's spell and state flag, or nil while the option is off or
+    the character has no stealth to eat in: Stealth for Rogues, Shadowmeld for
+    other Night Elves. One enableStealthEating key serves both.
+]]
+local function StealthEatingSpell()
+	local settings = ns.db and ns.db.profile
+	if not settings or not settings.enableStealthEating then
+		return nil
+	end
+	if ns.isRogue and ns.stealthSpellName then
+		return ns.stealthSpellName, "SE"
+	end
+	if ns.isNightElf and ns.shadowmeldSpellName then
+		return ns.shadowmeldSpellName, "SE"
+	end
+	return nil
+end
+
 ns.RegisterMacroType({
 	typeName = "Food",
 
@@ -136,16 +155,16 @@ ns.RegisterMacroType({
 		if not itemID or petBuffOverride then
 			return nil
 		end
-		local settings = ns.db and ns.db.profile
-		if not settings or not settings.enableStealthEating then
-			return nil
-		end
-		if ns.isRogue and ns.stealthSpellName then
-			return "\n/cast [nostealth] " .. ns.stealthSpellName, "SE"
-		end
-		if ns.isNightElf and ns.shadowmeldSpellName then
-			return "\n/cast [nostealth] " .. ns.shadowmeldSpellName, "SE"
+		local spellName, flag = StealthEatingSpell()
+		if spellName then
+			return "\n/cast [nostealth] " .. spellName, flag
 		end
 		return nil
 	end,
+
+	--[[
+	    The Health Potion macro eats this macro's pick out of combat
+	    (outOfCombatTypeName), and stealths the same way while it does.
+	]]
+	stealthSpell = StealthEatingSpell,
 })
