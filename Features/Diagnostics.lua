@@ -1432,6 +1432,7 @@ function ns.BuildSelectionReport()
 
 	lines[#lines + 1] = string.format("allowBuffFood (live scan preference): %s", tostring(ns.allowBuffFood))
 	lines[#lines + 1] = string.format("allowConjuredFirst (live scan preference): %s", tostring(ns.allowConjuredFirst))
+	lines[#lines + 1] = string.format("allowRestockLast (live scan preference): %s", tostring(ns.allowRestockLast))
 	if not retained then
 		lines[#lines + 1] = ""
 		lines[#lines + 1] =

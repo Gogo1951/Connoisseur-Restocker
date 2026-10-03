@@ -448,7 +448,7 @@ L["OPTIONS_MACRO_TOGGLE_DESCRIPTION"] = "建立並維護此巨集，取消勾選
 ]]
 L["OPTIONS_FOOD_WATER_HEADER"] = "食物與水"
 L["OPTIONS_FOOD_WATER_DESCRIPTION"] =
-	"你的食物和水巨集會使用背包中最好的食物和飲料。這些選項可以讓增益食物、卷軸或魔法製造的食物和水優先。"
+	"你的食物和水巨集會使用背包中最好的食物和飲料。這些選項可以讓增益食物、卷軸或魔法製造的食物和水優先，並讓補貨清單中的食物和水最後使用。"
 
 --[[
     Buff Food, the first option under Food & Water. Its hover text is a key of
@@ -479,6 +479,11 @@ L["OPTIONS_CONJURED_FIRST_DESCRIPTION"] =
 	'魔法製造的食物和水不花錢，並會在你離線後不久消失，因此你的食物和水巨集會優先使用它們，即使背包裡有恢復量更高的物品。開啟"優先增益食物"時，增益食物仍然最先使用。'
 L["OPTIONS_CONJURED_FIRST_MODE_DESCRIPTION"] =
 	"選擇魔法製造的食物和水何時優先：總是優先，或僅在單人時、隊伍或團隊中、團隊中、練等時或滿等時優先。"
+
+-- Use Restock List Food & Water Last, the fourth option under Food & Water.
+L["OPTIONS_RESTOCK_LAST"] = "最後使用補貨清單中的食物與水"
+L["OPTIONS_RESTOCK_LAST_DESCRIPTION"] =
+	"當兩種食物或飲料恢復量相同時，你的食物和水巨集會先使用不在補貨清單上的那種，把補貨清單購買的留到以後。"
 
 -- Potions & Healthstones
 L["OPTIONS_POTIONS_HEADER"] = "藥水與治療石"

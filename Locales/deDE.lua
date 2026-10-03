@@ -452,7 +452,7 @@ L["OPTIONS_MACRO_TOGGLE_DESCRIPTION"] =
 ]]
 L["OPTIONS_FOOD_WATER_HEADER"] = "Essen und Wasser"
 L["OPTIONS_FOOD_WATER_DESCRIPTION"] =
-	"Deine Essen- und Wasser-Makros verwenden das beste Essen und die besten Getränke in deinen Taschen. Diese Optionen können Buff-Essen, Schriftrollen oder herbeigezaubertes Essen und Wasser an die erste Stelle setzen."
+	"Deine Essen- und Wasser-Makros verwenden das beste Essen und die besten Getränke in deinen Taschen. Diese Optionen können Buff-Essen, Schriftrollen oder herbeigezaubertes Essen und Wasser an die erste Stelle und Essen und Wasser der Nachschubliste an die letzte Stelle setzen."
 
 --[[
     Buff Food, the first option under Food & Water. Its hover text is a key of
@@ -483,6 +483,11 @@ L["OPTIONS_CONJURED_FIRST_DESCRIPTION"] =
 	'Deine Essen- und Wasser-Makros verwenden herbeigezaubertes Essen und Wasser vor allem anderen, auch wenn etwas in deinen Taschen mehr wiederherstellt, denn es kostet nichts und verschwindet kurz nach dem Ausloggen. Buff-Essen hat weiterhin Vorrang, solange "Buff-Essen bevorzugen" aktiviert ist.'
 L["OPTIONS_CONJURED_FIRST_MODE_DESCRIPTION"] =
 	"Legt fest, wann herbeigezaubertes Essen und Wasser Vorrang haben: immer oder nur beim Solospiel, in einer Gruppe oder einem Schlachtzug, im Schlachtzug, beim Leveln oder auf Höchststufe."
+
+-- Use Restock List Food & Water Last, the fourth option under Food & Water.
+L["OPTIONS_RESTOCK_LAST"] = "Essen und Wasser der Nachschubliste zuletzt verwenden"
+L["OPTIONS_RESTOCK_LAST_DESCRIPTION"] =
+	"Von zwei Speisen oder Getränken, die gleich viel wiederherstellen, verwenden deine Essen- und Wasser-Makros diejenige, die nicht auf deiner Nachschubliste steht. So bleibt, was die Nachschubliste kauft, für später."
 
 -- Potions & Healthstones
 L["OPTIONS_POTIONS_HEADER"] = "Tränke und Gesundheitssteine"

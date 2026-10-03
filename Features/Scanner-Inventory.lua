@@ -57,6 +57,7 @@ local function ResetBest(entry)
 	entry.hasZones = false
 	entry.isSoulbound = false
 	entry.isHighStack = false
+	entry.isOffRestockList = false
 	if entry.topIDs then
 		wipe(entry.topIDs)
 	end
@@ -101,6 +102,9 @@ end
       gatedOnAllowConjuredFirst  — step runs only when the caller allows
                                    conjured-first (Food and Water, while Use
                                    Conjured Food & Water First holds)
+      gatedOnAllowRestockLast    — step runs only when the caller allows
+                                   restock-last (Food and Water, while Use
+                                   Restock List Food & Water Last holds)
       truthyWinsWhenPreferHybrid — direction flag for the hybrid step: truthy
                                    wins when the caller prefers hybrids (Food);
                                    falsy wins otherwise (Water, ranked potions)
@@ -133,6 +137,15 @@ local RANKING_PRIORITY = {
 	    in, so this compares exactly what the item restores.
 	]]
 	{ field = "value", kind = "higher" },
+
+	--[[
+	    Off the Restock List next, when the player asked for it (Use Restock
+	    List Food & Water Last, on Food and Water only): of two items that
+	    restore the same amount, eat the one not on the Restock List, and
+	    keep the list's stock for later. Below value, so it never picks
+	    the weaker item.
+	]]
+	{ field = "isOffRestockList", kind = "bool", gatedOnAllowRestockLast = true },
 
 	--[[
 	    THE BURN-FIRST LADDER. Three tiebreaks among items that restore the
@@ -231,12 +244,13 @@ local RANKING_PRIORITY = {
     take the first value alone so the extra return can never leak into a
     boolean or a table constructor.
 ]]
-local function CompareRecords(a, b, allowBuffFood, preferHybrid, allowConjuredFirst)
+local function CompareRecords(a, b, allowBuffFood, preferHybrid, allowConjuredFirst, allowRestockLast)
 	for i = 1, #RANKING_PRIORITY do
 		local step = RANKING_PRIORITY[i]
 		if
 			not (step.gatedOnAllowBuffFood and not allowBuffFood)
 			and not (step.gatedOnAllowConjuredFirst and not allowConjuredFirst)
+			and not (step.gatedOnAllowRestockLast and not allowRestockLast)
 		then
 			local valueA, valueB = a[step.field], b[step.field]
 			if valueA ~= valueB then
@@ -266,8 +280,11 @@ end
 
     score arrives as a parameter rather than being read off the item because
     each category picks its own field (health, mana, damage) in its score()
-    hook.
+    hook. isOffRestockList reads scanRestockList, the current Restock List
+    ScanBags captures before its bag walk.
 ]]
+local scanRestockList = {}
+
 local function FillRecord(record, candidate, candidateCount, candidatePrice, score)
 	record.isBuffFood = candidate.isBuffFood
 	record.isPercent = candidate.isPercent
@@ -276,6 +293,7 @@ local function FillRecord(record, candidate, candidateCount, candidatePrice, sco
 	record.hasZones = (candidate.zones ~= nil)
 	record.isSoulbound = candidate.isSoulbound
 	record.isHighStack = (candidate.maxStack or 1) > 10
+	record.isOffRestockList = (scanRestockList[candidate.itemID] == nil)
 	record.price = candidatePrice
 	record.isHybrid = (candidate.healthValue > 0 and candidate.manaValue > 0)
 	record.count = candidateCount
@@ -299,7 +317,8 @@ local function IsBetter(
 	score,
 	allowBuffFood,
 	preferHybrid,
-	allowConjuredFirst
+	allowConjuredFirst,
+	allowRestockLast
 )
 	if not currentBest.id then
 		return true
@@ -311,7 +330,8 @@ local function IsBetter(
 		currentBest,
 		allowBuffFood,
 		preferHybrid,
-		allowConjuredFirst
+		allowConjuredFirst,
+		allowRestockLast
 	)
 	return better
 end
@@ -336,15 +356,15 @@ end
 
 --[[
     Pairwise sort form for the ranked categories — the same RANKING_PRIORITY
-    chain with allowBuffFood, preferHybrid and allowConjuredFirst always
-    false: percent heals first, then higher value, the burn-first steps,
-    price, non-hybrid, fewer copies, itemID. Ranked records come from
-    FillRecord like every other record, so the isBuffFood and conjured-first
-    steps are gated off rather than absent.
+    chain with allowBuffFood, preferHybrid, allowConjuredFirst and
+    allowRestockLast always false: percent heals first, then higher value,
+    the burn-first steps, price, non-hybrid, fewer copies, itemID. Ranked
+    records come from FillRecord like every other record, so the isBuffFood,
+    conjured-first and restock-last steps are gated off rather than absent.
 ]]
 local function CompareRankedCandidates(a, b)
 	-- First value only: table.sort must see a plain boolean comparator.
-	local outranks = CompareRecords(a, b, false, false, false)
+	local outranks = CompareRecords(a, b, false, false, false, false)
 	return outranks
 end
 
@@ -415,6 +435,7 @@ local function CopyCandidateRecord(record)
 		isSoulbound = record.isSoulbound,
 		isHighStack = record.isHighStack,
 		isHybrid = record.isHybrid,
+		isOffRestockList = record.isOffRestockList,
 	}
 end
 
@@ -433,12 +454,13 @@ end
     and the entries below it are the real runners-up rather than whichever
     items the bag walk happened to reach first.
 ]]
-local function RetainCandidate(typeName, record, allowBuffFood, preferHybrid, allowConjuredFirst)
+local function RetainCandidate(typeName, record, allowBuffFood, preferHybrid, allowConjuredFirst, allowRestockLast)
 	local list = GetCandidateList(typeName)
 
 	local position = #list + 1
 	for i = 1, #list do
-		local outranks = CompareRecords(record, list[i], allowBuffFood, preferHybrid, allowConjuredFirst)
+		local outranks =
+			CompareRecords(record, list[i], allowBuffFood, preferHybrid, allowConjuredFirst, allowRestockLast)
 		if outranks then
 			position = i
 			break
@@ -457,8 +479,8 @@ end
     Runs once per scan, after RankCandidates has settled the ranked lists:
     copies the ranked categories' runners-up, then annotates every retained
     runner-up with the step that separated it from its category's winner.
-    Ranked categories always compare with buff food, hybrid preference and
-    conjured-first off, matching CompareRankedCandidates.
+    Ranked categories always compare with buff food, hybrid preference,
+    conjured-first and restock-last off, matching CompareRankedCandidates.
 ]]
 local function CaptureDiagnosticCandidates()
 	if not ns.diagnostics.enabled then
@@ -467,7 +489,7 @@ local function CaptureDiagnosticCandidates()
 
 	for _, definition in ipairs(ns.REGISTERED_MACRO_DEFINITIONS) do
 		local list
-		local allowBuffFood, preferHybrid, allowConjuredFirst
+		local allowBuffFood, preferHybrid, allowConjuredFirst, allowRestockLast
 
 		if definition.ranked then
 			local source = rankedCandidates[definition.typeName]
@@ -475,18 +497,20 @@ local function CaptureDiagnosticCandidates()
 			for i = 1, math.min(#source, DIAGNOSTIC_CANDIDATE_LIMIT) do
 				list[i] = CopyCandidateRecord(source[i])
 			end
-			allowBuffFood, preferHybrid, allowConjuredFirst = false, false, false
+			allowBuffFood, preferHybrid, allowConjuredFirst, allowRestockLast = false, false, false, false
 		else
 			list = diagnosticCandidates[definition.typeName]
 			allowBuffFood = definition.allowBuffFood and ns.allowBuffFood
 			preferHybrid = definition.preferHybrid
 			allowConjuredFirst = definition.allowConjuredFirst and ns.allowConjuredFirst
+			allowRestockLast = definition.allowRestockLast and ns.allowRestockLast
 		end
 
 		if list then
 			local winner = list[1]
 			for i = 2, #list do
-				local _, decidedBy = CompareRecords(winner, list[i], allowBuffFood, preferHybrid, allowConjuredFirst)
+				local _, decidedBy =
+					CompareRecords(winner, list[i], allowBuffFood, preferHybrid, allowConjuredFirst, allowRestockLast)
 				list[i].decidedBy = decidedBy
 			end
 		end
@@ -589,6 +613,16 @@ function ns.ScanBags()
 	    targeting yourself is the buff-food testing aid.
 	]]
 	ns.allowConjuredFirst = settings.useConjuredFirst and ns.IsModeActive(settings.conjuredFirstMode)
+
+	--[[
+	    Use Restock List Food & Water Last: no mode, on whenever ticked. The
+	    current list is captured here for FillRecord; every list edit redraws
+	    through ns.UpdateRestockList, which requests a rescan while it is on.
+	]]
+	ns.allowRestockLast = settings.useRestockLast
+	local restockSettings = ns.restockSettings
+	scanRestockList = restockSettings and restockSettings.lists and restockSettings.lists[restockSettings.currentList]
+		or {}
 
 	BuildSelectionTables()
 
@@ -789,13 +823,15 @@ function ns.ScanBags()
 							else
 								local entry = best[definition.typeName]
 								--[[
-								    allowBuffFood and allowConjuredFirst
-								    defs track the live scan preferences;
+								    allowBuffFood, allowConjuredFirst and
+								    allowRestockLast defs track the live
+								    scan preferences;
 								    everyone else compares with those
 								    steps gated off.
 								]]
 								local allowBuffFood = definition.allowBuffFood and ns.allowBuffFood
 								local allowConjuredFirst = definition.allowConjuredFirst and ns.allowConjuredFirst
+								local allowRestockLast = definition.allowRestockLast and ns.allowRestockLast
 								if
 									IsBetter(
 										data,
@@ -805,7 +841,8 @@ function ns.ScanBags()
 										score,
 										allowBuffFood,
 										definition.preferHybrid,
-										allowConjuredFirst
+										allowConjuredFirst,
+										allowRestockLast
 									)
 								then
 									FillRecord(entry, data, totalCount, data.price, score)
@@ -820,7 +857,8 @@ function ns.ScanBags()
 										FillRecord(candidateRecord, data, totalCount, data.price, score),
 										allowBuffFood,
 										definition.preferHybrid,
-										allowConjuredFirst
+										allowConjuredFirst,
+										allowRestockLast
 									)
 								end
 							end

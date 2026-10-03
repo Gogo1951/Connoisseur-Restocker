@@ -57,7 +57,9 @@ ns.RegisterMacroType({
 	    and the allowBuffFood flag additionally makes the ladder prefer buff
 	    food outright when it is. While Use Conjured Food & Water First holds
 	    (ns.allowConjuredFirst), conjured food comes next, ahead of anything
-	    that restores more. Hybrids beat dedicated food on ties — one bag
+	    that restores more. While Use Restock List Food & Water Last holds
+	    (ns.allowRestockLast), food off the Restock List beats an equal one
+	    on it. Hybrids beat dedicated food on ties — one bag
 	    slot covering both needs. The winner record carries the item link,
 	    which the scanner publishes as ns.bestFoodLink for the mini-map
 	    tooltip.
@@ -71,6 +73,7 @@ ns.RegisterMacroType({
 	end,
 	allowBuffFood = true,
 	allowConjuredFirst = true,
+	allowRestockLast = true,
 	preferHybrid = true,
 	--[[
 	    Only the link: every field the ladder compares is filled by the

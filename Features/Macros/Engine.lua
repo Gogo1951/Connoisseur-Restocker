@@ -41,6 +41,10 @@ local AceConfigRegistry = LibStub("AceConfigRegistry-3.0")
                            ns.allowConjuredFirst preference (Food, Water);
                            absent: the ladder's conjured-first step stays
                            gated off
+      allowRestockLast  -- true: compare with the scanner's live
+                           ns.allowRestockLast preference (Food, Water);
+                           absent: the ladder's restock-last step stays
+                           gated off
       preferHybrid      -- direction of the ladder's hybrid step: true
                            prefers hybrid food/water (Food), false prefers
                            dedicated items (Water)
