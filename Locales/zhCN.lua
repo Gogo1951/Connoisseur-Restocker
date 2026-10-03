@@ -114,7 +114,11 @@ L["READINESS_QUESTIONABLE_GEAR"] = "装备了非战斗装备："
     What the report calls each thing. The Readiness Report panel labels its
     switches with these same keys, so a switch names exactly the line it
     controls; a switch that needs other words than its line (Main Hand Weapon
-    Buff, PvP Flag On) keeps an OPTIONS_READINESS_* label of its own.
+    Buff, PvP Flag On) keeps an OPTIONS_READINESS_* label of its own, and
+    Scroll Buffs borrows FEATURE_SCROLL_BUFFS, the Macros feature it needs.
+    Well Fed, Main Hand and Off Hand are the client's own names (the buff,
+    MAINHANDSLOT and SECONDARYHANDSLOT), so they have no keys here, and
+    READINESS_PET_FORMAT puts Well Fed in the pet's line (%s is that name).
 
     Deliberately its own set rather than the shared LABEL_* keys the macro
     messages use: those name an item you are being offered ("Health Potion"),
@@ -122,12 +126,9 @@ L["READINESS_QUESTIONABLE_GEAR"] = "装备了非战斗装备："
     to be reworded independently.
 ]]
 L["READINESS_FLASK"] = "合剂或 2 种药剂"
-L["READINESS_WELL_FED"] = "进食充分"
-L["READINESS_PET_WELL_FED"] = "进食充分（宠物）"
+L["READINESS_PET_FORMAT"] = "%s（宠物）"
 L["READINESS_SCROLLS"] = "卷轴"
 L["READINESS_SOULSTONE"] = "灵魂石未激活"
-L["READINESS_MAIN_HAND"] = "主手"
-L["READINESS_OFF_HAND"] = "副手"
 L["READINESS_HEALTHSTONE"] = "治疗石"
 L["READINESS_MANA_GEM"] = "法力宝石"
 L["READINESS_HEALING_POTION"] = "治疗药水"
@@ -152,7 +153,8 @@ L["READINESS_UNSPENT_TALENTS_MANY"] = "%d 个未使用的天赋点"
 -- Printed in chat by macro bodies via /run ConnoisseurTip("key") or ConnoisseurTipIf. See Features/Macros/Runtime.lua.
 
 L["TIP_PET_NO_FOOD"] = "你目前没有任何对宠物有用的食物。"
-L["TIP_PET_NO_SKILLS"] = "你目前还没有学会召唤宠物、解散野兽、喂养宠物或复活宠物。"
+-- The four %s are the client's names for Call Pet, Dismiss Pet, Feed Pet and Revive Pet, in that order.
+L["TIP_PET_NO_SKILLS_FORMAT"] = "你目前还没有学会%s、%s、%s或%s。"
 L["TIP_PET_NO_MEND"] = "你目前还没有学会治疗宠物。"
 L["TIP_NO_HAND_POISON"] = "这把武器所选的毒药已用完。"
 
@@ -163,9 +165,14 @@ L["TIP_DONT_KNOW_SPELL"] = "你目前还没有学会%s。"
 -- Minimap Tooltip
 --------------------------------------------------------------------------------
 
--- Feature toggles shown in the mini-map tooltip, each with a description line. Both names also fill OPTIONS_MODE_DESCRIPTION's %s.
+--[[
+    Feature toggles shown in the mini-map tooltip, each with a description
+    line. Both names also fill OPTIONS_MODE_DESCRIPTION's %s, and Scroll Buffs
+    labels the Readiness Report's switch. In every *_FORMAT key that quotes the
+    buff, here and below, %s is the client's name for "Well Fed".
+]]
 L["FEATURE_BUFF_FOOD"] = "增益食物"
-L["MENU_BUFF_FOOD_DESCRIPTION"] = '缺少"进食充分"增益时，优先使用可提供该增益的食物。'
+L["MENU_BUFF_FOOD_DESCRIPTION_FORMAT"] = '缺少"%s"增益时，优先使用可提供该增益的食物。'
 L["FEATURE_SCROLL_BUFFS"] = "卷轴增益"
 L["MENU_SCROLL_BUFFS_DESCRIPTION"] = "进食前，通过你的食物宏补上缺少的卷轴增益。"
 
@@ -173,8 +180,8 @@ L["MENU_SCROLL_BUFFS_DESCRIPTION"] = "进食前，通过你的食物宏补上缺
     Item titles in the mini-map tooltip. A title sits alone on its row and its
     item is right-aligned on the row beneath, so neither has to stay short;
     with nothing to show, MESSAGE_NO_ITEM takes the item's row. Current Pet
-    Food opens the Attention Hunters block, and the two poison titles open the
-    Attention Rogues block.
+    Food opens the Hunter's class block, and the two poison titles open the
+    Rogue's.
 ]]
 L["MINIMAP_BEST_FOOD"] = "当前食物"
 L["MINIMAP_BEST_PET_FOOD"] = "当前宠物食物"
@@ -233,15 +240,11 @@ L["MENU_OPTIONS_KEYBIND"] = "Shift + 中键点击"
 --------------------------------------------------------------------------------
 
 --[[
-    The class block of the mini-map tooltip: a class-colored header, the items
+    The class block of the mini-map tooltip: a class-colored header, which is
+    the client's name for the player's class and has no key here, the items
     the class's own macro will use (a Hunter's pet food, a Rogue's two poisons,
     titled in the Minimap Tooltip section above), then one group per macro.
 ]]
-
-L["PREFIX_HUNTER"] = "猎人请注意"
-L["PREFIX_MAGE"] = "法师请注意"
-L["PREFIX_ROGUE"] = "潜行者请注意"
-L["PREFIX_WARLOCK"] = "术士请注意"
 
 --[[
     A group is the macro's name, then one row per click: the click on the left
@@ -282,9 +285,7 @@ L["NOTE_LOWER_RANK_BACKUP"] = "低等级备用"
 L["NOTE_MAGE_TARGET_LEVEL"] = "以等级较低的玩家为目标，即可按其等级制造。"
 L["NOTE_WARLOCK_TARGET_LEVEL"] = "以等级较低的玩家为目标，即可按其等级制造一颗治疗石。"
 
--- Rogue. The two hands are the results of a Left-Click and a Right-Click on the Poisons macro.
-L["MINIMAP_MAIN_HAND"] = "主手"
-L["MINIMAP_OFF_HAND"] = "副手"
+-- Rogue. A Left-Click and a Right-Click on the Poisons macro show the client's slot names, MAINHANDSLOT and SECONDARYHANDSLOT.
 L["NOTE_POISONS_WINDOW"] = "毒药窗口"
 L["NOTE_POISONS_REPLACED"] = "自动替换旧毒药。"
 
@@ -442,9 +443,10 @@ L["OPTIONS_ENABLE_MACROS_DESCRIPTION"] =
 L["OPTIONS_MACRO_TOGGLE_DESCRIPTION"] = "创建并维护此宏，取消勾选时会将其移除。"
 
 --[[
-    Food & Water: Prioritize Buff Food, Enable Scroll Buffs, and Use Conjured
-    Food & Water First, in page order. One description serves all three, so
-    each option's hover text says what it does.
+    Food & Water: Prioritize Buff Food, Enable Scroll Buffs, Use Conjured
+    Food & Water First, and Use Restock List Food & Water Last, in page
+    order. One description serves all four, so each option's hover text says
+    what it does.
 ]]
 L["OPTIONS_FOOD_WATER_HEADER"] = "食物与水"
 L["OPTIONS_FOOD_WATER_DESCRIPTION"] =
@@ -453,23 +455,19 @@ L["OPTIONS_FOOD_WATER_DESCRIPTION"] =
 --[[
     Buff Food, the first option under Food & Water. Its hover text is a key of
     its own because it carries the arena exception, which the mini-map
-    tooltip's MENU_BUFF_FOOD_DESCRIPTION has no room for.
+    tooltip's MENU_BUFF_FOOD_DESCRIPTION_FORMAT has no room for.
 ]]
 L["OPTIONS_BUFF_FOOD"] = "优先增益食物"
-L["OPTIONS_BUFF_FOOD_DESCRIPTION"] =
-	'缺少"进食充分"增益时，优先使用可提供该增益的食物，竞技场中除外。'
+L["OPTIONS_BUFF_FOOD_DESCRIPTION_FORMAT"] =
+	'缺少"%s"增益时，优先使用可提供该增益的食物，竞技场中除外。'
 
 -- Scroll Buffs, the second option under Food & Water.
 L["OPTIONS_USE_SCROLLS"] = "启用卷轴增益"
 L["OPTIONS_USE_SCROLLS_DESCRIPTION"] =
 	"你的食物宏第一次按下时会使用缺少的卷轴，再按一次则进食；以友方玩家为目标或身处竞技场时会跳过卷轴。"
 L["OPTIONS_SCROLL_TYPES"] = "在检查中包含卷轴类型"
-L["OPTIONS_SCROLL_AGILITY"] = "敏捷"
-L["OPTIONS_SCROLL_INTELLECT"] = "智力"
+-- The other five scroll types are labeled with the client's stat names (SPELL_STAT1_NAME to SPELL_STAT5_NAME); Protection has none.
 L["OPTIONS_SCROLL_PROTECTION"] = "保护"
-L["OPTIONS_SCROLL_SPIRIT"] = "精神"
-L["OPTIONS_SCROLL_STAMINA"] = "耐力"
-L["OPTIONS_SCROLL_STRENGTH"] = "力量"
 -- Hover text on each scroll type and pet food type; %s is the scroll type's label or the pet food's item name.
 L["OPTIONS_BUFF_TYPE_DESCRIPTION"] = '检查缺少的增益时包含"%s"。'
 
@@ -498,11 +496,12 @@ L["OPTIONS_COMBINE_HEALTHSTONES_DESCRIPTION"] =
 
 -- Mana Gems & Runes
 L["OPTIONS_MANA_GEMS_HEADER"] = "法力宝石与符文"
-L["OPTIONS_MANA_GEMS_DESCRIPTION"] =
-	"恶魔符文、黑暗符文以及另外几种法力物品，都与法力宝石共享冷却时间。符文使用时会消耗生命值，因此除非你选择加入，否则法力宝石宏不会包含其中任何一种。"
+-- In both Mana Gem texts the two %s are the client's names for Demonic Rune and Dark Rune, in that order, each with its icon.
+L["OPTIONS_MANA_GEMS_DESCRIPTION_FORMAT"] =
+	"%s、%s以及另外几种法力物品，都与法力宝石共享冷却时间。符文使用时会消耗生命值，因此除非你选择加入，否则法力宝石宏不会包含其中任何一种。"
 L["OPTIONS_INCLUDE_MANA_RUNES"] = "将符文与其他法力物品加入法力宝石宏"
-L["OPTIONS_INCLUDE_MANA_RUNES_DESCRIPTION"] =
-	"将你的恶魔符文、黑暗符文，以及任何其他与法力宝石共享冷却时间的法力物品，和你的法力宝石一同排序，这样当其中某件物品是你的最佳选择，或你的法力宝石用完时，法力宝石宏就会使用该物品。"
+L["OPTIONS_INCLUDE_MANA_RUNES_DESCRIPTION_FORMAT"] =
+	"将你的%s、%s，以及任何其他与法力宝石共享冷却时间的法力物品，和你的法力宝石一同排序，这样当其中某件物品是你的最佳选择，或你的法力宝石用完时，法力宝石宏就会使用该物品。"
 
 -- Buff Re-Application
 L["OPTIONS_REAPPLY_HEADER"] = "增益重新应用"
@@ -522,10 +521,10 @@ L["REAPPLY_THRESHOLD_MANY"] = "当剩余不足 %d 分钟时"
 
 -- Pet Food Buffs
 L["OPTIONS_PET_HEADER"] = "宠物食物增益"
-L["OPTIONS_PET_SECTION_DESCRIPTION"] = '少数食物会为你的宠物提供专属的"进食充分"增益。'
+L["OPTIONS_PET_SECTION_DESCRIPTION_FORMAT"] = '少数食物会为你的宠物提供专属的"%s"增益。'
 L["OPTIONS_USE_PET_BUFFS"] = "使用宠物食物增益"
-L["OPTIONS_USE_PET_BUFFS_DESCRIPTION"] =
-	'当你的宠物缺少"进食充分"增益时，将宠物食物加入你的食物宏，竞技场中除外。'
+L["OPTIONS_USE_PET_BUFFS_DESCRIPTION_FORMAT"] =
+	'当你的宠物缺少"%s"增益时，将宠物食物加入你的食物宏，竞技场中除外。'
 -- The pet food toggles under this heading carry the client's own item names, so they have no keys here.
 L["OPTIONS_PET_BUFF_TYPES"] = "在检查中包含宠物食物类型"
 
@@ -540,8 +539,7 @@ L["OPTIONS_EXPLOSIVES_CLICK_LAYOUT_DESCRIPTION"] =
 L["EXPLOSIVES_MODE_ATPLAYER"] = "左键点击 @player"
 L["EXPLOSIVES_MODE_TOSS"] = "左键点击投掷"
 
--- Druids
-L["OPTIONS_DRUIDS_HEADER"] = "德鲁伊"
+-- Druids. This section and the Rogue one are headed with the client's name for the player's class, so neither header has a key.
 L["OPTIONS_DRUID_MACRO_HELPER"] = "启用 DruidMacroHelper 整合"
 L["OPTIONS_DRUID_MACRO_HELPER_DESCRIPTION"] =
 	"使用 DruidMacroHelper (/dmh) 为治疗药水、法力药水和治疗石构建变形宏。"
@@ -555,23 +553,23 @@ L["DRUID_FORM_BEAR"] = "返回熊形态"
 L["DRUID_FORM_CAT"] = "返回猎豹形态"
 
 -- Rogues
-L["OPTIONS_ROGUES_HEADER"] = "潜行者"
 L["OPTIONS_POISONS_DESCRIPTION"] =
 	"让毒药宏始终装载每种毒药类型可用的最高等级。左键涂抹副手，右键涂抹主手，已有毒药会自动替换。"
 L["OPTIONS_POISON_MAIN_HAND"] = "主手毒药类型"
 L["OPTIONS_POISON_OFF_HAND"] = "副手毒药类型"
 L["OPTIONS_POISON_MAIN_HAND_DESCRIPTION"] = "选择你的毒药宏在右键点击时涂抹到主手的毒药。"
 L["OPTIONS_POISON_OFF_HAND_DESCRIPTION"] = "选择你的毒药宏在左键点击时涂抹到副手的毒药。"
--- Shared by the Rogue (Stealth) and Night Elf (Shadowmeld) toggles; a character sees one at most.
+--[[
+    Shared by the Rogue (Stealth) and Night Elf (Shadowmeld) toggles; a
+    character sees one at most. In both hover texts %s is the client's name for
+    the spell the macro appends.
+]]
 L["OPTIONS_STEALTH_EATING"] = "启用进食时潜行"
-L["OPTIONS_STEALTH_EATING_ROGUE_DESCRIPTION"] = "将潜行添加到你的食物宏中，以便你在进食时潜行。"
+L["OPTIONS_STEALTH_EATING_SPELL_DESCRIPTION"] = "将%s添加到你的食物宏中，以便你在进食时潜行。"
 
--- Night Elves
-L["OPTIONS_NIGHTELF_HEADER"] = "暗夜精灵"
+-- Night Elves. The section is headed with the client's name for the player's race, so its header has no key.
 L["OPTIONS_STEALTH_DRINKING"] = "启用喝水时潜行"
-L["OPTIONS_STEALTH_DRINKING_DESCRIPTION"] = "将影遁添加到你的水宏中，以便你在喝水时潜行。"
-L["OPTIONS_STEALTH_EATING_NIGHTELF_DESCRIPTION"] =
-	"将影遁添加到你的食物宏中，以便你在进食时潜行。"
+L["OPTIONS_STEALTH_DRINKING_SPELL_DESCRIPTION"] = "将%s添加到你的水宏中，以便你在喝水时潜行。"
 L["OPTIONS_STEALTH_PICK_ONE"] =
 	"专业提示：只选一个。你可以同时进食和喝水，但潜行后再进食或喝水会解除潜行。"
 
@@ -611,6 +609,8 @@ L["OPTIONS_RESTOCKER_OPEN_BANK"] = "在银行打开"
 L["OPTIONS_RESTOCKER_OPEN_BANK_DESCRIPTION"] = "访问银行时打开你的补货清单。"
 L["OPTIONS_RESTOCKER_OPEN_MERCHANT"] = "在商人处打开"
 L["OPTIONS_RESTOCKER_OPEN_MERCHANT_DESCRIPTION"] = "访问商人时打开你的补货清单。"
+-- The header over the three reminder rows below, which follow the Staples Pop-Up and Gold Reserve rows on the page.
+L["OPTIONS_RESTOCKER_REMINDERS_HEADER"] = "提醒"
 L["OPTIONS_RESTOCKER_REMIND"] = "启用城镇补货提醒"
 L["OPTIONS_RESTOCKER_REMIND_DESCRIPTION"] =
 	"当补货清单尚有缺口，且你抵达旅店或城市，或登录时已身处其中，在聊天中输出提醒。"
@@ -618,6 +618,12 @@ L["OPTIONS_RESTOCKER_MERCHANT_REMIND"] = "启用商人补货提醒"
 L["OPTIONS_RESTOCKER_MERCHANT_REMIND_DESCRIPTION"] = "关闭商人窗口时，报告所有未完成的补货订单。"
 L["OPTIONS_RESTOCKER_BANK_REMIND"] = "启用银行补货提醒"
 L["OPTIONS_RESTOCKER_BANK_REMIND_DESCRIPTION"] = "关闭银行时，报告所有未完成的补货订单。"
+
+--[[
+    The Gold Reserve: the floor the merchant restock never spends below. The
+    dropdown beside it writes each amount as a number and the gold coin, so
+    it has no strings of its own.
+]]
 L["OPTIONS_RESTOCKER_GOLD_RESERVE"] = "启用金币储备"
 L["OPTIONS_RESTOCKER_GOLD_RESERVE_DESCRIPTION"] = "补货永远不会花掉你在此预留的金币。"
 L["OPTIONS_RESTOCKER_GOLD_RESERVE_AMOUNT_DESCRIPTION"] = "补货始终为你保留的金币数量。"
@@ -649,7 +655,6 @@ L["OPTIONS_RESTOCKER_REMIND_SOUND"] = "播放声音"
 L["OPTIONS_RESTOCKER_REMIND_SOUND_DESCRIPTION"] = "在提醒的同时播放提示音，适合聊天繁忙的时候。"
 L["OPTIONS_RESTOCKER_SOUND_PREVIEW"] = "点击试听提示音。"
 
-L["OPTIONS_RESTOCKER_REMINDERS_HEADER"] = "提醒"
 L["OPTIONS_RESTOCKER_WINDOW_HEADER"] = "补货清单窗口"
 L["OPTIONS_RESTOCKER_WINDOW_DESCRIPTION"] = "选择你的补货清单何时自动打开。"
 
@@ -711,11 +716,10 @@ L["OPTIONS_READINESS_CHARACTER_HEADER"] = "角色"
 -- Missing Buffs
 L["OPTIONS_READINESS_FLASK_DESCRIPTION"] =
 	"缺少合剂时提醒。一瓶合剂，或战斗药剂与守护药剂各一瓶，均视为已满足。"
-L["OPTIONS_READINESS_WELL_FED_DESCRIPTION"] =
-	'缺少"进食充分"增益时提醒。需要在宏页面中开启增益食物。'
-L["OPTIONS_READINESS_PET_WELL_FED_DESCRIPTION"] =
-	'你的宠物缺少"进食充分"增益时提醒。需要在宏页面中开启宠物食物增益，并且已召唤出宠物。'
-L["OPTIONS_READINESS_SCROLLS"] = "卷轴增益"
+L["OPTIONS_READINESS_WELL_FED_DESCRIPTION_FORMAT"] =
+	'缺少"%s"增益时提醒。需要在宏页面中开启增益食物。'
+L["OPTIONS_READINESS_PET_WELL_FED_DESCRIPTION_FORMAT"] =
+	'你的宠物缺少"%s"增益时提醒。需要在宏页面中开启宠物食物增益，并且已召唤出宠物。'
 L["OPTIONS_READINESS_SCROLLS_DESCRIPTION"] =
 	"缺少卷轴增益时提醒。需要在宏页面中开启卷轴增益，并且只检查该处所选的卷轴类型。"
 --[[
@@ -759,7 +763,8 @@ L["OPTIONS_READINESS_HEALING_POTION_DESCRIPTION"] =
 	"当你身上没有治疗药水时提醒，因为战斗中没人能递给你药水。"
 L["OPTIONS_READINESS_MANA_POTION_DESCRIPTION"] =
 	"当你身上没有法力药水时提醒。仅当你的角色是使用法力的职业时显示。"
-L["OPTIONS_READINESS_BANDAGES_DESCRIPTION"] = "当你身上没有急救技能允许使用的绷带时提醒。"
+-- %s is the client's name for the First Aid skill line.
+L["OPTIONS_READINESS_BANDAGES_SKILL_DESCRIPTION"] = "当你身上没有%s技能允许使用的绷带时提醒。"
 L["OPTIONS_READINESS_DURABILITY"] = "受损装备低于"
 L["OPTIONS_READINESS_DURABILITY_DESCRIPTION"] =
 	"链接耐久度低于该值的每件已装备物品；按单件计算，因此即使只有一把武器损坏也会显示。"
@@ -774,8 +779,8 @@ L["OPTIONS_READINESS_SPEC_DESCRIPTION"] = "输出你的天赋分配，以及尚�
 L["OPTIONS_READINESS_PVP"] = "PvP 标记开启"
 L["OPTIONS_READINESS_PVP_DESCRIPTION"] = "当你的 PvP 标记开启时发出警告。"
 L["OPTIONS_READINESS_QUESTIONABLE_GEAR"] = "装备了非战斗装备"
-L["OPTIONS_READINESS_QUESTIONABLE_GEAR_DESCRIPTION"] =
-	"链接不该出现在战斗中的已装备物品，比如马鞭或鱼竿。"
+L["OPTIONS_READINESS_NONCOMBAT_GEAR_DESCRIPTION"] =
+	"链接不该出现在战斗中的已装备物品，比如骑乘装备或钓鱼装备。"
 
 --------------------------------------------------------------------------------
 -- Restocker Window & Chat
@@ -890,7 +895,9 @@ L["RESTOCKER_RESTOCKED_PARTIAL_ONE"] = "有 1 项补货订单仅部分完成。"
 L["RESTOCKER_RESTOCKED_PARTIAL_MANY"] = "有 %d 项补货订单仅部分完成。"
 -- Printed after the counts above when the bags ran out of room before every order was bought.
 L["RESTOCKER_BAGS_FULL_PARTIAL"] = "背包在全部购买完成前就已装满。"
+-- Printed after the counts above when gold ran out, or the Gold Reserve was reached, before every order was bought.
 L["RESTOCKER_OUT_OF_GOLD"] = "金币不足，无法完成补货。"
+-- RESTOCKER_OUT_OF_GOLD's line while the Gold Reserve is on, whole so each locale joins its sentences its own way. %s is the reserve with the gold coin.
 L["RESTOCKER_OUT_OF_GOLD_RESERVE"] =
 	"补货已暂停；金币不足。一旦能在不动用你的储备（%s）的情况下完成采购订单，补货就会继续。"
 
@@ -943,13 +950,14 @@ L["STARTER_POPUP_ARROWS"] = "箭矢"
 --[[
     The Reagents & Tools section: the Hearthstone, plus each class's tools and
     spell reagents. Rogues additionally get a Poisons section of their own,
-    whose note under the header reuses PREFIX_ROGUE (rogue-colored at the call
-    site) to say the ingredients take care of themselves. Both sections name
+    whose note under the header opens with the client's name for the class
+    (rogue-colored at the call site) to say the ingredients take care of
+    themselves. Both sections name
     their rows with the client's own item names, so neither has row labels here.
 ]]
 L["STARTER_POPUP_REAGENTS_HEADER"] = "材料与工具"
 L["STARTER_POPUP_POISONS_HEADER"] = "毒药"
--- %s is the rogue-colored PREFIX_ROGUE; the spaced colon is deliberate.
+-- %s is the client's name for the Rogue class, rogue-colored; the spaced colon is deliberate.
 L["STARTER_POPUP_POISONS_NOTE"] =
 	"%s ：将成品毒药加入你的清单，Connoisseur 会在任何出售全部所需材料的商人处自动购买这些材料。"
 --[[
@@ -1218,29 +1226,24 @@ L["RESTOCKER_WITHDRAW_TOOLTIP_BODY"] = "银行打开时，从银行取出所需�
 -- Required-reputation control (per-item vendor gate).
 L["RESTOCKER_REPUTATION_MENU_TITLE"] = "所需声望"
 --[[
-    { standing label, discount percent }.
+    { standing label, discount percent }. The standings are the client's own
+    labels (FACTION_STANDING_LABEL5 to 8), so only "Any" has a key here.
 
-    This string IS run through string.format, so its literal percent sign is
-    escaped as %%. RESTOCKER_REPUTATION_TOOLTIP_STANDING below is printed
-    as-is and therefore writes bare % signs. Both are correct where they
-    stand; neither may be "normalized" to match the other, in any locale.
+    Run through string.format, so its literal percent sign is escaped as %%,
+    as is RESTOCKER_REPUTATION_TOOLTIP_DISCOUNTS' below.
 ]]
 L["RESTOCKER_REPUTATION_DISCOUNT_FORMAT"] = "%s (优惠 %d%%)"
 L["RESTOCKER_REPUTATION_ANY"] = "任意"
-L["RESTOCKER_REPUTATION_FRIENDLY"] = "友善"
-L["RESTOCKER_REPUTATION_HONORED"] = "尊敬"
-L["RESTOCKER_REPUTATION_REVERED"] = "崇敬"
-L["RESTOCKER_REPUTATION_EXALTED"] = "崇拜"
 L["RESTOCKER_REPUTATION_TOOLTIP_TITLE"] = "所需商人声望"
 --[[
-    Quotes the cell's own values, which couples this line to the four standings
-    above: a locale that renders a standing differently has to say so here too.
-    With no standing required the cell draws a dash rather than the word "Any",
-    which is why the last sentence names the dash; "Any" is still the menu's
-    first entry.
+    The four %s are the client's labels for Friendly, Honored, Revered and
+    Exalted, in that order, each followed by its discount; the percent signs are
+    escaped as %% because the line goes through string.format. With no standing
+    required the cell draws a dash rather than the word "Any", which is why the
+    last sentence names the dash; "Any" is still the menu's first entry.
 ]]
-L["RESTOCKER_REPUTATION_TOOLTIP_STANDING"] =
-	"点击设置 Connoisseur 向商人购买前所需的声望等级；声望还会降低价格：友善 5%，尊敬 10%，崇敬 15%，崇拜 20%。短横线表示向任何商人购买。"
+L["RESTOCKER_REPUTATION_TOOLTIP_DISCOUNTS"] =
+	"点击设置 Connoisseur 向商人购买前所需的声望等级；声望还会降低价格：%s 5%%，%s 10%%，%s 15%%，%s 20%%。短横线表示向任何商人购买。"
 
 --[[
     Why a cell cannot be set on its row: the tooltip a dimmed cell shows under

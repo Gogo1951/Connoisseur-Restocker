@@ -114,7 +114,11 @@ L["READINESS_QUESTIONABLE_GEAR"] = "Non-Combat Gear Equipped :"
     What the report calls each thing. The Readiness Report panel labels its
     switches with these same keys, so a switch names exactly the line it
     controls; a switch that needs other words than its line (Main Hand Weapon
-    Buff, PvP Flag On) keeps an OPTIONS_READINESS_* label of its own.
+    Buff, PvP Flag On) keeps an OPTIONS_READINESS_* label of its own, and
+    Scroll Buffs borrows FEATURE_SCROLL_BUFFS, the Macros feature it needs.
+    Well Fed, Main Hand and Off Hand are the client's own names (the buff,
+    MAINHANDSLOT and SECONDARYHANDSLOT), so they have no keys here, and
+    READINESS_PET_FORMAT puts Well Fed in the pet's line (%s is that name).
 
     Deliberately its own set rather than the shared LABEL_* keys the macro
     messages use: those name an item you are being offered ("Health Potion"),
@@ -122,12 +126,9 @@ L["READINESS_QUESTIONABLE_GEAR"] = "Non-Combat Gear Equipped :"
     to be reworded independently.
 ]]
 L["READINESS_FLASK"] = "Flask or 2x Elixirs"
-L["READINESS_WELL_FED"] = "Well Fed"
-L["READINESS_PET_WELL_FED"] = "Well Fed (Pet)"
+L["READINESS_PET_FORMAT"] = "%s (Pet)"
 L["READINESS_SCROLLS"] = "Scrolls"
 L["READINESS_SOULSTONE"] = "Soulstone Inactive"
-L["READINESS_MAIN_HAND"] = "Main Hand"
-L["READINESS_OFF_HAND"] = "Off Hand"
 L["READINESS_HEALTHSTONE"] = "Healthstone"
 L["READINESS_MANA_GEM"] = "Mana Gem"
 L["READINESS_HEALING_POTION"] = "Healing Potion"
@@ -152,7 +153,8 @@ L["READINESS_UNSPENT_TALENTS_MANY"] = "%d Unspent Talent Points"
 -- Printed in chat by macro bodies via /run ConnoisseurTip("key") or ConnoisseurTipIf. See Features/Macros/Runtime.lua.
 
 L["TIP_PET_NO_FOOD"] = "You don't currently have any food that is useful for your pet."
-L["TIP_PET_NO_SKILLS"] = "You don't currently know Call Pet, Dismiss Pet, Feed Pet, or Revive Pet."
+-- The four %s are the client's names for Call Pet, Dismiss Pet, Feed Pet and Revive Pet, in that order.
+L["TIP_PET_NO_SKILLS_FORMAT"] = "You don't currently know %s, %s, %s, or %s."
 L["TIP_PET_NO_MEND"] = "You don't currently know Mend Pet."
 L["TIP_NO_HAND_POISON"] = "You're out of the selected poison for this weapon."
 
@@ -163,9 +165,14 @@ L["TIP_DONT_KNOW_SPELL"] = "You don't currently know %s."
 -- Minimap Tooltip
 --------------------------------------------------------------------------------
 
--- Feature toggles shown in the mini-map tooltip, each with a description line. Both names also fill OPTIONS_MODE_DESCRIPTION's %s.
+--[[
+    Feature toggles shown in the mini-map tooltip, each with a description
+    line. Both names also fill OPTIONS_MODE_DESCRIPTION's %s, and Scroll Buffs
+    labels the Readiness Report's switch. In every *_FORMAT key that quotes the
+    buff, here and below, %s is the client's name for "Well Fed".
+]]
 L["FEATURE_BUFF_FOOD"] = "Buff Food"
-L["MENU_BUFF_FOOD_DESCRIPTION"] = 'Prioritizes food that grants "Well Fed" whenever the buff is missing.'
+L["MENU_BUFF_FOOD_DESCRIPTION_FORMAT"] = 'Prioritizes food that grants "%s" whenever the buff is missing.'
 L["FEATURE_SCROLL_BUFFS"] = "Scroll Buffs"
 L["MENU_SCROLL_BUFFS_DESCRIPTION"] = "Applies missing scroll buffs from your Food macro before you eat."
 
@@ -173,8 +180,8 @@ L["MENU_SCROLL_BUFFS_DESCRIPTION"] = "Applies missing scroll buffs from your Foo
     Item titles in the mini-map tooltip. A title sits alone on its row and its
     item is right-aligned on the row beneath, so neither has to stay short;
     with nothing to show, MESSAGE_NO_ITEM takes the item's row. Current Pet
-    Food opens the Attention Hunters block, and the two poison titles open the
-    Attention Rogues block.
+    Food opens the Hunter's class block, and the two poison titles open the
+    Rogue's.
 ]]
 L["MINIMAP_BEST_FOOD"] = "Current Food"
 L["MINIMAP_BEST_PET_FOOD"] = "Current Pet Food"
@@ -233,15 +240,11 @@ L["MENU_OPTIONS_KEYBIND"] = "Shift + Middle-Click"
 --------------------------------------------------------------------------------
 
 --[[
-    The class block of the mini-map tooltip: a class-colored header, the items
+    The class block of the mini-map tooltip: a class-colored header, which is
+    the client's name for the player's class and has no key here, the items
     the class's own macro will use (a Hunter's pet food, a Rogue's two poisons,
     titled in the Minimap Tooltip section above), then one group per macro.
 ]]
-
-L["PREFIX_HUNTER"] = "Attention Hunters"
-L["PREFIX_MAGE"] = "Attention Mages"
-L["PREFIX_ROGUE"] = "Attention Rogues"
-L["PREFIX_WARLOCK"] = "Attention Warlocks"
 
 --[[
     A group is the macro's name, then one row per click: the click on the left
@@ -282,9 +285,7 @@ L["NOTE_LOWER_RANK_BACKUP"] = "Lower-Rank Backup"
 L["NOTE_MAGE_TARGET_LEVEL"] = "Target a lower-level player to conjure for their level."
 L["NOTE_WARLOCK_TARGET_LEVEL"] = "Target a lower-level player to create one for their level."
 
--- Rogue. The two hands are the results of a Left-Click and a Right-Click on the Poisons macro.
-L["MINIMAP_MAIN_HAND"] = "Main Hand"
-L["MINIMAP_OFF_HAND"] = "Off Hand"
+-- Rogue. A Left-Click and a Right-Click on the Poisons macro show the client's slot names, MAINHANDSLOT and SECONDARYHANDSLOT.
 L["NOTE_POISONS_WINDOW"] = "Poisons Window"
 L["NOTE_POISONS_REPLACED"] = "Replaces old poisons automatically."
 
@@ -442,9 +443,10 @@ L["OPTIONS_ENABLE_MACROS_DESCRIPTION"] =
 L["OPTIONS_MACRO_TOGGLE_DESCRIPTION"] = "Creates and maintains this macro, and removes it when unchecked."
 
 --[[
-    Food & Water: Prioritize Buff Food, Enable Scroll Buffs, and Use Conjured
-    Food & Water First, in page order. One description serves all three, so
-    each option's hover text says what it does.
+    Food & Water: Prioritize Buff Food, Enable Scroll Buffs, Use Conjured
+    Food & Water First, and Use Restock List Food & Water Last, in page
+    order. One description serves all four, so each option's hover text says
+    what it does.
 ]]
 L["OPTIONS_FOOD_WATER_HEADER"] = "Food & Water"
 L["OPTIONS_FOOD_WATER_DESCRIPTION"] =
@@ -453,23 +455,19 @@ L["OPTIONS_FOOD_WATER_DESCRIPTION"] =
 --[[
     Buff Food, the first option under Food & Water. Its hover text is a key of
     its own because it carries the arena exception, which the mini-map
-    tooltip's MENU_BUFF_FOOD_DESCRIPTION has no room for.
+    tooltip's MENU_BUFF_FOOD_DESCRIPTION_FORMAT has no room for.
 ]]
 L["OPTIONS_BUFF_FOOD"] = "Prioritize Buff Food"
-L["OPTIONS_BUFF_FOOD_DESCRIPTION"] =
-	'Prioritizes food that grants "Well Fed" whenever the buff is missing, except in Arenas.'
+L["OPTIONS_BUFF_FOOD_DESCRIPTION_FORMAT"] =
+	'Prioritizes food that grants "%s" whenever the buff is missing, except in Arenas.'
 
 -- Scroll Buffs, the second option under Food & Water.
 L["OPTIONS_USE_SCROLLS"] = "Enable Scroll Buffs"
 L["OPTIONS_USE_SCROLLS_DESCRIPTION"] =
 	"Your Food macro applies missing scrolls on the first press and eats on the next, skipping scrolls when you target a friendly player or are in an Arena."
 L["OPTIONS_SCROLL_TYPES"] = "Include Scroll Types in Check"
-L["OPTIONS_SCROLL_AGILITY"] = "Agility"
-L["OPTIONS_SCROLL_INTELLECT"] = "Intellect"
+-- The other five scroll types are labeled with the client's stat names (SPELL_STAT1_NAME to SPELL_STAT5_NAME); Protection has none.
 L["OPTIONS_SCROLL_PROTECTION"] = "Protection"
-L["OPTIONS_SCROLL_SPIRIT"] = "Spirit"
-L["OPTIONS_SCROLL_STAMINA"] = "Stamina"
-L["OPTIONS_SCROLL_STRENGTH"] = "Strength"
 -- Hover text on each scroll type and pet food type; %s is the scroll type's label or the pet food's item name.
 L["OPTIONS_BUFF_TYPE_DESCRIPTION"] = "Includes %s when checking for missing buffs."
 
@@ -498,11 +496,12 @@ L["OPTIONS_COMBINE_HEALTHSTONES_DESCRIPTION"] =
 
 -- Mana Gems & Runes
 L["OPTIONS_MANA_GEMS_HEADER"] = "Mana Gems & Runes"
-L["OPTIONS_MANA_GEMS_DESCRIPTION"] =
-	"Demonic and Dark Runes, and a few other mana items, share a cooldown with Mana Gems. The runes cost health to use, so the Mana Gem macro leaves all of them out unless you add them."
+-- In both Mana Gem texts the two %s are the client's names for Demonic Rune and Dark Rune, in that order, each with its icon.
+L["OPTIONS_MANA_GEMS_DESCRIPTION_FORMAT"] =
+	"%s, %s, and a few other mana items share a cooldown with Mana Gems. The runes cost health to use, so the Mana Gem macro leaves all of them out unless you add them."
 L["OPTIONS_INCLUDE_MANA_RUNES"] = "Add Runes & Other Mana Items to Mana Gem Macro"
-L["OPTIONS_INCLUDE_MANA_RUNES_DESCRIPTION"] =
-	"Ranks your Demonic and Dark Runes, and any other mana item that shares the Mana Gem cooldown, alongside your Mana Gems, so the Mana Gem macro uses one when it's your best option or when you're out of gems."
+L["OPTIONS_INCLUDE_MANA_RUNES_DESCRIPTION_FORMAT"] =
+	"Ranks your %s, your %s, and any other mana item that shares the Mana Gem cooldown, alongside your Mana Gems, so the Mana Gem macro uses one when it's your best option or when you're out of gems."
 
 -- Buff Re-Application
 L["OPTIONS_REAPPLY_HEADER"] = "Buff Re-Application"
@@ -522,10 +521,10 @@ L["REAPPLY_THRESHOLD_MANY"] = "When < %d Minutes Left"
 
 -- Pet Food Buffs
 L["OPTIONS_PET_HEADER"] = "Pet Food Buffs"
-L["OPTIONS_PET_SECTION_DESCRIPTION"] = 'A few foods give your pet a "Well Fed" buff of its own.'
+L["OPTIONS_PET_SECTION_DESCRIPTION_FORMAT"] = 'A few foods give your pet a "%s" buff of its own.'
 L["OPTIONS_USE_PET_BUFFS"] = "Use Pet Food Buffs"
-L["OPTIONS_USE_PET_BUFFS_DESCRIPTION"] =
-	'Adds pet food to your Food macro when your pet is missing "Well Fed", except in Arenas.'
+L["OPTIONS_USE_PET_BUFFS_DESCRIPTION_FORMAT"] =
+	'Adds pet food to your Food macro when your pet is missing "%s", except in Arenas.'
 -- The pet food toggles under this heading carry the client's own item names, so they have no keys here.
 L["OPTIONS_PET_BUFF_TYPES"] = "Include Pet Food Types in Check"
 
@@ -540,8 +539,7 @@ L["OPTIONS_EXPLOSIVES_CLICK_LAYOUT_DESCRIPTION"] =
 L["EXPLOSIVES_MODE_ATPLAYER"] = "Left-Click @player"
 L["EXPLOSIVES_MODE_TOSS"] = "Left-Click Toss"
 
--- Druids
-L["OPTIONS_DRUIDS_HEADER"] = "Druids"
+-- Druids. This section and the Rogue one are headed with the client's name for the player's class, so neither header has a key.
 L["OPTIONS_DRUID_MACRO_HELPER"] = "Enable DruidMacroHelper Integration"
 L["OPTIONS_DRUID_MACRO_HELPER_DESCRIPTION"] =
 	"Builds powershifting macros for Health Potions, Mana Potions, and Healthstones using DruidMacroHelper (/dmh)."
@@ -556,7 +554,6 @@ L["DRUID_FORM_BEAR"] = "Return to Bear"
 L["DRUID_FORM_CAT"] = "Return to Cat"
 
 -- Rogues
-L["OPTIONS_ROGUES_HEADER"] = "Rogues"
 L["OPTIONS_POISONS_DESCRIPTION"] =
 	"Keeps the Poisons macro loaded with the best usable rank of each poison type. Left-Click applies to your Off Hand, Right-Click to your Main Hand, and existing poisons are replaced automatically."
 L["OPTIONS_POISON_MAIN_HAND"] = "Main Hand Poison Type"
@@ -565,15 +562,17 @@ L["OPTIONS_POISON_MAIN_HAND_DESCRIPTION"] =
 	"Chooses the poison your Poisons macro applies to your Main Hand on Right-Click."
 L["OPTIONS_POISON_OFF_HAND_DESCRIPTION"] =
 	"Chooses the poison your Poisons macro applies to your Off Hand on Left-Click."
--- Shared by the Rogue (Stealth) and Night Elf (Shadowmeld) toggles; a character sees one at most.
+--[[
+    Shared by the Rogue (Stealth) and Night Elf (Shadowmeld) toggles; a
+    character sees one at most. In both hover texts %s is the client's name for
+    the spell the macro appends.
+]]
 L["OPTIONS_STEALTH_EATING"] = "Enable Stealth Eating"
-L["OPTIONS_STEALTH_EATING_ROGUE_DESCRIPTION"] = "Appends Stealth to your Food macro so you stealth while eating."
+L["OPTIONS_STEALTH_EATING_SPELL_DESCRIPTION"] = "Appends %s to your Food macro so you stealth while eating."
 
--- Night Elves
-L["OPTIONS_NIGHTELF_HEADER"] = "Night Elves"
+-- Night Elves. The section is headed with the client's name for the player's race, so its header has no key.
 L["OPTIONS_STEALTH_DRINKING"] = "Enable Stealth Drinking"
-L["OPTIONS_STEALTH_DRINKING_DESCRIPTION"] = "Appends Shadowmeld to your Water macro so you stealth while drinking."
-L["OPTIONS_STEALTH_EATING_NIGHTELF_DESCRIPTION"] = "Appends Shadowmeld to your Food macro so you stealth while eating."
+L["OPTIONS_STEALTH_DRINKING_SPELL_DESCRIPTION"] = "Appends %s to your Water macro so you stealth while drinking."
 L["OPTIONS_STEALTH_PICK_ONE"] =
 	"Pro Tip: Pick one. You can eat and drink at the same time, but eating or drinking after you stealth will break your stealth."
 
@@ -613,6 +612,8 @@ L["OPTIONS_RESTOCKER_OPEN_BANK"] = "Open at Bank"
 L["OPTIONS_RESTOCKER_OPEN_BANK_DESCRIPTION"] = "Opens your Restock List when you visit the bank."
 L["OPTIONS_RESTOCKER_OPEN_MERCHANT"] = "Open at Merchant"
 L["OPTIONS_RESTOCKER_OPEN_MERCHANT_DESCRIPTION"] = "Opens your Restock List when you visit a merchant."
+-- The header over the three reminder rows below, which follow the Staples Pop-Up and Gold Reserve rows on the page.
+L["OPTIONS_RESTOCKER_REMINDERS_HEADER"] = "Reminders"
 L["OPTIONS_RESTOCKER_REMIND"] = "Enable In-Town Restock Reminders"
 L["OPTIONS_RESTOCKER_REMIND_DESCRIPTION"] =
 	"Prints a chat reminder when your Restock List is short of something and you reach an inn or a city, or log in already standing in one."
@@ -658,7 +659,6 @@ L["OPTIONS_RESTOCKER_REMIND_SOUND"] = "Play Sound"
 L["OPTIONS_RESTOCKER_REMIND_SOUND_DESCRIPTION"] = "Plays an alert alongside the reminder, for when chat is busy."
 L["OPTIONS_RESTOCKER_SOUND_PREVIEW"] = "Click to hear the alert."
 
-L["OPTIONS_RESTOCKER_REMINDERS_HEADER"] = "Reminders"
 L["OPTIONS_RESTOCKER_WINDOW_HEADER"] = "Restock List Window"
 L["OPTIONS_RESTOCKER_WINDOW_DESCRIPTION"] = "Choose when your Restock List opens on its own."
 
@@ -720,11 +720,10 @@ L["OPTIONS_READINESS_CHARACTER_HEADER"] = "Character"
 -- Missing Buffs
 L["OPTIONS_READINESS_FLASK_DESCRIPTION"] =
 	"Reports a missing flask. A flask, or one battle elixir and one guardian elixir, counts as covered."
-L["OPTIONS_READINESS_WELL_FED_DESCRIPTION"] =
-	'Reports a missing "Well Fed" buff. Needs Buff Food turned on under Macros.'
-L["OPTIONS_READINESS_PET_WELL_FED_DESCRIPTION"] =
-	'Reports your pet\'s missing "Well Fed" buff. Needs Pet Food Buffs turned on under Macros, and a pet out.'
-L["OPTIONS_READINESS_SCROLLS"] = "Scroll Buffs"
+L["OPTIONS_READINESS_WELL_FED_DESCRIPTION_FORMAT"] =
+	'Reports a missing "%s" buff. Needs Buff Food turned on under Macros.'
+L["OPTIONS_READINESS_PET_WELL_FED_DESCRIPTION_FORMAT"] =
+	'Reports your pet\'s missing "%s" buff. Needs Pet Food Buffs turned on under Macros, and a pet out.'
 L["OPTIONS_READINESS_SCROLLS_DESCRIPTION"] =
 	"Reports missing scroll buffs. Needs Scroll Buffs turned on under Macros, and checks only the scroll types selected there."
 --[[
@@ -768,7 +767,8 @@ L["OPTIONS_READINESS_HEALING_POTION_DESCRIPTION"] =
 	"Reports when you carry no healing potion, since nobody can hand you one mid-fight."
 L["OPTIONS_READINESS_MANA_POTION_DESCRIPTION"] =
 	"Reports when you carry no mana potion. Only shown when you're playing a class that uses mana."
-L["OPTIONS_READINESS_BANDAGES_DESCRIPTION"] = "Reports when you carry no bandage your First Aid skill lets you use."
+-- %s is the client's name for the First Aid skill line.
+L["OPTIONS_READINESS_BANDAGES_SKILL_DESCRIPTION"] = "Reports when you carry no bandage your %s skill lets you use."
 L["OPTIONS_READINESS_DURABILITY"] = "Damaged Gear Below"
 L["OPTIONS_READINESS_DURABILITY_DESCRIPTION"] =
 	"Links every equipped item under this much durability, measured per item so one broken weapon still shows."
@@ -783,8 +783,8 @@ L["OPTIONS_READINESS_SPEC_DESCRIPTION"] = "Prints your talent spread, and any po
 L["OPTIONS_READINESS_PVP"] = "PvP Flag On"
 L["OPTIONS_READINESS_PVP_DESCRIPTION"] = "Warns when your PvP flag is up."
 L["OPTIONS_READINESS_QUESTIONABLE_GEAR"] = "Non-Combat Gear Equipped"
-L["OPTIONS_READINESS_QUESTIONABLE_GEAR_DESCRIPTION"] =
-	"Links equipped items that do not belong in a fight, such as a Riding Crop or a fishing pole."
+L["OPTIONS_READINESS_NONCOMBAT_GEAR_DESCRIPTION"] =
+	"Links equipped items that do not belong in a fight, such as riding or fishing gear."
 
 --------------------------------------------------------------------------------
 -- Restocker Window & Chat
@@ -953,13 +953,14 @@ L["STARTER_POPUP_ARROWS"] = "Arrows"
 --[[
     The Reagents & Tools section: the Hearthstone, plus each class's tools and
     spell reagents. Rogues additionally get a Poisons section of their own,
-    whose note under the header reuses PREFIX_ROGUE (rogue-colored at the call
-    site) to say the ingredients take care of themselves. Both sections name
+    whose note under the header opens with the client's name for the class
+    (rogue-colored at the call site) to say the ingredients take care of
+    themselves. Both sections name
     their rows with the client's own item names, so neither has row labels here.
 ]]
 L["STARTER_POPUP_REAGENTS_HEADER"] = "Reagents & Tools"
 L["STARTER_POPUP_POISONS_HEADER"] = "Poisons"
--- %s is the rogue-colored PREFIX_ROGUE; the spaced colon is deliberate.
+-- %s is the client's name for the Rogue class, rogue-colored; the spaced colon is deliberate.
 L["STARTER_POPUP_POISONS_NOTE"] =
 	"%s : Add the finished poison to your list, and Connoisseur buys the ingredients automatically at any merchant that stocks them all."
 --[[
@@ -1226,29 +1227,24 @@ L["RESTOCKER_WITHDRAW_TOOLTIP_BODY"] = "Takes needed items from the bank when th
 -- Required-reputation control (per-item vendor gate).
 L["RESTOCKER_REPUTATION_MENU_TITLE"] = "Required Reputation"
 --[[
-    { standing label, discount percent }.
+    { standing label, discount percent }. The standings are the client's own
+    labels (FACTION_STANDING_LABEL5 to 8), so only "Any" has a key here.
 
-    This string IS run through string.format, so its literal percent sign is
-    escaped as %%. RESTOCKER_REPUTATION_TOOLTIP_STANDING below is printed
-    as-is and therefore writes bare % signs. Both are correct where they
-    stand; neither may be "normalized" to match the other, in any locale.
+    Run through string.format, so its literal percent sign is escaped as %%,
+    as is RESTOCKER_REPUTATION_TOOLTIP_DISCOUNTS' below.
 ]]
 L["RESTOCKER_REPUTATION_DISCOUNT_FORMAT"] = "%s (%d%% off)"
 L["RESTOCKER_REPUTATION_ANY"] = "Any"
-L["RESTOCKER_REPUTATION_FRIENDLY"] = "Friendly"
-L["RESTOCKER_REPUTATION_HONORED"] = "Honored"
-L["RESTOCKER_REPUTATION_REVERED"] = "Revered"
-L["RESTOCKER_REPUTATION_EXALTED"] = "Exalted"
 L["RESTOCKER_REPUTATION_TOOLTIP_TITLE"] = "Required Merchant Reputation"
 --[[
-    Quotes the cell's own values, which couples this line to the four standings
-    above: a locale that renders a standing differently has to say so here too.
-    With no standing required the cell draws a dash rather than the word "Any",
-    which is why the last sentence names the dash; "Any" is still the menu's
-    first entry.
+    The four %s are the client's labels for Friendly, Honored, Revered and
+    Exalted, in that order, each followed by its discount; the percent signs are
+    escaped as %% because the line goes through string.format. With no standing
+    required the cell draws a dash rather than the word "Any", which is why the
+    last sentence names the dash; "Any" is still the menu's first entry.
 ]]
-L["RESTOCKER_REPUTATION_TOOLTIP_STANDING"] =
-	"Click to set the standing a merchant needs before Connoisseur buys from it, which also cuts the price: Friendly 5%, Honored 10%, Revered 15%, Exalted 20%. A dash buys from any merchant."
+L["RESTOCKER_REPUTATION_TOOLTIP_DISCOUNTS"] =
+	"Click to set the standing a merchant needs before Connoisseur buys from it, which also cuts the price: %s 5%%, %s 10%%, %s 15%%, %s 20%%. A dash buys from any merchant."
 
 --[[
     Why a cell cannot be set on its row: the tooltip a dimmed cell shows under

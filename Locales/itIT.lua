@@ -115,7 +115,11 @@ L["READINESS_QUESTIONABLE_GEAR"] = "Equipaggiamento non da combattimento:"
     What the report calls each thing. The Readiness Report panel labels its
     switches with these same keys, so a switch names exactly the line it
     controls; a switch that needs other words than its line (Main Hand Weapon
-    Buff, PvP Flag On) keeps an OPTIONS_READINESS_* label of its own.
+    Buff, PvP Flag On) keeps an OPTIONS_READINESS_* label of its own, and
+    Scroll Buffs borrows FEATURE_SCROLL_BUFFS, the Macros feature it needs.
+    Well Fed, Main Hand and Off Hand are the client's own names (the buff,
+    MAINHANDSLOT and SECONDARYHANDSLOT), so they have no keys here, and
+    READINESS_PET_FORMAT puts Well Fed in the pet's line (%s is that name).
 
     Deliberately its own set rather than the shared LABEL_* keys the macro
     messages use: those name an item you are being offered ("Health Potion"),
@@ -123,12 +127,9 @@ L["READINESS_QUESTIONABLE_GEAR"] = "Equipaggiamento non da combattimento:"
     to be reworded independently.
 ]]
 L["READINESS_FLASK"] = "Tonico o 2x elisir"
-L["READINESS_WELL_FED"] = "Ben Nutrito"
-L["READINESS_PET_WELL_FED"] = "Ben Nutrito (famiglio)"
+L["READINESS_PET_FORMAT"] = "%s (famiglio)"
 L["READINESS_SCROLLS"] = "Pergamene"
 L["READINESS_SOULSTONE"] = "Pietra dell'Anima inattiva"
-L["READINESS_MAIN_HAND"] = "Mano primaria"
-L["READINESS_OFF_HAND"] = "Mano secondaria"
 L["READINESS_HEALTHSTONE"] = "Pietra della Salute"
 L["READINESS_MANA_GEM"] = "Gemma di Mana"
 L["READINESS_HEALING_POTION"] = "Pozione di Cura"
@@ -153,8 +154,8 @@ L["READINESS_UNSPENT_TALENTS_MANY"] = "%d punti talento non spesi"
 -- Printed in chat by macro bodies via /run ConnoisseurTip("key") or ConnoisseurTipIf. See Features/Macros/Runtime.lua.
 
 L["TIP_PET_NO_FOOD"] = "Al momento non hai alcun cibo utile per il tuo famiglio."
-L["TIP_PET_NO_SKILLS"] =
-	"Al momento non conosci Richiama Famiglio, Congeda Famiglio, Nutri Famiglio o Rianima Famiglio."
+-- The four %s are the client's names for Call Pet, Dismiss Pet, Feed Pet and Revive Pet, in that order.
+L["TIP_PET_NO_SKILLS_FORMAT"] = "Al momento non conosci %s, %s, %s o %s."
 L["TIP_PET_NO_MEND"] = "Al momento non conosci Cura Famiglio."
 L["TIP_NO_HAND_POISON"] = "Hai esaurito il veleno scelto per quest'arma."
 
@@ -165,9 +166,14 @@ L["TIP_DONT_KNOW_SPELL"] = "Al momento non conosci %s."
 -- Minimap Tooltip
 --------------------------------------------------------------------------------
 
--- Feature toggles shown in the mini-map tooltip, each with a description line. Both names also fill OPTIONS_MODE_DESCRIPTION's %s.
+--[[
+    Feature toggles shown in the mini-map tooltip, each with a description
+    line. Both names also fill OPTIONS_MODE_DESCRIPTION's %s, and Scroll Buffs
+    labels the Readiness Report's switch. In every *_FORMAT key that quotes the
+    buff, here and below, %s is the client's name for "Well Fed".
+]]
 L["FEATURE_BUFF_FOOD"] = "Cibo con buff"
-L["MENU_BUFF_FOOD_DESCRIPTION"] = 'Dà priorità al cibo che fornisce il buff "Ben Nutrito" quando il buff è assente.'
+L["MENU_BUFF_FOOD_DESCRIPTION_FORMAT"] = 'Dà priorità al cibo che fornisce il buff "%s" quando il buff è assente.'
 L["FEATURE_SCROLL_BUFFS"] = "Buff delle pergamene"
 L["MENU_SCROLL_BUFFS_DESCRIPTION"] = "La tua macro Cibo applica i buff delle pergamene mancanti prima di mangiare."
 
@@ -175,8 +181,8 @@ L["MENU_SCROLL_BUFFS_DESCRIPTION"] = "La tua macro Cibo applica i buff delle per
     Item titles in the mini-map tooltip. A title sits alone on its row and its
     item is right-aligned on the row beneath, so neither has to stay short;
     with nothing to show, MESSAGE_NO_ITEM takes the item's row. Current Pet
-    Food opens the Attention Hunters block, and the two poison titles open the
-    Attention Rogues block.
+    Food opens the Hunter's class block, and the two poison titles open the
+    Rogue's.
 ]]
 L["MINIMAP_BEST_FOOD"] = "Cibo attuale"
 L["MINIMAP_BEST_PET_FOOD"] = "Cibo attuale del famiglio"
@@ -235,15 +241,11 @@ L["MENU_OPTIONS_KEYBIND"] = "Maiusc + clic centrale"
 --------------------------------------------------------------------------------
 
 --[[
-    The class block of the mini-map tooltip: a class-colored header, the items
+    The class block of the mini-map tooltip: a class-colored header, which is
+    the client's name for the player's class and has no key here, the items
     the class's own macro will use (a Hunter's pet food, a Rogue's two poisons,
     titled in the Minimap Tooltip section above), then one group per macro.
 ]]
-
-L["PREFIX_HUNTER"] = "Attenzione Cacciatori"
-L["PREFIX_MAGE"] = "Attenzione Maghi"
-L["PREFIX_ROGUE"] = "Attenzione Ladri"
-L["PREFIX_WARLOCK"] = "Attenzione Stregoni"
 
 --[[
     A group is the macro's name, then one row per click: the click on the left
@@ -284,9 +286,7 @@ L["NOTE_LOWER_RANK_BACKUP"] = "Scorta di grado inferiore"
 L["NOTE_MAGE_TARGET_LEVEL"] = "Seleziona un giocatore di livello inferiore per evocare in base al suo livello."
 L["NOTE_WARLOCK_TARGET_LEVEL"] = "Seleziona un giocatore di livello inferiore per crearne una in base al suo livello."
 
--- Rogue. The two hands are the results of a Left-Click and a Right-Click on the Poisons macro.
-L["MINIMAP_MAIN_HAND"] = "Mano primaria"
-L["MINIMAP_OFF_HAND"] = "Mano secondaria"
+-- Rogue. A Left-Click and a Right-Click on the Poisons macro show the client's slot names, MAINHANDSLOT and SECONDARYHANDSLOT.
 L["NOTE_POISONS_WINDOW"] = "Finestra dei Veleni"
 L["NOTE_POISONS_REPLACED"] = "Sostituisce automaticamente i vecchi veleni."
 
@@ -444,9 +444,10 @@ L["OPTIONS_ENABLE_MACROS_DESCRIPTION"] =
 L["OPTIONS_MACRO_TOGGLE_DESCRIPTION"] = "Crea e mantiene questa macro e la rimuove quando togli la spunta."
 
 --[[
-    Food & Water: Prioritize Buff Food, Enable Scroll Buffs, and Use Conjured
-    Food & Water First, in page order. One description serves all three, so
-    each option's hover text says what it does.
+    Food & Water: Prioritize Buff Food, Enable Scroll Buffs, Use Conjured
+    Food & Water First, and Use Restock List Food & Water Last, in page
+    order. One description serves all four, so each option's hover text says
+    what it does.
 ]]
 L["OPTIONS_FOOD_WATER_HEADER"] = "Cibo e acqua"
 L["OPTIONS_FOOD_WATER_DESCRIPTION"] =
@@ -455,23 +456,19 @@ L["OPTIONS_FOOD_WATER_DESCRIPTION"] =
 --[[
     Buff Food, the first option under Food & Water. Its hover text is a key of
     its own because it carries the arena exception, which the mini-map
-    tooltip's MENU_BUFF_FOOD_DESCRIPTION has no room for.
+    tooltip's MENU_BUFF_FOOD_DESCRIPTION_FORMAT has no room for.
 ]]
 L["OPTIONS_BUFF_FOOD"] = "Dai priorità al cibo con buff"
-L["OPTIONS_BUFF_FOOD_DESCRIPTION"] =
-	'Dà priorità al cibo che fornisce il buff "Ben Nutrito" quando il buff è assente, tranne nelle arene.'
+L["OPTIONS_BUFF_FOOD_DESCRIPTION_FORMAT"] =
+	'Dà priorità al cibo che fornisce il buff "%s" quando il buff è assente, tranne nelle arene.'
 
 -- Scroll Buffs, the second option under Food & Water.
 L["OPTIONS_USE_SCROLLS"] = "Attiva i buff delle pergamene"
 L["OPTIONS_USE_SCROLLS_DESCRIPTION"] =
 	"La tua macro Cibo applica le pergamene mancanti alla prima pressione e mangia a quella successiva, saltando le pergamene quando selezioni un giocatore amico o sei in un'arena."
 L["OPTIONS_SCROLL_TYPES"] = "Includi i tipi di pergamena nel controllo"
-L["OPTIONS_SCROLL_AGILITY"] = "Agilità"
-L["OPTIONS_SCROLL_INTELLECT"] = "Intelletto"
+-- The other five scroll types are labeled with the client's stat names (SPELL_STAT1_NAME to SPELL_STAT5_NAME); Protection has none.
 L["OPTIONS_SCROLL_PROTECTION"] = "Difesa"
-L["OPTIONS_SCROLL_SPIRIT"] = "Spirito"
-L["OPTIONS_SCROLL_STAMINA"] = "Tempra"
-L["OPTIONS_SCROLL_STRENGTH"] = "Forza"
 -- Hover text on each scroll type and pet food type; %s is the scroll type's label or the pet food's item name.
 L["OPTIONS_BUFF_TYPE_DESCRIPTION"] = 'Include "%s" nel controllo dei buff mancanti.'
 
@@ -500,11 +497,12 @@ L["OPTIONS_COMBINE_HEALTHSTONES_DESCRIPTION"] =
 
 -- Mana Gems & Runes
 L["OPTIONS_MANA_GEMS_HEADER"] = "Gemme di Mana e rune"
-L["OPTIONS_MANA_GEMS_DESCRIPTION"] =
-	"Le Rune Demoniache e le Rune Oscure, insieme ad alcuni altri oggetti per il mana, condividono il tempo di recupero con le Gemme di Mana. Usare le rune costa salute, quindi la macro Gemma di Mana esclude tutti questi oggetti, a meno che tu non li aggiunga."
+-- In both Mana Gem texts the two %s are the client's names for Demonic Rune and Dark Rune, in that order, each with its icon.
+L["OPTIONS_MANA_GEMS_DESCRIPTION_FORMAT"] =
+	"%s, %s e alcuni altri oggetti per il mana condividono il tempo di recupero con le Gemme di Mana. Usare le rune costa salute, quindi la macro Gemma di Mana esclude tutti questi oggetti, a meno che tu non li aggiunga."
 L["OPTIONS_INCLUDE_MANA_RUNES"] = "Aggiungi le rune e gli altri oggetti per il mana alla macro Gemma di Mana"
-L["OPTIONS_INCLUDE_MANA_RUNES_DESCRIPTION"] =
-	"Inserisce nella stessa classifica delle tue Gemme di Mana le tue Rune Demoniache e Oscure e ogni altro oggetto per il mana che ne condivide il tempo di recupero, così la macro Gemma di Mana ne usa uno quando è la tua opzione migliore o quando hai finito le gemme."
+L["OPTIONS_INCLUDE_MANA_RUNES_DESCRIPTION_FORMAT"] =
+	"Inserisce nella stessa classifica delle tue Gemme di Mana %s, %s e ogni altro oggetto per il mana che ne condivide il tempo di recupero, così la macro Gemma di Mana ne usa uno quando è la tua opzione migliore o quando hai finito le gemme."
 
 -- Buff Re-Application
 L["OPTIONS_REAPPLY_HEADER"] = "Rinnovo dei buff"
@@ -524,10 +522,10 @@ L["REAPPLY_THRESHOLD_MANY"] = "Quando rimangono < %d minuti"
 
 -- Pet Food Buffs
 L["OPTIONS_PET_HEADER"] = "Buff del cibo per famigli"
-L["OPTIONS_PET_SECTION_DESCRIPTION"] = 'Alcuni cibi danno al tuo famiglio un buff "Ben Nutrito" tutto suo.'
+L["OPTIONS_PET_SECTION_DESCRIPTION_FORMAT"] = 'Alcuni cibi danno al tuo famiglio un buff "%s" tutto suo.'
 L["OPTIONS_USE_PET_BUFFS"] = "Usa i buff del cibo per famigli"
-L["OPTIONS_USE_PET_BUFFS_DESCRIPTION"] =
-	'Aggiunge il cibo per famigli alla tua macro Cibo quando al tuo famiglio manca il buff "Ben Nutrito", tranne nelle arene.'
+L["OPTIONS_USE_PET_BUFFS_DESCRIPTION_FORMAT"] =
+	'Aggiunge il cibo per famigli alla tua macro Cibo quando al tuo famiglio manca il buff "%s", tranne nelle arene.'
 -- The pet food toggles under this heading carry the client's own item names, so they have no keys here.
 L["OPTIONS_PET_BUFF_TYPES"] = "Includi i tipi di cibo per famigli nel controllo"
 
@@ -542,8 +540,7 @@ L["OPTIONS_EXPLOSIVES_CLICK_LAYOUT_DESCRIPTION"] =
 L["EXPLOSIVES_MODE_ATPLAYER"] = "Clic sinistro @player"
 L["EXPLOSIVES_MODE_TOSS"] = "Clic sinistro lancio"
 
--- Druids
-L["OPTIONS_DRUIDS_HEADER"] = "Druidi"
+-- Druids. This section and the Rogue one are headed with the client's name for the player's class, so neither header has a key.
 L["OPTIONS_DRUID_MACRO_HELPER"] = "Attiva l'integrazione con DruidMacroHelper"
 L["OPTIONS_DRUID_MACRO_HELPER_DESCRIPTION"] =
 	"Crea macro di mutaforma per Pozioni di Salute, Pozioni di Mana e Pietre della Salute utilizzando DruidMacroHelper (/dmh)."
@@ -558,7 +555,6 @@ L["DRUID_FORM_BEAR"] = "Torna in Forma d'Orso"
 L["DRUID_FORM_CAT"] = "Torna in Forma Felina"
 
 -- Rogues
-L["OPTIONS_ROGUES_HEADER"] = "Ladri"
 L["OPTIONS_POISONS_DESCRIPTION"] =
 	"Mantiene la macro Veleni carica con il miglior grado utilizzabile di ogni tipo di veleno: clic sinistro applica alla mano secondaria, clic destro alla mano primaria, e i veleni esistenti vengono sostituiti automaticamente."
 L["OPTIONS_POISON_MAIN_HAND"] = "Tipo di veleno mano primaria"
@@ -567,18 +563,17 @@ L["OPTIONS_POISON_MAIN_HAND_DESCRIPTION"] =
 	"Determina il veleno che la tua macro Veleni applica alla mano primaria con il clic destro."
 L["OPTIONS_POISON_OFF_HAND_DESCRIPTION"] =
 	"Determina il veleno che la tua macro Veleni applica alla mano secondaria con il clic sinistro."
--- Shared by the Rogue (Stealth) and Night Elf (Shadowmeld) toggles; a character sees one at most.
+--[[
+    Shared by the Rogue (Stealth) and Night Elf (Shadowmeld) toggles; a
+    character sees one at most. In both hover texts %s is the client's name for
+    the spell the macro appends.
+]]
 L["OPTIONS_STEALTH_EATING"] = "Attiva la furtività mentre mangi"
-L["OPTIONS_STEALTH_EATING_ROGUE_DESCRIPTION"] =
-	"Aggiunge Furtività alla tua macro Cibo per renderti furtivo mentre mangi."
+L["OPTIONS_STEALTH_EATING_SPELL_DESCRIPTION"] = "Aggiunge %s alla tua macro Cibo per renderti furtivo mentre mangi."
 
--- Night Elves
-L["OPTIONS_NIGHTELF_HEADER"] = "Elfi della Notte"
+-- Night Elves. The section is headed with the client's name for the player's race, so its header has no key.
 L["OPTIONS_STEALTH_DRINKING"] = "Attiva la furtività mentre bevi"
-L["OPTIONS_STEALTH_DRINKING_DESCRIPTION"] =
-	"Aggiunge Fondersi nelle Ombre alla tua macro Acqua per renderti furtivo mentre bevi."
-L["OPTIONS_STEALTH_EATING_NIGHTELF_DESCRIPTION"] =
-	"Aggiunge Fondersi nelle Ombre alla tua macro Cibo per renderti furtivo mentre mangi."
+L["OPTIONS_STEALTH_DRINKING_SPELL_DESCRIPTION"] = "Aggiunge %s alla tua macro Acqua per renderti furtivo mentre bevi."
 L["OPTIONS_STEALTH_PICK_ONE"] =
 	"Suggerimento pro: scegline uno. Puoi mangiare e bere allo stesso tempo, ma mangiare o bere dopo esserti reso furtivo interromperà la furtività."
 
@@ -620,6 +615,8 @@ L["OPTIONS_RESTOCKER_OPEN_BANK"] = "Apri in banca"
 L["OPTIONS_RESTOCKER_OPEN_BANK_DESCRIPTION"] = "Apre la tua lista di rifornimento quando visiti la banca."
 L["OPTIONS_RESTOCKER_OPEN_MERCHANT"] = "Apri dal mercante"
 L["OPTIONS_RESTOCKER_OPEN_MERCHANT_DESCRIPTION"] = "Apre la tua lista di rifornimento quando visiti un mercante."
+-- The header over the three reminder rows below, which follow the Staples Pop-Up and Gold Reserve rows on the page.
+L["OPTIONS_RESTOCKER_REMINDERS_HEADER"] = "Promemoria"
 L["OPTIONS_RESTOCKER_REMIND"] = "Attiva i promemoria di rifornimento in città"
 L["OPTIONS_RESTOCKER_REMIND_DESCRIPTION"] =
 	"Mostra un promemoria in chat quando ti manca qualcosa della tua lista di rifornimento e raggiungi una locanda o una città, o ti trovi già in una all'accesso."
@@ -629,6 +626,12 @@ L["OPTIONS_RESTOCKER_MERCHANT_REMIND_DESCRIPTION"] =
 L["OPTIONS_RESTOCKER_BANK_REMIND"] = "Attiva i promemoria di rifornimento in banca"
 L["OPTIONS_RESTOCKER_BANK_REMIND_DESCRIPTION"] =
 	"Segnala gli eventuali ordini di rifornimento in sospeso quando chiudi la banca."
+
+--[[
+    The Gold Reserve: the floor the merchant restock never spends below. The
+    dropdown beside it writes each amount as a number and the gold coin, so
+    it has no strings of its own.
+]]
 L["OPTIONS_RESTOCKER_GOLD_RESERVE"] = "Attiva la riserva d'oro"
 L["OPTIONS_RESTOCKER_GOLD_RESERVE_DESCRIPTION"] = "Il rifornimento non spende mai l'oro che metti da parte qui."
 L["OPTIONS_RESTOCKER_GOLD_RESERVE_AMOUNT_DESCRIPTION"] = "Quanto oro il rifornimento ti lascia sempre."
@@ -661,7 +664,6 @@ L["OPTIONS_RESTOCKER_REMIND_SOUND_DESCRIPTION"] =
 	"Riproduce un avviso insieme al promemoria, per quando la chat è affollata."
 L["OPTIONS_RESTOCKER_SOUND_PREVIEW"] = "Clicca per ascoltare l'avviso."
 
-L["OPTIONS_RESTOCKER_REMINDERS_HEADER"] = "Promemoria"
 L["OPTIONS_RESTOCKER_WINDOW_HEADER"] = "Finestra della lista di rifornimento"
 L["OPTIONS_RESTOCKER_WINDOW_DESCRIPTION"] = "Scegli quando la tua lista di rifornimento si apre da sola."
 
@@ -724,11 +726,10 @@ L["OPTIONS_READINESS_CHARACTER_HEADER"] = "Personaggio"
 -- Missing Buffs
 L["OPTIONS_READINESS_FLASK_DESCRIPTION"] =
 	"Segnala se manca un tonico. Basta un tonico, oppure un elisir di combattimento e un elisir di protezione."
-L["OPTIONS_READINESS_WELL_FED_DESCRIPTION"] =
-	'Segnala se manca il buff "Ben Nutrito". Richiede che "Cibo con buff" sia attivo nel pannello Macro.'
-L["OPTIONS_READINESS_PET_WELL_FED_DESCRIPTION"] =
-	'Segnala se al tuo famiglio manca il buff "Ben Nutrito". Richiede che "Buff del cibo per famigli" sia attivo nel pannello Macro e che tu abbia un famiglio evocato.'
-L["OPTIONS_READINESS_SCROLLS"] = "Buff delle pergamene"
+L["OPTIONS_READINESS_WELL_FED_DESCRIPTION_FORMAT"] =
+	'Segnala se manca il buff "%s". Richiede che "Cibo con buff" sia attivo nel pannello Macro.'
+L["OPTIONS_READINESS_PET_WELL_FED_DESCRIPTION_FORMAT"] =
+	'Segnala se al tuo famiglio manca il buff "%s". Richiede che "Buff del cibo per famigli" sia attivo nel pannello Macro e che tu abbia un famiglio evocato.'
 L["OPTIONS_READINESS_SCROLLS_DESCRIPTION"] =
 	'Segnala se ti mancano i buff delle pergamene. Richiede che "Buff delle pergamene" sia attivo nel pannello Macro e controlla solo i tipi di pergamena selezionati lì.'
 --[[
@@ -772,8 +773,9 @@ L["OPTIONS_READINESS_HEALING_POTION_DESCRIPTION"] =
 	"Segnala quando non porti con te nessuna pozione di cura, perché nessuno può passartene una in pieno combattimento."
 L["OPTIONS_READINESS_MANA_POTION_DESCRIPTION"] =
 	"Segnala quando non porti con te nessuna pozione di mana. Mostrato solo quando giochi con una classe che usa il mana."
-L["OPTIONS_READINESS_BANDAGES_DESCRIPTION"] =
-	"Segnala quando non porti con te nessuna benda che la tua abilità in Pronto Soccorso ti permetta di usare."
+-- %s is the client's name for the First Aid skill line.
+L["OPTIONS_READINESS_BANDAGES_SKILL_DESCRIPTION"] =
+	"Segnala quando non porti con te nessuna benda che la tua abilità in %s ti permetta di usare."
 L["OPTIONS_READINESS_DURABILITY"] = "Equipaggiamento danneggiato sotto"
 L["OPTIONS_READINESS_DURABILITY_DESCRIPTION"] =
 	"Mostra il collegamento di ogni oggetto equipaggiato con integrità inferiore a questa soglia, calcolata oggetto per oggetto, così compare anche una sola arma rotta."
@@ -788,8 +790,8 @@ L["OPTIONS_READINESS_SPEC_DESCRIPTION"] = "Mostra la distribuzione dei talenti e
 L["OPTIONS_READINESS_PVP"] = "PvP attivo"
 L["OPTIONS_READINESS_PVP_DESCRIPTION"] = "Avvisa quando la tua modalità PvP è attiva."
 L["OPTIONS_READINESS_QUESTIONABLE_GEAR"] = "Equipaggiamento non da combattimento"
-L["OPTIONS_READINESS_QUESTIONABLE_GEAR_DESCRIPTION"] =
-	"Mostra il collegamento degli oggetti equipaggiati che non c'entrano con un combattimento, come un frustino o una canna da pesca."
+L["OPTIONS_READINESS_NONCOMBAT_GEAR_DESCRIPTION"] =
+	"Mostra il collegamento degli oggetti equipaggiati che non c'entrano con un combattimento, come l'attrezzatura da equitazione o da pesca."
 
 --------------------------------------------------------------------------------
 -- Restocker Window & Chat
@@ -905,7 +907,9 @@ L["RESTOCKER_RESTOCKED_PARTIAL_ONE"] = "1 ordine di rifornimento evaso in parte.
 L["RESTOCKER_RESTOCKED_PARTIAL_MANY"] = "%d ordini di rifornimento evasi in parte."
 -- Printed after the counts above when the bags ran out of room before every order was bought.
 L["RESTOCKER_BAGS_FULL_PARTIAL"] = "Le tue borse si sono riempite prima che fosse comprato tutto."
+-- Printed after the counts above when gold ran out, or the Gold Reserve was reached, before every order was bought.
 L["RESTOCKER_OUT_OF_GOLD"] = "Oro insufficiente per completare il rifornimento."
+-- RESTOCKER_OUT_OF_GOLD's line while the Gold Reserve is on, whole so each locale joins its sentences its own way. %s is the reserve with the gold coin.
 L["RESTOCKER_OUT_OF_GOLD_RESERVE"] =
 	"Rifornimento in pausa; oro insufficiente. Riprenderà quando potrà completare i tuoi ordini d'acquisto senza intaccare la tua riserva (%s)."
 
@@ -960,13 +964,14 @@ L["STARTER_POPUP_ARROWS"] = "Frecce"
 --[[
     The Reagents & Tools section: the Hearthstone, plus each class's tools and
     spell reagents. Rogues additionally get a Poisons section of their own,
-    whose note under the header reuses PREFIX_ROGUE (rogue-colored at the call
-    site) to say the ingredients take care of themselves. Both sections name
+    whose note under the header opens with the client's name for the class
+    (rogue-colored at the call site) to say the ingredients take care of
+    themselves. Both sections name
     their rows with the client's own item names, so neither has row labels here.
 ]]
 L["STARTER_POPUP_REAGENTS_HEADER"] = "Reagenti e strumenti"
 L["STARTER_POPUP_POISONS_HEADER"] = "Veleni"
--- %s is the rogue-colored PREFIX_ROGUE; the spaced colon is deliberate.
+-- %s is the client's name for the Rogue class, rogue-colored; the spaced colon is deliberate.
 L["STARTER_POPUP_POISONS_NOTE"] =
 	"%s : aggiungi il veleno finito alla tua lista e Connoisseur comprerà automaticamente gli ingredienti da qualsiasi mercante che li venda tutti."
 --[[
@@ -1238,29 +1243,24 @@ L["RESTOCKER_WITHDRAW_TOOLTIP_BODY"] = "Preleva dalla banca gli oggetti necessar
 -- Required-reputation control (per-item vendor gate).
 L["RESTOCKER_REPUTATION_MENU_TITLE"] = "Reputazione richiesta"
 --[[
-    { standing label, discount percent }.
+    { standing label, discount percent }. The standings are the client's own
+    labels (FACTION_STANDING_LABEL5 to 8), so only "Any" has a key here.
 
-    This string IS run through string.format, so its literal percent sign is
-    escaped as %%. RESTOCKER_REPUTATION_TOOLTIP_STANDING below is printed
-    as-is and therefore writes bare % signs. Both are correct where they
-    stand; neither may be "normalized" to match the other, in any locale.
+    Run through string.format, so its literal percent sign is escaped as %%,
+    as is RESTOCKER_REPUTATION_TOOLTIP_DISCOUNTS' below.
 ]]
 L["RESTOCKER_REPUTATION_DISCOUNT_FORMAT"] = "%s (%d%% di sconto)"
 L["RESTOCKER_REPUTATION_ANY"] = "Qualsiasi"
-L["RESTOCKER_REPUTATION_FRIENDLY"] = "Amichevole"
-L["RESTOCKER_REPUTATION_HONORED"] = "Onorato"
-L["RESTOCKER_REPUTATION_REVERED"] = "Riverito"
-L["RESTOCKER_REPUTATION_EXALTED"] = "Osannato"
 L["RESTOCKER_REPUTATION_TOOLTIP_TITLE"] = "Reputazione richiesta con il mercante"
 --[[
-    Quotes the cell's own values, which couples this line to the four standings
-    above: a locale that renders a standing differently has to say so here too.
-    With no standing required the cell draws a dash rather than the word "Any",
-    which is why the last sentence names the dash; "Any" is still the menu's
-    first entry.
+    The four %s are the client's labels for Friendly, Honored, Revered and
+    Exalted, in that order, each followed by its discount; the percent signs are
+    escaped as %% because the line goes through string.format. With no standing
+    required the cell draws a dash rather than the word "Any", which is why the
+    last sentence names the dash; "Any" is still the menu's first entry.
 ]]
-L["RESTOCKER_REPUTATION_TOOLTIP_STANDING"] =
-	"Clicca per impostare la reputazione che un mercante richiede prima che Connoisseur compri da lui, il che riduce anche il prezzo: Amichevole 5%, Onorato 10%, Riverito 15%, Osannato 20%. Con un trattino, Connoisseur compra da qualsiasi mercante."
+L["RESTOCKER_REPUTATION_TOOLTIP_DISCOUNTS"] =
+	"Clicca per impostare la reputazione che un mercante richiede prima che Connoisseur compri da lui, il che riduce anche il prezzo: %s 5%%, %s 10%%, %s 15%%, %s 20%%. Con un trattino, Connoisseur compra da qualsiasi mercante."
 
 --[[
     Why a cell cannot be set on its row: the tooltip a dimmed cell shows under
