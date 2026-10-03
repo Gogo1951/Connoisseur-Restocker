@@ -87,6 +87,33 @@ function ns.IsPlayerSpell(spellID)
 end
 
 --------------------------------------------------------------------------------
+-- Game Names
+--------------------------------------------------------------------------------
+
+-- The client's names for game records our strings mention, read by ID (Style Guide → GAME NAMES).
+
+function ns.GetWellFedName()
+	return C_Spell.GetSpellName(ns.WELL_FED_SPELL_ID) or ""
+end
+
+-- The First Aid skill line's name, as the skill list shows it.
+function ns.GetFirstAidName()
+	return C_TradeSkillUI.GetTradeSkillDisplayName(ns.FIRST_AID_SKILL_LINE_ID) or ""
+end
+
+--[[
+    A required-reputation standing's label, by its reaction code. No requirement
+    is our own word; a standing is the client's, in the player's gender, picked
+    the way the reputation pane picks it.
+]]
+function ns.GetStandingLabel(reaction)
+	if not reaction or reaction == 0 then
+		return ns.L["RESTOCKER_REPUTATION_ANY"]
+	end
+	return GetText("FACTION_STANDING_LABEL" .. reaction, UnitSex("player"))
+end
+
+--------------------------------------------------------------------------------
 -- Client Differences
 --------------------------------------------------------------------------------
 

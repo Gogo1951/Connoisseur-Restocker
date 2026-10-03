@@ -461,6 +461,19 @@ local function session(opts)
 	function UnitName()
 		return "Mossbark"
 	end
+	function UnitSex()
+		return 2
+	end
+	-- The client's standing labels, which the Rep column and menu read through ns.GetStandingLabel.
+	local STANDING_LABELS = {
+		FACTION_STANDING_LABEL5 = "Friendly",
+		FACTION_STANDING_LABEL6 = "Honored",
+		FACTION_STANDING_LABEL7 = "Revered",
+		FACTION_STANDING_LABEL8 = "Exalted",
+	}
+	function GetText(token)
+		return STANDING_LABELS[token]
+	end
 	function GetRealmName()
 		return "Whitemane"
 	end
@@ -1501,6 +1514,23 @@ check("so does a drag let go over it", focus, nil)
 s.window.editBox:SetFocus()
 fire(s.window.editBox, "OnMouseUp", "LeftButton")
 check("a click with nothing in hand keeps the keyboard, to type an ID", focus == s.window.editBox, true)
+
+print("20. With Use Restock List Food & Water Last on, only a change to the list's items rebuilds the macros")
+s = session()
+s.ns.db.profile.useRestockLast = true
+local rebuilds = 0
+function s.ns.RequestUpdate()
+	rebuilds = rebuilds + 1
+end
+s.type(s.window.filterBox, "pie")
+s.type(s.window.filterBox, "")
+check("filtering the list rebuilds nothing", rebuilds, 0)
+s.window.editBox:SetFocus()
+s.pickUp(14530)
+fire(s.window.editBox, "OnMouseUp", "LeftButton")
+check("adding an item rebuilds once", rebuilds, 1)
+s.click(s.rowOf(14530).removeButton)
+check("and so does removing it", rebuilds, 2)
 
 print("")
 if failures == 0 then

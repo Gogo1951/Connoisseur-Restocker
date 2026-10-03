@@ -226,7 +226,7 @@ local function BuildMissingBuffs(settings, reports)
 	if reports.readinessWellFed and settings.useBuffFood and ns.IsModeActive(settings.buffFoodMode) then
 		local snapshot = ns.GetPlayerBuffSnapshot()
 		if snapshot.wellFedExpiration == nil then
-			missing[#missing + 1] = L["READINESS_WELL_FED"]
+			missing[#missing + 1] = ns.GetWellFedName()
 		end
 	end
 
@@ -237,7 +237,7 @@ local function BuildMissingBuffs(settings, reports)
 	    rather than a feeding one.
 	]]
 	if reports.readinessPetWellFed and ns.ShouldTrackPetFood() and ns.GetPetFoodBuffExpiration() == nil then
-		missing[#missing + 1] = L["READINESS_PET_WELL_FED"]
+		missing[#missing + 1] = string.format(L["READINESS_PET_FORMAT"], ns.GetWellFedName())
 	end
 
 	--[[
@@ -293,10 +293,10 @@ local function BuildMissingBuffs(settings, reports)
 	if reports.readinessMainHandBuff or reports.readinessOffHandBuff then
 		local mainHandMissing, offHandMissing = ns.GetMissingWeaponBuffs()
 		if reports.readinessMainHandBuff and mainHandMissing and not GroupHasClass("SHAMAN") then
-			missing[#missing + 1] = L["READINESS_MAIN_HAND"]
+			missing[#missing + 1] = MAINHANDSLOT
 		end
 		if reports.readinessOffHandBuff and offHandMissing then
-			missing[#missing + 1] = L["READINESS_OFF_HAND"]
+			missing[#missing + 1] = SECONDARYHANDSLOT
 		end
 	end
 

@@ -6,9 +6,8 @@ local _, ns = ...
 
 --[[
     The craftable items the Restock List buys reagents for, keyed by the crafted
-    item's LOCALIZED name. That key is not a convenience: BuildCraftingPurchaseOrder
-    matches list rows against it, so a recipe is only usable once the client has
-    named it. Merchants never list the crafted item; the orders it produces are
+    item's itemID, which is how BuildCraftingPurchaseOrder finds a list row's
+    recipe. Merchants never list the crafted item; the orders it produces are
     for its reagents, under their own names.
 
     Recipe rows live in Data/{Game}/Poison-Recipes-{Game}.lua.
@@ -22,34 +21,24 @@ local buyIngredients = {}
 ns.pendingRecipes = {}
 
 --[[
-    A recipe needs the localized name of its crafted item AND of every reagent, and
-    C_Item.GetItemInfo answers nil for anything the client has not cached yet -- the normal
-    state during a login. A recipe missing any of those names is parked whole and
-    retried when the answer arrives; adding it half-named would order reagents
-    under a name nothing ever matches.
+    A recipe needs the localized name of every reagent, the name merchants list
+    them under, and C_Item.GetItemInfo answers nil for anything the client has not
+    cached yet -- the normal state during a login. A recipe missing any of those
+    names is parked whole and retried when the answer arrives; adding it half-named
+    would order reagents under a name nothing ever matches.
 ]]
 local function AddRecipe(recipe)
-	local function Postpone()
-		ns.pendingRecipes[recipe.itemID] = recipe
-		ns.SyncRestockItemInfoSubscription()
-	end
-
-	local crafted = ns.GetItemData(recipe.itemID)
-	if not crafted then
-		Postpone()
-		return
-	end
-
 	for _, reagent in ipairs(recipe.reagents) do
 		local info = ns.GetItemData(reagent.itemID)
 		if not info then
-			Postpone()
+			ns.pendingRecipes[recipe.itemID] = recipe
+			ns.SyncRestockItemInfoSubscription()
 			return
 		end
 		reagent.localizedName = info.itemName
 	end
 
-	buyIngredients[crafted.itemName] = recipe
+	buyIngredients[recipe.itemID] = recipe
 	ns.pendingRecipes[recipe.itemID] = nil
 end
 
@@ -99,7 +88,7 @@ function ns.BuildCraftingPurchaseOrder()
 
 	for _, item in pairs(list) do
 		-- A row's Buy toggle governs every purchase it makes, its ingredients included (nil means on).
-		local recipe = item.buyFromMerchant ~= false and buyIngredients[item.itemName]
+		local recipe = item.buyFromMerchant ~= false and buyIngredients[item.itemID]
 		if recipe then
 			--[[
 			    Bags only, matching BuildPurchaseOrder and BuildGroceryList. Bank stock
@@ -141,8 +130,7 @@ function ns.BuildCraftingPurchaseOrder()
 
 	    Keyed by the reagent's localized name rather than its itemID, because that
 	    is what GetMerchantItemInfo reports and what the merchant restock merges
-	    these lines against. The count has to use the same key, so this is the one
-	    shortfall in the add-on that cannot be counted by ID.
+	    these lines against. The bags are still counted by the reagent's itemID.
 
 	    A reagent the list also keeps, with Buy on, has an order of its own for
 	    its Keep amount less the same bags (BuildPurchaseOrder), and the two are
@@ -151,7 +139,7 @@ function ns.BuildCraftingPurchaseOrder()
 	    less the bags once.
 	]]
 	for reagent, _ in pairs(purchaseOrder) do
-		local inBags = C_Item.GetItemCount(reagent, false) or 0
+		local inBags = C_Item.GetItemCount(reagentIDs[reagent], false) or 0
 		local row = list[reagentIDs[reagent]]
 		if row and row.buyFromMerchant ~= false then
 			inBags = math.max(0, inBags - (row.amount or 0))

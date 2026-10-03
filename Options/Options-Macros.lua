@@ -122,6 +122,32 @@ local function ModeDescription(featureName)
 	return string.format(L["OPTIONS_MODE_DESCRIPTION"], featureName)
 end
 
+--[[
+    A Mana Gem text naming the two runes, each as its icon and the client's
+    name, built when it shows; a rune still loading shows its loading text and
+    is warmed so the panel repaints.
+]]
+local function ManaRuneText(formatKey)
+	return function()
+		local runeIDs = { ns.DEMONIC_RUNE_ITEM_ID, ns.DARK_RUNE_ITEM_ID }
+		local coldItemIDs = {}
+		for _, itemID in ipairs(runeIDs) do
+			if not C_Item.GetItemInfo(itemID) then
+				coldItemIDs[#coldItemIDs + 1] = itemID
+			end
+		end
+		ns.WarmItemCache(coldItemIDs, ns.OPTIONS_REGISTRY.Macros)
+		return string.format(L[formatKey], ns.GetItemDisplayName(runeIDs[1]), ns.GetItemDisplayName(runeIDs[2]))
+	end
+end
+
+-- Hover text that names a spell, read from the client when the tooltip shows.
+local function SpellDescription(formatKey, spellID)
+	return function()
+		return string.format(L[formatKey], C_Spell.GetSpellName(spellID) or "")
+	end
+end
+
 -- Toggle for one entry inside a profile settings subtable (scroll/pet types).
 local function SubsetToggle(subtableKey, key, label, order)
 	return {
@@ -288,6 +314,9 @@ end
 ]]
 
 function ns.BuildMacrosOptions()
+	-- The class and race sections show only to that class or race, so each is headed with the player's own, as the client names it.
+	local playerClassName = UnitClass("player")
+	local playerRaceName = UnitRace("player")
 	local args = {
 		descIntro = Desc(L["OPTIONS_MACROS_DESCRIPTION"], 1),
 		spaceIntro = Spacer(2),
@@ -354,7 +383,7 @@ function ns.BuildMacrosOptions()
 		toggleBuffFood = {
 			type = "toggle",
 			name = L["OPTIONS_BUFF_FOOD"],
-			desc = L["OPTIONS_BUFF_FOOD_DESCRIPTION"],
+			desc = SpellDescription("OPTIONS_BUFF_FOOD_DESCRIPTION_FORMAT", ns.WELL_FED_SPELL_ID),
 			order = 25,
 			width = ns.OPTIONS_LABEL_WIDTH,
 			get = function()
@@ -390,12 +419,12 @@ function ns.BuildMacrosOptions()
 				return not ScrollsActive()
 			end,
 			args = {
-				scrollAgility = SubsetToggle("scrollTypes", "Agility", L["OPTIONS_SCROLL_AGILITY"], 1),
-				scrollIntellect = SubsetToggle("scrollTypes", "Intellect", L["OPTIONS_SCROLL_INTELLECT"], 2),
+				scrollAgility = SubsetToggle("scrollTypes", "Agility", SPELL_STAT2_NAME, 1),
+				scrollIntellect = SubsetToggle("scrollTypes", "Intellect", SPELL_STAT4_NAME, 2),
 				scrollProtection = SubsetToggle("scrollTypes", "Protection", L["OPTIONS_SCROLL_PROTECTION"], 3),
-				scrollSpirit = SubsetToggle("scrollTypes", "Spirit", L["OPTIONS_SCROLL_SPIRIT"], 4),
-				scrollStamina = SubsetToggle("scrollTypes", "Stamina", L["OPTIONS_SCROLL_STAMINA"], 5),
-				scrollStrength = SubsetToggle("scrollTypes", "Strength", L["OPTIONS_SCROLL_STRENGTH"], 6),
+				scrollSpirit = SubsetToggle("scrollTypes", "Spirit", SPELL_STAT5_NAME, 4),
+				scrollStamina = SubsetToggle("scrollTypes", "Stamina", SPELL_STAT3_NAME, 5),
+				scrollStrength = SubsetToggle("scrollTypes", "Strength", SPELL_STAT1_NAME, 6),
 			},
 		},
 		spaceScrollTypes = {
@@ -485,12 +514,14 @@ function ns.BuildMacrosOptions()
 		spaceManaGems0 = Spacer(50),
 		headerManaGems = Header(L["OPTIONS_MANA_GEMS_HEADER"], 51),
 		spaceManaGems1 = Spacer(52),
-		descManaGems = Desc(GetColor("BODY") .. L["OPTIONS_MANA_GEMS_DESCRIPTION"] .. "|r", 53),
+		descManaGems = Desc(function()
+			return GetColor("BODY") .. ManaRuneText("OPTIONS_MANA_GEMS_DESCRIPTION_FORMAT")() .. "|r"
+		end, 53),
 		spaceManaGems2 = Spacer(54),
 		toggleIncludeManaRunes = {
 			type = "toggle",
 			name = L["OPTIONS_INCLUDE_MANA_RUNES"],
-			desc = L["OPTIONS_INCLUDE_MANA_RUNES_DESCRIPTION"],
+			desc = ManaRuneText("OPTIONS_INCLUDE_MANA_RUNES_DESCRIPTION_FORMAT"),
 			order = 55,
 			width = "full",
 			get = function()
@@ -563,7 +594,11 @@ function ns.BuildMacrosOptions()
 		spacePet1 = { type = "description", name = " ", order = 302, hidden = NoPetBuffFoods },
 		descPet = {
 			type = "description",
-			name = GetColor("BODY") .. L["OPTIONS_PET_SECTION_DESCRIPTION"] .. "|r",
+			name = function()
+				return GetColor("BODY")
+					.. string.format(L["OPTIONS_PET_SECTION_DESCRIPTION_FORMAT"], ns.GetWellFedName())
+					.. "|r"
+			end,
 			fontSize = "medium",
 			order = 303,
 			hidden = NoPetBuffFoods,
@@ -572,7 +607,7 @@ function ns.BuildMacrosOptions()
 		togglePetBuffs = {
 			type = "toggle",
 			name = L["OPTIONS_USE_PET_BUFFS"],
-			desc = L["OPTIONS_USE_PET_BUFFS_DESCRIPTION"],
+			desc = SpellDescription("OPTIONS_USE_PET_BUFFS_DESCRIPTION_FORMAT", ns.WELL_FED_SPELL_ID),
 			order = 305,
 			width = ns.OPTIONS_LABEL_WIDTH,
 			hidden = NoPetBuffFoods,
@@ -641,7 +676,7 @@ function ns.BuildMacrosOptions()
 
 		-- Druids
 		spaceDruid0 = { type = "description", name = " ", order = 500, hidden = NotDruid },
-		headerDruid = Header(L["OPTIONS_DRUIDS_HEADER"], 501, NotDruid),
+		headerDruid = Header(playerClassName, 501, NotDruid),
 		spaceDruid1 = { type = "description", name = " ", order = 502, hidden = NotDruid },
 		toggleDruidMacroHelper = {
 			type = "toggle",
@@ -689,7 +724,7 @@ function ns.BuildMacrosOptions()
 		    section (the Night Elves one hides itself for Rogues).
 		]]
 		spaceRogue0 = { type = "description", name = " ", order = 520, hidden = NotRogue },
-		headerRogue = Header(L["OPTIONS_ROGUES_HEADER"], 521, NotRogue),
+		headerRogue = Header(playerClassName, 521, NotRogue),
 		spaceRogue1 = { type = "description", name = " ", order = 522, hidden = NotRogue },
 		descPoisons = {
 			type = "description",
@@ -723,7 +758,7 @@ function ns.BuildMacrosOptions()
 		toggleStealthEatingRogue = {
 			type = "toggle",
 			name = L["OPTIONS_STEALTH_EATING"],
-			desc = L["OPTIONS_STEALTH_EATING_ROGUE_DESCRIPTION"],
+			desc = SpellDescription("OPTIONS_STEALTH_EATING_SPELL_DESCRIPTION", ns.STEALTH_SPELL_ID),
 			order = 531,
 			width = "full",
 			hidden = NotRogue,
@@ -737,7 +772,7 @@ function ns.BuildMacrosOptions()
 
 		-- Night Elves
 		spaceNightElf0 = { type = "description", name = " ", order = 600, hidden = NotNightElf },
-		headerNightElf = Header(L["OPTIONS_NIGHTELF_HEADER"], 601, NotNightElf),
+		headerNightElf = Header(playerRaceName, 601, NotNightElf),
 		spaceNightElf1 = { type = "description", name = " ", order = 602, hidden = NotNightElf },
 		descStealthPickOne = {
 			type = "description",
@@ -750,7 +785,7 @@ function ns.BuildMacrosOptions()
 		toggleShadowmeldDrinking = {
 			type = "toggle",
 			name = L["OPTIONS_STEALTH_DRINKING"],
-			desc = L["OPTIONS_STEALTH_DRINKING_DESCRIPTION"],
+			desc = SpellDescription("OPTIONS_STEALTH_DRINKING_SPELL_DESCRIPTION", ns.SHADOWMELD_SPELL_ID),
 			order = 605,
 			width = "full",
 			hidden = NotNightElf,
@@ -764,7 +799,7 @@ function ns.BuildMacrosOptions()
 		toggleStealthEatingNightElf = {
 			type = "toggle",
 			name = L["OPTIONS_STEALTH_EATING"],
-			desc = L["OPTIONS_STEALTH_EATING_NIGHTELF_DESCRIPTION"],
+			desc = SpellDescription("OPTIONS_STEALTH_EATING_SPELL_DESCRIPTION", ns.SHADOWMELD_SPELL_ID),
 			order = 606,
 			width = "full",
 			hidden = NotNightElf,

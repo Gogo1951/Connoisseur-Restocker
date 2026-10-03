@@ -617,7 +617,8 @@ function ns.ScanBags()
 	--[[
 	    Use Restock List Food & Water Last: no mode, on whenever ticked. The
 	    current list is captured here for FillRecord; every list edit redraws
-	    through ns.UpdateRestockList, which requests a rescan while it is on.
+	    through ns.UpdateRestockList, which requests a rescan while it is on
+	    and the list's items have changed.
 	]]
 	ns.allowRestockLast = settings.useRestockLast
 	local restockSettings = ns.restockSettings

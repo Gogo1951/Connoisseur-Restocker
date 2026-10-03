@@ -189,6 +189,9 @@ C_Container = {
     the next id in the list.
 ]]
 local SPELL_NAMES = { [20707] = "Soulstone Resurrection" }
+-- The client's slot labels, named like the locale keys above so assertions read back which one printed.
+MAINHANDSLOT = "MAINHANDSLOT"
+SECONDARYHANDSLOT = "SECONDARYHANDSLOT"
 C_Spell = {
 	GetSpellName = function(spellID)
 		return SPELL_NAMES[spellID]
@@ -545,7 +548,7 @@ ResetWorld()
 settings({ readinessMainHandBuff = true, readinessOffHandBuff = true })
 world.mainHandMissing = true
 ns.OnReadyCheck()
-check("main hand alone", report(), "READINESS_TITLE ~ READINESS_MISSING_BUFFS READINESS_MAIN_HAND")
+check("main hand alone", report(), "READINESS_TITLE ~ READINESS_MISSING_BUFFS MAINHANDSLOT")
 
 say("12. Off-hand switch off, off hand missing: not reported")
 ResetWorld()
@@ -569,7 +572,7 @@ settings({ readinessMainHandBuff = true, readinessOffHandBuff = true })
 world.mainHandMissing = true
 world.offHandMissing = true
 ns.OnReadyCheck()
-check("off hand alone", report(), "READINESS_TITLE ~ READINESS_MISSING_BUFFS READINESS_OFF_HAND")
+check("off hand alone", report(), "READINESS_TITLE ~ READINESS_MISSING_BUFFS SECONDARYHANDSLOT")
 
 say("12c. The player BEING the Shaman counts as one in the group")
 ResetWorld()

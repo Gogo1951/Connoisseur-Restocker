@@ -204,7 +204,20 @@ local function session(opts)
 			SetTexture = function(self, texture)
 				self.texture = texture
 			end,
+			AddMaskTexture = function(self, mask)
+				self.mask = mask
+			end,
 		},
+		CreateMaskTexture = function()
+			return {
+				SetTexture = function(self, file)
+					self.file = file
+				end,
+				SetAllPoints = function(self, region)
+					self.region = region
+				end,
+			}
+		end,
 	}
 
 	format = string.format
@@ -213,8 +226,13 @@ local function session(opts)
 	IsShiftKeyDown = function()
 		return shift
 	end
+	MAINHANDSLOT = "Main Hand"
+	SECONDARYHANDSLOT = "Off Hand"
+	-- The client's name for the class, then its token.
 	UnitClass = function()
-		return "Class", opts.class or "WARRIOR"
+		local token = opts.class or "WARRIOR"
+		local names = { HUNTER = "Hunter", MAGE = "Mage", ROGUE = "Rogue", WARLOCK = "Warlock", WARRIOR = "Warrior" }
+		return names[token], token
 	end
 	C_Item = {
 		GetItemIconByID = function(itemID)
@@ -258,6 +276,9 @@ local function session(opts)
 			Refresh = function()
 				calls[#calls + 1] = "Refresh"
 			end,
+			SetButtonIcon = function(_, objectName, _, size)
+				calls[#calls + 1] = "SetButtonIcon " .. objectName .. " " .. size
+			end,
 		}
 	end
 
@@ -274,6 +295,7 @@ local function session(opts)
 	local ns = {
 		L = L,
 		LOCALE_NAME = "Connoisseur",
+		FLAVOR = opts.flavor or "Vanilla",
 		Version = "Dev",
 		GetColor = function(key)
 			return "<" .. key .. ">"
@@ -282,6 +304,10 @@ local function session(opts)
 		GetClassColor = function(classToken)
 			local hex = ({ HUNTER = "AAD372", MAGE = "3FC7EB", ROGUE = "FFF468", WARLOCK = "8788EE" })[classToken]
 			return hex and ("|cff" .. hex) or nil
+		end,
+		-- Utilities' accessor for the client's name of the Well Fed buff.
+		GetWellFedName = function()
+			return "Well Fed"
 		end,
 		KnowsAny = function(spellList)
 			for _, data in ipairs(spellList) do
@@ -462,7 +488,7 @@ checkLines("from the Restocker List down", lines, 16, {
 	"Buys and banks the items on your list.",
 	"Shift + Right-Click | Open",
 	" ",
-	"Attention Hunters",
+	"Hunter",
 	"Current Pet Food",
 	"(right) Roasted Quail",
 	" ",
@@ -478,7 +504,7 @@ checkLines("from the Restocker List down", lines, 16, {
 	"Connoisseur Options",
 	"Shift + Middle-Click",
 })
-check("the header wears the hunter color", lines[20].left, "|cffAAD372Attention Hunters|r")
+check("the header wears the hunter color", lines[20].left, "|cffAAD372Hunter|r")
 check("the pet food title is gold", lines[21].left, "<TITLE>Current Pet Food|r")
 check("the macro's name is gold", lines[24].left, "<TITLE>Feed Pet Macro|r")
 check("a click on the macro is silver, not blue", lines[25].left, "<HELP>Left-Click|r")
@@ -504,8 +530,8 @@ checkLines("before Mend Pet is learned, its row is left out", lines, find(lines,
 
 s = session({ class = "HUNTER", petFood = false })
 lines = s.hover()
-checkLines("no pet food: the sentence takes the item's row", lines, find(lines, "Attention Hunters"), {
-	"Attention Hunters",
+checkLines("no pet food: the sentence takes the item's row", lines, find(lines, "Hunter"), {
+	"Hunter",
 	"Current Pet Food",
 	"No suitable Pet Food found in your bags.",
 	" ",
@@ -514,7 +540,7 @@ checkLines("no pet food: the sentence takes the item's row", lines, find(lines, 
 check("and wraps", lines[find(lines, "No suitable Pet Food found in your bags.")].wrap, true)
 
 s = session({ class = "HUNTER", petSpells = false })
-check("before Feed Pet is learned there are no notes", find(s.hover(), "Attention Hunters"), nil)
+check("before Feed Pet is learned there are no notes", find(s.hover(), "Hunter"), nil)
 
 print("3. Rogue: both poisons lead the notes, two lines each, then the Poisons macro")
 s = session({
@@ -527,8 +553,8 @@ s = session({
 	groceries = ONE_SHORT,
 })
 lines = s.hover()
-checkLines("from the header down", lines, find(lines, "Attention Rogues"), {
-	"Attention Rogues",
+checkLines("from the header down", lines, find(lines, "Rogue"), {
+	"Rogue",
 	"Main Hand Poison",
 	"(right) Instant Poison VI",
 	" ",
@@ -547,7 +573,7 @@ checkLines("from the header down", lines, find(lines, "Attention Rogues"), {
 	"Connoisseur Options",
 	"Shift + Middle-Click",
 })
-check("the header wears the rogue color", lines[find(lines, "Attention Rogues")].left, "|cffFFF468Attention Rogues|r")
+check("the header wears the rogue color", lines[find(lines, "Rogue")].left, "|cffFFF468Rogue|r")
 check(
 	"the closing line is silver and wraps",
 	lines[find(lines, "Replaces old poisons automatically.")].left,
@@ -572,7 +598,7 @@ checkLines("an empty hand says so under its own title", lines, find(lines, "Main
 })
 
 s = session({ class = "ROGUE" })
-check("before Poisons is learned there are no notes", find(s.hover(), "Attention Rogues"), nil)
+check("before Poisons is learned there are no notes", find(s.hover(), "Rogue"), nil)
 
 print("4. Mage: one group per macro, a row only for what is known")
 s = session({
@@ -581,9 +607,9 @@ s = session({
 	restockEmpty = true,
 })
 lines = s.hover()
-checkLines("everything known", lines, find(lines, "Attention Mages") - 1, {
+checkLines("everything known", lines, find(lines, "Mage") - 1, {
 	" ",
-	"Attention Mages",
+	"Mage",
 	"Food and Water Macros",
 	"Right-Click | Conjure",
 	"Middle-Click | Ritual of Refreshment",
@@ -595,12 +621,12 @@ checkLines("everything known", lines, find(lines, "Attention Mages") - 1, {
 	" ",
 	"Restocker Report",
 })
-check("the header wears the mage color", lines[find(lines, "Attention Mages")].left, "|cff3FC7EBAttention Mages|r")
+check("the header wears the mage color", lines[find(lines, "Mage")].left, "|cff3FC7EBMage|r")
 
 s = session({ class = "MAGE", knows = { CONJURE_WATER } })
 lines = s.hover()
-checkLines("only Conjure Water: one row, its line, no gem group", lines, find(lines, "Attention Mages"), {
-	"Attention Mages",
+checkLines("only Conjure Water: one row, its line, no gem group", lines, find(lines, "Mage"), {
+	"Mage",
 	"Food and Water Macros",
 	"Right-Click | Conjure",
 	"Target a lower-level player to conjure for their level.",
@@ -610,19 +636,14 @@ checkLines("only Conjure Water: one row, its line, no gem group", lines, find(li
 
 s = session({ class = "MAGE", knows = { CONJURE_MANA_GEM } })
 lines = s.hover()
-checkLines(
-	"only a Mana Gem: its group follows the header, with no doubled gap",
-	lines,
-	find(lines, "Attention Mages") - 1,
-	{
-		" ",
-		"Attention Mages",
-		"Mana Gem Macro",
-		"Right-Click | Conjure",
-		"Right-Click Again | Lower-Rank Backup",
-		" ",
-	}
-)
+checkLines("only a Mana Gem: its group follows the header, with no doubled gap", lines, find(lines, "Mage") - 1, {
+	" ",
+	"Mage",
+	"Mana Gem Macro",
+	"Right-Click | Conjure",
+	"Right-Click Again | Lower-Rank Backup",
+	" ",
+})
 
 local noRitual = conjureSpells()
 noRitual.MageCreateTable = {}
@@ -634,13 +655,13 @@ check(
 )
 
 s = session({ class = "MAGE" })
-check("a Mage who knows none of it gets no header", find(s.hover(), "Attention Mages"), nil)
+check("a Mage who knows none of it gets no header", find(s.hover(), "Mage"), nil)
 
 print("5. Warlock: Healthstone and Soulstone, each its own group")
 s = session({ class = "WARLOCK", knows = { CREATE_HEALTHSTONE, CREATE_SOULSTONE, RITUAL_OF_SOULS } })
 lines = s.hover()
-checkLines("everything known", lines, find(lines, "Attention Warlocks"), {
-	"Attention Warlocks",
+checkLines("everything known", lines, find(lines, "Warlock"), {
+	"Warlock",
 	"Healthstone Macro",
 	"Right-Click | Create",
 	"Right-Click Again | Lower-Rank Backup",
@@ -651,16 +672,12 @@ checkLines("everything known", lines, find(lines, "Attention Warlocks"), {
 	"Right-Click | Create",
 	" ",
 })
-check(
-	"the header wears the warlock color",
-	lines[find(lines, "Attention Warlocks")].left,
-	"|cff8788EEAttention Warlocks|r"
-)
+check("the header wears the warlock color", lines[find(lines, "Warlock")].left, "|cff8788EEWarlock|r")
 
 s = session({ class = "WARLOCK", knows = { CREATE_HEALTHSTONE } })
 lines = s.hover()
-checkLines("no Ritual of Souls, no Soulstone: one group", lines, find(lines, "Attention Warlocks"), {
-	"Attention Warlocks",
+checkLines("no Ritual of Souls, no Soulstone: one group", lines, find(lines, "Warlock"), {
+	"Warlock",
 	"Healthstone Macro",
 	"Right-Click | Create",
 	"Right-Click Again | Lower-Rank Backup",
@@ -754,7 +771,7 @@ checkLines("after the notes and the report, A to Z, an uncached item last", line
 	"Connoisseur Options",
 	"Shift + Middle-Click",
 })
-check("the notes sit above the report", find(lines, "Attention Mages") < find(lines, "Restocker Report"), true)
+check("the notes sit above the report", find(lines, "Mage") < find(lines, "Restocker Report"), true)
 check(
 	"an ignored item is its icon and its bare name, in its quality color",
 	lines[find(lines, "Alterac Manna Biscuit")].left,
@@ -859,6 +876,16 @@ check("switched off, the button hides", s.ns.db.global.minimap.hide, true)
 s.ns.ToggleMinimapButton()
 check("with no argument it flips back", s.ns.db.global.minimap.hide, false)
 check("and LibDBIcon is told each time", s.lastCall(), "Refresh")
+check("on Classic Era the icon is left as LibDBIcon draws it", s.button.icon.mask, nil)
+s = session({ flavor = "Camelot" })
+s.ns.RegisterMinimapIcon()
+check(
+	"on WoW Forever the icon is fitted to its ring",
+	table.concat(s.calls, ", "),
+	"Register Connoisseur, SetButtonIcon Connoisseur 20"
+)
+check("and masked round", s.button.icon.mask and s.button.icon.mask.file, 130924)
+check("over the icon itself", s.button.icon.mask.region == s.button.icon, true)
 
 print("13. Before the saved settings exist, the tooltip draws nothing")
 s = session({ noDatabase = true })

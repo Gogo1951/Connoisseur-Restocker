@@ -82,13 +82,35 @@ end
     Resolves a ConnoisseurTip key to its display text. Static messages come from
     ns.TIP_MESSAGES; "you don't know <spell>" keys come from
     ns.MISSING_SPELL_MESSAGE_IDS and are rendered with the localized spell name via
-    C_Spell.GetSpellName at print time. A spell that doesn't exist on the current client
-    returns nil here so ConnoisseurTip silently skips rather than naming a spell the
-    player will never see.
+    C_Spell.GetSpellName at print time, as is noPetSkills from the four pet spells it
+    names. A spell that doesn't exist on the current client returns nil here so
+    ConnoisseurTip silently skips rather than naming a spell the player will never see.
 ]]
+local PET_SKILL_SPELL_IDS = {
+	ns.CALL_PET_SPELL_ID,
+	ns.DISMISS_PET_SPELL_ID,
+	ns.FEED_PET_SPELL_ID,
+	ns.REVIVE_PET_SPELL_ID,
+}
+
+local function ResolvePetSkillsTip()
+	local names = {}
+	for index = 1, 4 do
+		local spellID = PET_SKILL_SPELL_IDS[index]
+		names[index] = spellID and C_Spell.GetSpellName(spellID)
+		if not names[index] then
+			return nil
+		end
+	end
+	return string.format(L["TIP_PET_NO_SKILLS_FORMAT"], unpack(names))
+end
+
 local function ResolveTipText(key)
 	if ns.TIP_MESSAGES[key] then
 		return ns.TIP_MESSAGES[key]
+	end
+	if key == "noPetSkills" then
+		return ResolvePetSkillsTip()
 	end
 	if ns.MISSING_SPELL_MESSAGE_IDS[key] then
 		local name = C_Spell.GetSpellName(ns.MISSING_SPELL_MESSAGE_IDS[key])

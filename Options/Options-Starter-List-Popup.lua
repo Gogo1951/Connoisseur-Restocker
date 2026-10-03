@@ -447,7 +447,7 @@ function ns.BuildStarterListPopupOptions()
 	    already shops for a listed poison's makings, and a fresh rogue has no
 	    way to know that. The note follows the canonical section rhythm
 	    (header, line break, description, line break, controls), opening with
-	    the class-colored "Attention Rogues" the minimap tooltip uses.
+	    the class-colored class name the minimap tooltip's notes open with.
 	]]
 	local poisonCategories = SectionCategories("poisons")
 	if #poisonCategories > 0 then
@@ -460,7 +460,7 @@ function ns.BuildStarterListPopupOptions()
 			GetColor("BODY")
 				.. string.format(
 					L["STARTER_POPUP_POISONS_NOTE"],
-					"|cff" .. ns.CLASS_COLORS.ROGUE .. L["PREFIX_ROGUE"] .. "|r" .. GetColor("BODY")
+					"|cff" .. ns.CLASS_COLORS.ROGUE .. UnitClass("player") .. "|r" .. GetColor("BODY")
 				)
 				.. "|r",
 			order
@@ -678,6 +678,7 @@ local function AdornHost(host)
 			if starterPopupOpen then
 				starterPopupOpen = false
 				openedFromLogin = false
+				ns.SetRestockWindowClosesOnEscape(true)
 				ns.ClearRestockNewItems()
 				ns.UpdateRestockList()
 			end
@@ -733,6 +734,8 @@ function ns.ShowStarterListPopup(fromLogin)
 	end
 	if openFrame.frame then
 		AdornHost(openFrame.frame)
+		-- So Escape closes this window alone; the host's OnHide hands Escape back.
+		ns.SetRestockWindowClosesOnEscape(false)
 	end
 
 	--[[

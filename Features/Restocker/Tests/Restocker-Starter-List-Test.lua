@@ -378,6 +378,11 @@ local function session(classToken, level, client, noStockCheckBox)
 		restockWindowShown = restockWindowShown + 1
 	end
 	function ns.SetupRestockerTooltip() end
+	-- Whether Escape would close the Restock List window (Restocker-Window.lua), as last set.
+	local windowClosesOnEscape = true
+	function ns.SetRestockWindowClosesOnEscape(closes)
+		windowClosesOnEscape = closes
+	end
 	-- The icon-to-name gap of a Restock List row, from Restocker-Window-Columns.lua.
 	ns.RESTOCK_ICON_TEXT_GAP = 4
 	function ns.GetCharacterKey()
@@ -459,6 +464,10 @@ local function session(classToken, level, client, noStockCheckBox)
 		for _, callback in ipairs(due) do
 			callback()
 		end
+	end
+
+	function s.windowClosesOnEscape()
+		return windowClosesOnEscape
 	end
 
 	-- How many times a closing window has retired the list's New flags.
@@ -869,10 +878,12 @@ check("in the strata under it, whatever its parent gave it", fill:GetFrameStrata
 check("inside the host backdrop's insets", fill.points.TOPLEFT .. " " .. fill.points.BOTTOMRIGHT, "8,-8 -8,8")
 check("and showing", fill.shown, true)
 check("the don't-show-again checkbox rides the same host", s.created.CheckButton:GetParent() == s.host, true)
+check("Escape closes this window alone while it is open", s.windowClosesOnEscape(), false)
 s.host:Hide()
 check("closing hands the fill back, hidden", fill:GetParent() == UIParent and not fill.shown, true)
 check("and the checkbox", s.created.CheckButton:GetParent() == UIParent and not s.created.CheckButton.shown, true)
 check("and retires the list's New flags", s.newFlagsCleared(), 1)
+check("and hands Escape back to the Restock List window", s.windowClosesOnEscape(), true)
 s.rowsCameTo(500)
 s.nextFrame()
 check("a timer that outlives the window fits nothing", s.window.height, 383)

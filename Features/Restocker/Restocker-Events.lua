@@ -139,6 +139,21 @@ function ns.OnRestockerMerchantClose()
 	end
 end
 
+--[[
+    One bank visit: a Shift held as the bank opens skips its run for the whole
+    visit, and the close reminder follows only a visit whose run started.
+]]
+local bankRestockSkipped = false
+local bankRestockStarted = false
+
+function ns.OnRestockerBankFrameOpened()
+	ns.bankIsOpen = true
+	bankRestockSkipped = IsShiftKeyDown()
+	bankRestockStarted = false
+	ns.OnRestockerBankOpen()
+end
+
+-- Also run while the bank is open, when the list in use or a Keep amount changes.
 function ns.OnRestockerBankOpen()
 	ns.LoadRestockBankBags()
 
@@ -146,7 +161,7 @@ function ns.OnRestockerBankOpen()
 	local list = settings.lists[settings.currentList]
 
 	-- An empty list has nothing to move, so the run would only announce a restock that never happened.
-	if IsShiftKeyDown() or list == nil or next(list) == nil then
+	if bankRestockSkipped or list == nil or next(list) == nil then
 		return
 	end
 
@@ -154,20 +169,23 @@ function ns.OnRestockerBankOpen()
 		ns.ShowRestockWindowForVisit()
 	end
 
-	ns.bankIsOpen = true
+	bankRestockStarted = true
 	ns.RestartBankRestock()
 end
 
 function ns.OnRestockerBankClose()
 	local bankWasOpen = ns.bankIsOpen
+	local restockStarted = bankRestockStarted
 	ns.bankIsOpen = false
+	bankRestockSkipped = false
+	bankRestockStarted = false
 	ns.StopBankRestock()
 	if bankWasOpen then
 		ns.HideRestockWindowAfterVisit()
 	end
 
 	local settings = ns.restockSettings
-	if settings and bankWasOpen then
+	if settings and restockStarted then
 		RemindOnClose(settings.bankReminder, settings.bankReminderMode)
 	end
 end
@@ -249,7 +267,7 @@ function ns.InitRestockerEvents()
 	ns.restockerEventHandlers = {
 		MERCHANT_SHOW = ns.OnRestockerMerchantShow,
 		MERCHANT_CLOSED = ns.OnRestockerMerchantClose,
-		BANKFRAME_OPENED = ns.OnRestockerBankOpen,
+		BANKFRAME_OPENED = ns.OnRestockerBankFrameOpened,
 		BANKFRAME_CLOSED = ns.OnRestockerBankClose,
 		GET_ITEM_INFO_RECEIVED = ns.OnRestockerItemInfoReceived,
 		BAG_UPDATE_DELAYED = ns.OnRestockerBagUpdate,
