@@ -184,8 +184,10 @@ local DURABILITY_THRESHOLD = {
     and the panel resolves each key when it builds.
 
     A row is its account-wide settings key, its label, and the sentence saying
-    what it reports. `hidden` overrides the standard gate; `threshold` adds the
-    dropdown that sets the row's value.
+    what it reports. A label or sentence that names a game record carries the
+    client's name: `nameArg` and `descriptionArg` fill the key's %s, and a
+    function in place of a key is the label itself. `hidden` overrides the
+    standard gate; `threshold` adds the dropdown that sets the row's value.
 ]]
 local SECTIONS = {
 	{
@@ -200,18 +202,21 @@ local SECTIONS = {
 			},
 			{
 				key = "readinessWellFed",
-				name = "READINESS_WELL_FED",
-				description = "OPTIONS_READINESS_WELL_FED_DESCRIPTION",
+				name = ns.GetWellFedName,
+				description = "OPTIONS_READINESS_WELL_FED_DESCRIPTION_FORMAT",
+				descriptionArg = ns.GetWellFedName,
 			},
 			{
 				key = "readinessPetWellFed",
-				name = "READINESS_PET_WELL_FED",
-				description = "OPTIONS_READINESS_PET_WELL_FED_DESCRIPTION",
+				name = "READINESS_PET_FORMAT",
+				nameArg = ns.GetWellFedName,
+				description = "OPTIONS_READINESS_PET_WELL_FED_DESCRIPTION_FORMAT",
+				descriptionArg = ns.GetWellFedName,
 				hidden = PetWellFedHidden,
 			},
 			{
 				key = "readinessScrolls",
-				name = "OPTIONS_READINESS_SCROLLS",
+				name = "FEATURE_SCROLL_BUFFS",
 				description = "OPTIONS_READINESS_SCROLLS_DESCRIPTION",
 			},
 			{
@@ -264,7 +269,8 @@ local SECTIONS = {
 			{
 				key = "readinessBandages",
 				name = "READINESS_BANDAGES",
-				description = "OPTIONS_READINESS_BANDAGES_DESCRIPTION",
+				description = "OPTIONS_READINESS_BANDAGES_SKILL_DESCRIPTION",
+				descriptionArg = ns.GetFirstAidName,
 			},
 			{
 				key = "readinessDurability",
@@ -292,7 +298,7 @@ local SECTIONS = {
 			{
 				key = "readinessQuestionableGear",
 				name = "OPTIONS_READINESS_QUESTIONABLE_GEAR",
-				description = "OPTIONS_READINESS_QUESTIONABLE_GEAR_DESCRIPTION",
+				description = "OPTIONS_READINESS_NONCOMBAT_GEAR_DESCRIPTION",
 			},
 		},
 	},
@@ -328,15 +334,28 @@ end
     (Flask on Era) takes its break with it rather than leaving a gap where a
     switch used to be. A threshold also hides while its own switch is off.
 ]]
+-- A row's label or sentence: a function as it stands, or a key, filled with its arg when it has one.
+local function RowText(text, arg)
+	if type(text) == "function" then
+		return text
+	end
+	if arg then
+		return function()
+			return string.format(L[text], arg())
+		end
+	end
+	return L[text]
+end
+
 local function AddReportRow(args, row, order)
 	local hidden = row.hidden or ReportsHidden
 	local key = row.key
-	local description = L[row.description]
+	local description = RowText(row.description, row.descriptionArg)
 	local threshold = row.threshold
 
 	args["toggle" .. key] = {
 		type = "toggle",
-		name = L[row.name],
+		name = RowText(row.name, row.nameArg),
 		desc = description,
 		order = order,
 		width = threshold and ns.OPTIONS_LABEL_WIDTH or "full",

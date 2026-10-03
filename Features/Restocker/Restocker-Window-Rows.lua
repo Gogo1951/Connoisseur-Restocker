@@ -574,7 +574,7 @@ local function SetReputationCell(cell, item)
 	cell.text:SetShown(isSet)
 	cell.dash:SetShown(not isSet)
 	if isSet then
-		cell.text:SetText(ReputationStandingByValue(item.reaction).label)
+		cell.text:SetText(ns.GetStandingLabel(ReputationStandingByValue(item.reaction).value))
 		cell.text:SetTextColor(REPUTATION_SET.r, REPUTATION_SET.g, REPUTATION_SET.b)
 	end
 	SetCellActive(cell, buys)
@@ -755,6 +755,19 @@ function ns.CreateRestockListRow(item)
 	return frame
 end
 
+--[[
+    The client's name for the item whenever it has one, written onto the row so the
+    filter and the sort read it too; the saved name stands in only while the item
+    is still loading. Returns the client's item data, or nil while it loads.
+]]
+local function RefreshItemName(item)
+	local info = ns.GetItemData(item.itemID)
+	if info and info.itemName and info.itemName ~= "" then
+		item.itemName = info.itemName
+	end
+	return info
+end
+
 function ns.UpdateRestockListRow(row, item)
 	row.item = item
 	-- Every control carries its own item rather than resolving through a parent.
@@ -785,7 +798,7 @@ function ns.UpdateRestockListRow(row, item)
 	SetReputationCell(row.cells.reputation, item)
 
 	-- Icon + quality-colored name (from the item cache; falls back until it is known)
-	local info = ns.GetItemData(item.itemID)
+	local info = RefreshItemName(item)
 	if info then
 		row.icon:SetTexture(info.itemTexture)
 		local quality = ITEM_QUALITY_COLORS[info.itemRarity or 1]
@@ -824,6 +837,47 @@ function ns.RefreshRestockShortfall()
 	ns.UpdateRestockStatus()
 end
 
+--[[
+    Use Restock List Food & Water Last reads which items the list in use holds,
+    so a redraw that changed them asks for a macro rebuild. Most redraws change
+    nothing: a filter keystroke, a category click, the window opening.
+]]
+local lastListName
+local lastListMembers = {}
+
+local function ListMembershipChanged(listName, list)
+	local changed = listName ~= lastListName
+	local count = 0
+	for itemID in pairs(list) do
+		count = count + 1
+		if not lastListMembers[itemID] then
+			changed = true
+		end
+	end
+	for _ in pairs(lastListMembers) do
+		count = count - 1
+	end
+	if not changed and count == 0 then
+		return false
+	end
+
+	lastListName = listName
+	wipe(lastListMembers)
+	for itemID in pairs(list) do
+		lastListMembers[itemID] = true
+	end
+	return true
+end
+
+-- A row drawn before the client had its item, repainted in place once the answer lands.
+function ns.RepaintRestockRows(itemID)
+	for _, row in ipairs(ns.restockRowPool) do
+		if row.isInUse and row.item and row.item.itemID == itemID then
+			ns.UpdateRestockListRow(row, row.item)
+		end
+	end
+end
+
 function ns.UpdateRestockList()
 	--[[
 	    Rows are about to be released to the pool and rebound to different items, so
@@ -837,18 +891,31 @@ function ns.UpdateRestockList()
 	ns.CloseRestockColumnMenu()
 	ns.CloseRestockBagMenu()
 
-	-- Every list edit redraws through here, and Use Restock List Food & Water Last reads the list.
-	if ns.db.profile.useRestockLast then
-		ns.RequestUpdate()
-	end
-
 	local settings = ns.restockSettings
 	local currentList = settings.lists[settings.currentList]
 
-	-- Gather items (the list is keyed by itemID, so walk it with pairs)
+	-- Every list edit redraws through here.
+	if ListMembershipChanged(settings.currentList, currentList) and ns.db.profile.useRestockLast then
+		ns.RequestUpdate()
+	end
+
+	--[[
+	    Gather items (the list is keyed by itemID, so walk it with pairs), each
+	    under the client's current name. A row the client cannot name yet is
+	    watched while the window is open, and repainted as its answer arrives.
+	]]
+	local watchColdRows = ns.restockWindow and ns.restockWindow:IsShown()
+	local wasWatching = next(ns.restockColdRows) ~= nil
+	wipe(ns.restockColdRows)
 	wipe(restockItemList)
 	for _, item in pairs(currentList) do
+		if not RefreshItemName(item) and watchColdRows then
+			ns.restockColdRows[item.itemID] = true
+		end
 		table.insert(restockItemList, item)
+	end
+	if wasWatching ~= (next(ns.restockColdRows) ~= nil) then
+		ns.SyncRestockItemInfoSubscription()
 	end
 
 	--[[

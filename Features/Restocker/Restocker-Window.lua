@@ -136,6 +136,10 @@ local function CreateAddonFrame()
 		ns.ClearRestockNewItems()
 		ns.ClearRestockGroupSelection()
 		ns.restockWindowOpenedByVisit = false
+		if next(ns.restockColdRows) ~= nil then
+			wipe(ns.restockColdRows)
+			ns.SyncRestockItemInfoSubscription()
+		end
 	end)
 
 	--[[
@@ -836,6 +840,23 @@ function ns.UpdateRestockEmptyState(listIsEmpty, nothingShown)
 	end
 end
 
+--[[
+    Escape closes the window through UISpecialFrames. The staples pop-up takes
+    the window off that list while it is open: AceConfigDialog answers Escape by
+    running Blizzard's CloseSpecialWindows first, so one press would otherwise
+    close both windows.
+]]
+function ns.SetRestockWindowClosesOnEscape(closes)
+	for index = #UISpecialFrames, 1, -1 do
+		if UISpecialFrames[index] == "ConnoisseurRestockerFrame" then
+			table.remove(UISpecialFrames, index)
+		end
+	end
+	if closes then
+		table.insert(UISpecialFrames, "ConnoisseurRestockerFrame")
+	end
+end
+
 function ns.CreateRestockWindow()
 	-- Row and button heights come from the font, so measure before anything is built.
 	ns.RefreshRestockRowMetrics()
@@ -873,7 +894,7 @@ function ns.CreateRestockWindow()
 	ns.CreateRestockWindowFooter(addonFrame)
 	CreateResizeGrip(addonFrame)
 
-	table.insert(UISpecialFrames, "ConnoisseurRestockerFrame")
+	ns.SetRestockWindowClosesOnEscape(true)
 	addonFrame:Hide()
 
 	ns.restockWindow = addonFrame

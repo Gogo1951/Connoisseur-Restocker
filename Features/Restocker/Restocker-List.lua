@@ -45,11 +45,19 @@ end
 ns.restockItemWait = {}
 
 --[[
-    Four things here can be waiting on the client to resolve an item: a pending
-    add, a crafting recipe, a deferred upgrade and a deferred Starter List tick.
+    Rows the open Restock List window drew before the client had their item,
+    keyed by itemID. Filled by ns.UpdateRestockList, each repainted as its answer
+    arrives, and emptied when the window hides.
+]]
+ns.restockColdRows = {}
+
+--[[
+    Five things here can be waiting on the client to resolve an item: a pending
+    add, a crafting recipe, a deferred upgrade, a deferred Starter List tick and
+    a row the open window drew without its item.
     The client answers GET_ITEM_INFO_RECEIVED once per item it resolves, which
     during a login is a flood, so Core is asked to listen only while at least one
-    of the four is outstanding, and released the moment they all drain.
+    of the five is outstanding, and released the moment they all drain.
 
     Called after anything that adds to those queues, and at the end of the handler
     that drains them.
@@ -59,6 +67,7 @@ function ns.SyncRestockItemInfoSubscription()
 		or next(ns.pendingRecipes) ~= nil
 		or ns.HasPendingUpgrade()
 		or ns.HasPendingStarterAdds()
+		or next(ns.restockColdRows) ~= nil
 
 	-- MIGRATION (remove after 2026-10-18): a repaired Blinding Powder row waiting for its name (Restocker-Saved-Migration.lua)
 	waiting = ns.NameBlindingPowderRows() or waiting
@@ -81,6 +90,11 @@ function ns.OnRestockerItemInfoReceived(itemID, success)
 	    the item is missing.
 	]]
 	ns.ForgetItemDataMiss(itemID)
+
+	if ns.restockColdRows[itemID] then
+		ns.restockColdRows[itemID] = nil
+		ns.RepaintRestockRows(itemID)
+	end
 
 	--[[
 	    If this was an autobuy item setup item request. Tested with next(), not #:

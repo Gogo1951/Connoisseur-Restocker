@@ -114,7 +114,11 @@ L["READINESS_QUESTIONABLE_GEAR"] = "비전투용 장비 착용:"
     What the report calls each thing. The Readiness Report panel labels its
     switches with these same keys, so a switch names exactly the line it
     controls; a switch that needs other words than its line (Main Hand Weapon
-    Buff, PvP Flag On) keeps an OPTIONS_READINESS_* label of its own.
+    Buff, PvP Flag On) keeps an OPTIONS_READINESS_* label of its own, and
+    Scroll Buffs borrows FEATURE_SCROLL_BUFFS, the Macros feature it needs.
+    Well Fed, Main Hand and Off Hand are the client's own names (the buff,
+    MAINHANDSLOT and SECONDARYHANDSLOT), so they have no keys here, and
+    READINESS_PET_FORMAT puts Well Fed in the pet's line (%s is that name).
 
     Deliberately its own set rather than the shared LABEL_* keys the macro
     messages use: those name an item you are being offered ("Health Potion"),
@@ -122,12 +126,9 @@ L["READINESS_QUESTIONABLE_GEAR"] = "비전투용 장비 착용:"
     to be reworded independently.
 ]]
 L["READINESS_FLASK"] = "영약 또는 비약 2종"
-L["READINESS_WELL_FED"] = "포만감"
-L["READINESS_PET_WELL_FED"] = "포만감 (소환수)"
+L["READINESS_PET_FORMAT"] = "%s (소환수)"
 L["READINESS_SCROLLS"] = "두루마리"
 L["READINESS_SOULSTONE"] = "영혼석 비활성"
-L["READINESS_MAIN_HAND"] = "주장비"
-L["READINESS_OFF_HAND"] = "보조장비"
 L["READINESS_HEALTHSTONE"] = "생명석"
 L["READINESS_MANA_GEM"] = "마나 보석"
 L["READINESS_HEALING_POTION"] = "치유 물약"
@@ -152,8 +153,8 @@ L["READINESS_UNSPENT_TALENTS_MANY"] = "미사용 특성 포인트 %d점"
 -- Printed in chat by macro bodies via /run ConnoisseurTip("key") or ConnoisseurTipIf. See Features/Macros/Runtime.lua.
 
 L["TIP_PET_NO_FOOD"] = "현재 소환수에게 줄 수 있는 적절한 먹이가 없습니다."
-L["TIP_PET_NO_SKILLS"] =
-	"현재 야수 부르기, 야수 소환해제, 먹이주기 또는 야수 되살리기를 배우지 않았습니다."
+-- The four %s are the client's names for Call Pet, Dismiss Pet, Feed Pet and Revive Pet, in that order.
+L["TIP_PET_NO_SKILLS_FORMAT"] = "현재 다음 주문을 배우지 않았습니다: %s, %s, %s, %s."
 L["TIP_PET_NO_MEND"] = "현재 동물 치료를 배우지 않았습니다."
 L["TIP_NO_HAND_POISON"] = "이 무기용으로 선택한 독이 다 떨어졌습니다."
 
@@ -164,10 +165,15 @@ L["TIP_DONT_KNOW_SPELL"] = "현재 %s 기술을 배우지 않았습니다."
 -- Minimap Tooltip
 --------------------------------------------------------------------------------
 
--- Feature toggles shown in the mini-map tooltip, each with a description line. Both names also fill OPTIONS_MODE_DESCRIPTION's %s.
+--[[
+    Feature toggles shown in the mini-map tooltip, each with a description
+    line. Both names also fill OPTIONS_MODE_DESCRIPTION's %s, and Scroll Buffs
+    labels the Readiness Report's switch. In every *_FORMAT key that quotes the
+    buff, here and below, %s is the client's name for "Well Fed".
+]]
 L["FEATURE_BUFF_FOOD"] = "버프 음식"
-L["MENU_BUFF_FOOD_DESCRIPTION"] =
-	'"포만감" 버프가 없을 때 해당 버프를 주는 음식을 우선 사용합니다.'
+L["MENU_BUFF_FOOD_DESCRIPTION_FORMAT"] =
+	'"%s" 버프가 없을 때 해당 버프를 주는 음식을 우선 사용합니다.'
 L["FEATURE_SCROLL_BUFFS"] = "두루마리 버프"
 L["MENU_SCROLL_BUFFS_DESCRIPTION"] =
 	"음식을 먹기 전에 음식 매크로로 빠진 두루마리 버프를 적용합니다."
@@ -176,8 +182,8 @@ L["MENU_SCROLL_BUFFS_DESCRIPTION"] =
     Item titles in the mini-map tooltip. A title sits alone on its row and its
     item is right-aligned on the row beneath, so neither has to stay short;
     with nothing to show, MESSAGE_NO_ITEM takes the item's row. Current Pet
-    Food opens the Attention Hunters block, and the two poison titles open the
-    Attention Rogues block.
+    Food opens the Hunter's class block, and the two poison titles open the
+    Rogue's.
 ]]
 L["MINIMAP_BEST_FOOD"] = "현재 음식"
 L["MINIMAP_BEST_PET_FOOD"] = "현재 소환수 음식"
@@ -236,15 +242,11 @@ L["MENU_OPTIONS_KEYBIND"] = "Shift + 휠클릭"
 --------------------------------------------------------------------------------
 
 --[[
-    The class block of the mini-map tooltip: a class-colored header, the items
+    The class block of the mini-map tooltip: a class-colored header, which is
+    the client's name for the player's class and has no key here, the items
     the class's own macro will use (a Hunter's pet food, a Rogue's two poisons,
     titled in the Minimap Tooltip section above), then one group per macro.
 ]]
-
-L["PREFIX_HUNTER"] = "사냥꾼 주목"
-L["PREFIX_MAGE"] = "마법사 주목"
-L["PREFIX_ROGUE"] = "도적 주목"
-L["PREFIX_WARLOCK"] = "흑마법사 주목"
 
 --[[
     A group is the macro's name, then one row per click: the click on the left
@@ -287,9 +289,7 @@ L["NOTE_MAGE_TARGET_LEVEL"] =
 L["NOTE_WARLOCK_TARGET_LEVEL"] =
 	"레벨이 낮은 플레이어를 대상으로 지정하면 그 레벨에 맞는 생명석을 창조합니다."
 
--- Rogue. The two hands are the results of a Left-Click and a Right-Click on the Poisons macro.
-L["MINIMAP_MAIN_HAND"] = "주장비"
-L["MINIMAP_OFF_HAND"] = "보조장비"
+-- Rogue. A Left-Click and a Right-Click on the Poisons macro show the client's slot names, MAINHANDSLOT and SECONDARYHANDSLOT.
 L["NOTE_POISONS_WINDOW"] = "독 조제 창"
 L["NOTE_POISONS_REPLACED"] = "기존 독을 자동으로 교체합니다."
 
@@ -448,9 +448,10 @@ L["OPTIONS_MACRO_TOGGLE_DESCRIPTION"] =
 	"이 매크로를 생성하고 관리하며, 체크를 해제하면 삭제합니다."
 
 --[[
-    Food & Water: Prioritize Buff Food, Enable Scroll Buffs, and Use Conjured
-    Food & Water First, in page order. One description serves all three, so
-    each option's hover text says what it does.
+    Food & Water: Prioritize Buff Food, Enable Scroll Buffs, Use Conjured
+    Food & Water First, and Use Restock List Food & Water Last, in page
+    order. One description serves all four, so each option's hover text says
+    what it does.
 ]]
 L["OPTIONS_FOOD_WATER_HEADER"] = "음식 및 물"
 L["OPTIONS_FOOD_WATER_DESCRIPTION"] =
@@ -459,23 +460,19 @@ L["OPTIONS_FOOD_WATER_DESCRIPTION"] =
 --[[
     Buff Food, the first option under Food & Water. Its hover text is a key of
     its own because it carries the arena exception, which the mini-map
-    tooltip's MENU_BUFF_FOOD_DESCRIPTION has no room for.
+    tooltip's MENU_BUFF_FOOD_DESCRIPTION_FORMAT has no room for.
 ]]
 L["OPTIONS_BUFF_FOOD"] = "버프 음식 우선"
-L["OPTIONS_BUFF_FOOD_DESCRIPTION"] =
-	'투기장을 제외하고, "포만감" 버프가 없을 때 해당 버프를 주는 음식을 우선 사용합니다.'
+L["OPTIONS_BUFF_FOOD_DESCRIPTION_FORMAT"] =
+	'투기장을 제외하고, "%s" 버프가 없을 때 해당 버프를 주는 음식을 우선 사용합니다.'
 
 -- Scroll Buffs, the second option under Food & Water.
 L["OPTIONS_USE_SCROLLS"] = "두루마리 버프 활성화"
 L["OPTIONS_USE_SCROLLS_DESCRIPTION"] =
 	"음식 매크로를 처음 누르면 빠진 두루마리 버프를 적용하고 다음에 누르면 음식을 먹으며, 아군 플레이어를 대상으로 지정했거나 투기장에 있을 때는 두루마리를 건너뜁니다."
 L["OPTIONS_SCROLL_TYPES"] = "확인할 두루마리 유형 포함"
-L["OPTIONS_SCROLL_AGILITY"] = "민첩성"
-L["OPTIONS_SCROLL_INTELLECT"] = "지능"
+-- The other five scroll types are labeled with the client's stat names (SPELL_STAT1_NAME to SPELL_STAT5_NAME); Protection has none.
 L["OPTIONS_SCROLL_PROTECTION"] = "보호"
-L["OPTIONS_SCROLL_SPIRIT"] = "정신력"
-L["OPTIONS_SCROLL_STAMINA"] = "체력"
-L["OPTIONS_SCROLL_STRENGTH"] = "힘"
 -- Hover text on each scroll type and pet food type; %s is the scroll type's label or the pet food's item name.
 L["OPTIONS_BUFF_TYPE_DESCRIPTION"] = "빠진 버프를 확인할 때 %s 유형을 포함합니다."
 
@@ -504,11 +501,12 @@ L["OPTIONS_COMBINE_HEALTHSTONES_DESCRIPTION"] =
 
 -- Mana Gems & Runes
 L["OPTIONS_MANA_GEMS_HEADER"] = "마나 보석 및 룬"
-L["OPTIONS_MANA_GEMS_DESCRIPTION"] =
-	"악마의 룬과 암흑의 룬, 그리고 몇몇 다른 마나 회복 아이템은 마나 보석과 재사용 대기시간을 공유합니다. 룬은 사용할 때 생명력이 소모되므로, 직접 추가하지 않으면 마나 보석 매크로는 이들을 모두 제외합니다."
+-- In both Mana Gem texts the two %s are the client's names for Demonic Rune and Dark Rune, in that order, each with its icon.
+L["OPTIONS_MANA_GEMS_DESCRIPTION_FORMAT"] =
+	"%s, %s, 그리고 몇몇 다른 마나 회복 아이템은 마나 보석과 재사용 대기시간을 공유합니다. 룬은 사용할 때 생명력이 소모되므로, 직접 추가하지 않으면 마나 보석 매크로는 이들을 모두 제외합니다."
 L["OPTIONS_INCLUDE_MANA_RUNES"] = "룬 및 기타 마나 회복 아이템을 마나 보석 매크로에 추가"
-L["OPTIONS_INCLUDE_MANA_RUNES_DESCRIPTION"] =
-	"악마의 룬과 암흑의 룬, 그리고 마나 보석과 재사용 대기시간을 공유하는 다른 마나 회복 아이템도 마나 보석과 함께 우선순위를 매겨, 그중 하나가 가장 좋은 선택이거나 보석이 다 떨어졌을 때 마나 보석 매크로가 이를 사용합니다."
+L["OPTIONS_INCLUDE_MANA_RUNES_DESCRIPTION_FORMAT"] =
+	"%s, %s, 그리고 마나 보석과 재사용 대기시간을 공유하는 다른 마나 회복 아이템도 마나 보석과 함께 우선순위를 매겨, 그중 하나가 가장 좋은 선택이거나 보석이 다 떨어졌을 때 마나 보석 매크로가 이를 사용합니다."
 
 -- Buff Re-Application
 L["OPTIONS_REAPPLY_HEADER"] = "버프 재적용"
@@ -528,10 +526,10 @@ L["REAPPLY_THRESHOLD_MANY"] = "%d분 미만 남았을 때"
 
 -- Pet Food Buffs
 L["OPTIONS_PET_HEADER"] = "소환수 음식 버프"
-L["OPTIONS_PET_SECTION_DESCRIPTION"] = '일부 음식은 소환수에게 별도의 "포만감" 버프를 줍니다.'
+L["OPTIONS_PET_SECTION_DESCRIPTION_FORMAT"] = '일부 음식은 소환수에게 별도의 "%s" 버프를 줍니다.'
 L["OPTIONS_USE_PET_BUFFS"] = "소환수 음식 버프 사용"
-L["OPTIONS_USE_PET_BUFFS_DESCRIPTION"] =
-	'투기장을 제외하고, 소환수에게 "포만감" 버프가 없을 때 음식 매크로에 소환수 음식을 추가합니다.'
+L["OPTIONS_USE_PET_BUFFS_DESCRIPTION_FORMAT"] =
+	'투기장을 제외하고, 소환수에게 "%s" 버프가 없을 때 음식 매크로에 소환수 음식을 추가합니다.'
 -- The pet food toggles under this heading carry the client's own item names, so they have no keys here.
 L["OPTIONS_PET_BUFF_TYPES"] = "확인할 소환수 음식 유형 포함"
 
@@ -546,8 +544,7 @@ L["OPTIONS_EXPLOSIVES_CLICK_LAYOUT_DESCRIPTION"] =
 L["EXPLOSIVES_MODE_ATPLAYER"] = "좌클릭 @player"
 L["EXPLOSIVES_MODE_TOSS"] = "좌클릭 던지기"
 
--- Druids
-L["OPTIONS_DRUIDS_HEADER"] = "드루이드"
+-- Druids. This section and the Rogue one are headed with the client's name for the player's class, so neither header has a key.
 L["OPTIONS_DRUID_MACRO_HELPER"] = "DruidMacroHelper 연동 활성화"
 L["OPTIONS_DRUID_MACRO_HELPER_DESCRIPTION"] =
 	"DruidMacroHelper(/dmh)를 사용하여 치유 물약, 마나 물약, 생명석에 대한 변신 매크로를 생성합니다."
@@ -562,7 +559,6 @@ L["DRUID_FORM_BEAR"] = "곰으로 복귀"
 L["DRUID_FORM_CAT"] = "표범으로 복귀"
 
 -- Rogues
-L["OPTIONS_ROGUES_HEADER"] = "도적"
 L["OPTIONS_POISONS_DESCRIPTION"] =
 	"독 매크로를 각 독 종류의 사용 가능한 최고 등급으로 유지합니다. 좌클릭은 보조장비에, 우클릭은 주장비에 바르며, 기존 독은 자동으로 교체됩니다."
 L["OPTIONS_POISON_MAIN_HAND"] = "주장비 독 종류"
@@ -571,18 +567,19 @@ L["OPTIONS_POISON_MAIN_HAND_DESCRIPTION"] =
 	"독 매크로를 우클릭할 때 주장비에 바를 독을 선택합니다."
 L["OPTIONS_POISON_OFF_HAND_DESCRIPTION"] =
 	"독 매크로를 좌클릭할 때 보조장비에 바를 독을 선택합니다."
--- Shared by the Rogue (Stealth) and Night Elf (Shadowmeld) toggles; a character sees one at most.
+--[[
+    Shared by the Rogue (Stealth) and Night Elf (Shadowmeld) toggles; a
+    character sees one at most. In both hover texts %s is the client's name for
+    the spell the macro appends.
+]]
 L["OPTIONS_STEALTH_EATING"] = "먹을 때 은신 사용"
-L["OPTIONS_STEALTH_EATING_ROGUE_DESCRIPTION"] =
-	"음식 매크로에 은신을 추가하여 음식을 먹는 동안 은신합니다."
+L["OPTIONS_STEALTH_EATING_SPELL_DESCRIPTION"] =
+	"음식 매크로에 %s 주문을 추가하여 음식을 먹는 동안 은신합니다."
 
--- Night Elves
-L["OPTIONS_NIGHTELF_HEADER"] = "나이트 엘프"
+-- Night Elves. The section is headed with the client's name for the player's race, so its header has no key.
 L["OPTIONS_STEALTH_DRINKING"] = "마실 때 은신 사용"
-L["OPTIONS_STEALTH_DRINKING_DESCRIPTION"] =
-	"물 매크로에 그림자 숨기를 추가하여 물을 마시는 동안 은신합니다."
-L["OPTIONS_STEALTH_EATING_NIGHTELF_DESCRIPTION"] =
-	"음식 매크로에 그림자 숨기를 추가하여 음식을 먹는 동안 은신합니다."
+L["OPTIONS_STEALTH_DRINKING_SPELL_DESCRIPTION"] =
+	"물 매크로에 %s 주문을 추가하여 물을 마시는 동안 은신합니다."
 L["OPTIONS_STEALTH_PICK_ONE"] =
 	"프로 팁: 하나만 선택하세요. 먹기와 마시기는 동시에 할 수 있지만, 은신한 뒤에 먹거나 마시면 은신이 풀립니다."
 
@@ -624,6 +621,8 @@ L["OPTIONS_RESTOCKER_OPEN_BANK"] = "은행에서 열기"
 L["OPTIONS_RESTOCKER_OPEN_BANK_DESCRIPTION"] = "은행을 방문하면 보충 목록을 엽니다."
 L["OPTIONS_RESTOCKER_OPEN_MERCHANT"] = "상인 방문 시 열기"
 L["OPTIONS_RESTOCKER_OPEN_MERCHANT_DESCRIPTION"] = "상인을 방문하면 보충 목록을 엽니다."
+-- The header over the three reminder rows below, which follow the Staples Pop-Up and Gold Reserve rows on the page.
+L["OPTIONS_RESTOCKER_REMINDERS_HEADER"] = "알림"
 L["OPTIONS_RESTOCKER_REMIND"] = "마을 보충 알림 사용"
 L["OPTIONS_RESTOCKER_REMIND_DESCRIPTION"] =
 	"보충 목록에 부족한 것이 있고 여관이나 도시에 도착하거나 이미 그곳에 있는 상태로 접속했을 때 대화창에 알림을 표시합니다."
@@ -633,6 +632,12 @@ L["OPTIONS_RESTOCKER_MERCHANT_REMIND_DESCRIPTION"] =
 L["OPTIONS_RESTOCKER_BANK_REMIND"] = "은행 보충 알림 사용"
 L["OPTIONS_RESTOCKER_BANK_REMIND_DESCRIPTION"] =
 	"은행을 닫을 때 미완료 보충 주문이 있으면 알려 줍니다."
+
+--[[
+    The Gold Reserve: the floor the merchant restock never spends below. The
+    dropdown beside it writes each amount as a number and the gold coin, so
+    it has no strings of its own.
+]]
 L["OPTIONS_RESTOCKER_GOLD_RESERVE"] = "예비 골드 사용"
 L["OPTIONS_RESTOCKER_GOLD_RESERVE_DESCRIPTION"] =
 	"여기서 따로 남겨 둔 골드는 보충에 절대 사용하지 않습니다."
@@ -666,7 +671,6 @@ L["OPTIONS_RESTOCKER_REMIND_SOUND_DESCRIPTION"] =
 	"대화창이 바쁠 때를 위해 알림과 함께 경고음을 재생합니다."
 L["OPTIONS_RESTOCKER_SOUND_PREVIEW"] = "클릭하면 경고음을 들어 볼 수 있습니다."
 
-L["OPTIONS_RESTOCKER_REMINDERS_HEADER"] = "알림"
 L["OPTIONS_RESTOCKER_WINDOW_HEADER"] = "보충 목록 창"
 L["OPTIONS_RESTOCKER_WINDOW_DESCRIPTION"] = "보충 목록이 자동으로 열릴 시점을 선택하세요."
 
@@ -728,11 +732,10 @@ L["OPTIONS_READINESS_CHARACTER_HEADER"] = "캐릭터"
 -- Missing Buffs
 L["OPTIONS_READINESS_FLASK_DESCRIPTION"] =
 	"영약이 없으면 알려 줍니다. 영약 하나, 또는 전투 비약과 수호 비약 각 하나가 있으면 충족된 것으로 봅니다."
-L["OPTIONS_READINESS_WELL_FED_DESCRIPTION"] =
-	'"포만감" 버프가 없으면 알려 줍니다. 매크로 설정에서 버프 음식을 켜야 합니다.'
-L["OPTIONS_READINESS_PET_WELL_FED_DESCRIPTION"] =
-	'소환수에게 "포만감" 버프가 없으면 알려 줍니다. 매크로 설정에서 소환수 음식 버프를 켜야 하며, 소환수를 불러낸 상태여야 합니다.'
-L["OPTIONS_READINESS_SCROLLS"] = "두루마리 버프"
+L["OPTIONS_READINESS_WELL_FED_DESCRIPTION_FORMAT"] =
+	'"%s" 버프가 없으면 알려 줍니다. 매크로 설정에서 버프 음식을 켜야 합니다.'
+L["OPTIONS_READINESS_PET_WELL_FED_DESCRIPTION_FORMAT"] =
+	'소환수에게 "%s" 버프가 없으면 알려 줍니다. 매크로 설정에서 소환수 음식 버프를 켜야 하며, 소환수를 불러낸 상태여야 합니다.'
 L["OPTIONS_READINESS_SCROLLS_DESCRIPTION"] =
 	"빠진 두루마리 버프가 있으면 알려 줍니다. 매크로 설정에서 두루마리 버프를 켜야 하며, 그곳에서 선택한 두루마리 유형만 확인합니다."
 --[[
@@ -776,8 +779,9 @@ L["OPTIONS_READINESS_HEALING_POTION_DESCRIPTION"] =
 	"전투 중에는 아무도 물약을 건네줄 수 없으므로, 치유 물약을 하나도 가지고 있지 않으면 알려 줍니다."
 L["OPTIONS_READINESS_MANA_POTION_DESCRIPTION"] =
 	"마나 물약을 하나도 가지고 있지 않으면 알려 줍니다. 마나를 사용하는 직업으로 플레이할 때만 표시됩니다."
-L["OPTIONS_READINESS_BANDAGES_DESCRIPTION"] =
-	"현재 응급치료 숙련도로 사용할 수 있는 붕대를 하나도 가지고 있지 않으면 알려 줍니다."
+-- %s is the client's name for the First Aid skill line.
+L["OPTIONS_READINESS_BANDAGES_SKILL_DESCRIPTION"] =
+	"현재 %s 숙련도로 사용할 수 있는 붕대를 하나도 가지고 있지 않으면 알려 줍니다."
 L["OPTIONS_READINESS_DURABILITY"] = "손상된 장비 (내구도 기준)"
 L["OPTIONS_READINESS_DURABILITY_DESCRIPTION"] =
 	"내구도가 이 값보다 낮은 착용 장비를 모두 링크하며, 장비별로 측정하므로 무기 하나만 부서져도 표시됩니다."
@@ -792,8 +796,8 @@ L["OPTIONS_READINESS_SPEC_DESCRIPTION"] = "특성 분배와 아직 사용하지 
 L["OPTIONS_READINESS_PVP"] = "PvP 상태 켜짐"
 L["OPTIONS_READINESS_PVP_DESCRIPTION"] = "PvP 상태가 켜져 있으면 경고합니다."
 L["OPTIONS_READINESS_QUESTIONABLE_GEAR"] = "비전투용 장비 착용"
-L["OPTIONS_READINESS_QUESTIONABLE_GEAR_DESCRIPTION"] =
-	"말채찍이나 낚싯대처럼 전투에 어울리지 않는 착용 장비를 링크합니다."
+L["OPTIONS_READINESS_NONCOMBAT_GEAR_DESCRIPTION"] =
+	"승마 장비나 낚시 장비처럼 전투에 어울리지 않는 착용 장비를 링크합니다."
 
 --------------------------------------------------------------------------------
 -- Restocker Window & Chat
@@ -910,7 +914,9 @@ L["RESTOCKER_RESTOCKED_PARTIAL_ONE"] = "보충 주문 1건을 일부만 채웠�
 L["RESTOCKER_RESTOCKED_PARTIAL_MANY"] = "보충 주문 %d건을 일부만 채웠습니다."
 -- Printed after the counts above when the bags ran out of room before every order was bought.
 L["RESTOCKER_BAGS_FULL_PARTIAL"] = "모든 아이템을 구매하기 전에 가방이 가득 찼습니다."
+-- Printed after the counts above when gold ran out, or the Gold Reserve was reached, before every order was bought.
 L["RESTOCKER_OUT_OF_GOLD"] = "보충을 마치기에 골드가 부족합니다."
+-- RESTOCKER_OUT_OF_GOLD's line while the Gold Reserve is on, whole so each locale joins its sentences its own way. %s is the reserve with the gold coin.
 L["RESTOCKER_OUT_OF_GOLD_RESERVE"] =
 	"보충 일시 중지: 골드가 부족합니다. 예비 골드(%s)를 건드리지 않고 구매 주문을 완료할 수 있게 되면 다시 시작합니다."
 
@@ -965,13 +971,14 @@ L["STARTER_POPUP_ARROWS"] = "화살"
 --[[
     The Reagents & Tools section: the Hearthstone, plus each class's tools and
     spell reagents. Rogues additionally get a Poisons section of their own,
-    whose note under the header reuses PREFIX_ROGUE (rogue-colored at the call
-    site) to say the ingredients take care of themselves. Both sections name
+    whose note under the header opens with the client's name for the class
+    (rogue-colored at the call site) to say the ingredients take care of
+    themselves. Both sections name
     their rows with the client's own item names, so neither has row labels here.
 ]]
 L["STARTER_POPUP_REAGENTS_HEADER"] = "재료 및 도구"
 L["STARTER_POPUP_POISONS_HEADER"] = "독"
--- %s is the rogue-colored PREFIX_ROGUE; the spaced colon is deliberate.
+-- %s is the client's name for the Rogue class, rogue-colored; the spaced colon is deliberate.
 L["STARTER_POPUP_POISONS_NOTE"] =
 	"%s : 완성된 독을 목록에 추가하면, 재료를 모두 취급하는 상인이라면 어디서든 Connoisseur가 재료를 자동으로 구매합니다."
 --[[
@@ -1248,29 +1255,24 @@ L["RESTOCKER_WITHDRAW_TOOLTIP_BODY"] = "은행이 열려 있을 때 필요한 �
 -- Required-reputation control (per-item vendor gate).
 L["RESTOCKER_REPUTATION_MENU_TITLE"] = "필요 평판"
 --[[
-    { standing label, discount percent }.
+    { standing label, discount percent }. The standings are the client's own
+    labels (FACTION_STANDING_LABEL5 to 8), so only "Any" has a key here.
 
-    This string IS run through string.format, so its literal percent sign is
-    escaped as %%. RESTOCKER_REPUTATION_TOOLTIP_STANDING below is printed
-    as-is and therefore writes bare % signs. Both are correct where they
-    stand; neither may be "normalized" to match the other, in any locale.
+    Run through string.format, so its literal percent sign is escaped as %%,
+    as is RESTOCKER_REPUTATION_TOOLTIP_DISCOUNTS' below.
 ]]
 L["RESTOCKER_REPUTATION_DISCOUNT_FORMAT"] = "%s (%d%% 할인)"
 L["RESTOCKER_REPUTATION_ANY"] = "무관"
-L["RESTOCKER_REPUTATION_FRIENDLY"] = "약간 우호적"
-L["RESTOCKER_REPUTATION_HONORED"] = "우호적"
-L["RESTOCKER_REPUTATION_REVERED"] = "매우 우호적"
-L["RESTOCKER_REPUTATION_EXALTED"] = "확고한 동맹"
 L["RESTOCKER_REPUTATION_TOOLTIP_TITLE"] = "필요한 상인 평판"
 --[[
-    Quotes the cell's own values, which couples this line to the four standings
-    above: a locale that renders a standing differently has to say so here too.
-    With no standing required the cell draws a dash rather than the word "Any",
-    which is why the last sentence names the dash; "Any" is still the menu's
-    first entry.
+    The four %s are the client's labels for Friendly, Honored, Revered and
+    Exalted, in that order, each followed by its discount; the percent signs are
+    escaped as %% because the line goes through string.format. With no standing
+    required the cell draws a dash rather than the word "Any", which is why the
+    last sentence names the dash; "Any" is still the menu's first entry.
 ]]
-L["RESTOCKER_REPUTATION_TOOLTIP_STANDING"] =
-	"클릭하면 Connoisseur가 상인에게서 구매하는 데 필요한 평판 단계를 설정할 수 있으며, 이 평판으로 가격도 할인됩니다: 약간 우호적 5%, 우호적 10%, 매우 우호적 15%, 확고한 동맹 20%. 대시(-)로 표시되면 어느 상인에게서나 구매합니다."
+L["RESTOCKER_REPUTATION_TOOLTIP_DISCOUNTS"] =
+	"클릭하면 Connoisseur가 상인에게서 구매하는 데 필요한 평판 단계를 설정할 수 있으며, 이 평판으로 가격도 할인됩니다: %s 5%%, %s 10%%, %s 15%%, %s 20%%. 대시(-)로 표시되면 어느 상인에게서나 구매합니다."
 
 --[[
     Why a cell cannot be set on its row: the tooltip a dimmed cell shows under

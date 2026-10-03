@@ -180,7 +180,12 @@ local function session(level)
 				end,
 			},
 			stripe = { SetShown = function() end },
-			text = { SetText = function() end, SetTextColor = function() end },
+			text = {
+				SetText = function(self, text)
+					self.shown = text
+				end,
+				SetTextColor = function() end,
+			},
 			amountBox = { SetText = function() end, SetTextColor = function() end },
 			removeButton = {},
 			cells = {
@@ -209,6 +214,9 @@ local function session(level)
 			SetHeight = function() end,
 		},
 		scrollFrame = { SetVerticalScroll = function() end },
+		IsShown = function()
+			return true
+		end,
 	}
 	function ns.RefreshRestockColumnHeader() end
 	-- The start of a redraw closes the bag menu (Restocker-Window-Bag-Menu.lua), which is never open here.
@@ -274,7 +282,8 @@ local function session(level)
 		local drawn = {}
 		for _, frame in ipairs(ns.restockRowPool) do
 			if frame.isInUse then
-				drawn[frame.item.itemID] = { icon = frame.icon.texture, group = groups[frame.item.itemID] }
+				drawn[frame.item.itemID] =
+					{ icon = frame.icon.texture, group = groups[frame.item.itemID], name = frame.text.shown }
 			end
 		end
 		return drawn
@@ -285,24 +294,33 @@ end
 
 --------------------------------------------------------------------------------
 
-print("1. The report: a cold row drawn while nothing waits gets its icon once the answer lands")
+print("1. The report: a cold row drawn in the open window gets its icon the moment the answer lands")
 local s = session()
 s.list[21177] = { itemID = 21177, itemName = "Symbol of Kings", itemType = "Reagent", amount = 100 }
 s.list[6948] = { itemID = 6948, itemName = "Hearthstone", amount = 1 } -- a line saved without a type
 local drawn = s.redraw()
 check("drawn while cold", drawn[21177].icon, QUESTION_MARK)
-check("nothing was listening", s.deliver(), 0)
+check("the open window listens for its rows", s.registered(), true)
+check("both answers heard", s.deliver(), 2)
+local function rowOf(itemID)
+	for _, frame in ipairs(s.ns.restockRowPool) do
+		if frame.isInUse and frame.item.itemID == itemID then
+			return frame
+		end
+	end
+end
+check("repainted in place, with no redraw", rowOf(21177).icon.texture, "icon:21177")
+check("and the event let go", s.registered(), false)
 drawn = s.redraw()
-check("icon on the next redraw", drawn[21177].icon, "icon:21177")
 check("the untyped line files under its real type", drawn[6948].group, "Miscellaneous")
 
 print("2. A cold row removed and typed back in by id is added, and nothing stays subscribed")
 s = session()
 s.list[1179] = { itemID = 1179, itemName = "Ice Cold Milk", itemType = "Consumable", amount = 20 }
 s.redraw()
-check("nothing was listening", s.deliver(), 0)
 s.list[1179] = nil
 s.redraw()
+check("a row gone from the list is no longer watched", s.registered(), false)
 s.ns.AddRestockItem("1179")
 s.deliver()
 check("Ice Cold Milk added", s.list[1179] and s.list[1179].itemName, "Ice Cold Milk")
@@ -372,6 +390,10 @@ s.resolve(1179)
 s.list[1179] = { itemID = 1179, itemName = "Ice Cold Milk", itemType = "Consumable", amount = 20 }
 s.list[21177] = { itemID = 21177, itemName = "Symbol of Kings", itemType = "Reagent", amount = 100 }
 s.ns.UpgradeRestockList()
+-- A redraw with the window shut, so the upgrade is the only waiter.
+s.ns.restockWindow.IsShown = function()
+	return false
+end
 drawn = s.redraw()
 check("Symbol of Kings drawn cold while the upgrade waits", drawn[21177].icon, QUESTION_MARK)
 check("the upgrade's answer heard", s.deliver(1205), 1)
@@ -405,6 +427,26 @@ s.ns.AddRestockItem("999999")
 check("nothing parked", next(s.ns.restockItemWait), nil)
 check("the event stays unregistered", s.registered(), false)
 check("the player is told", s.printed[1], "RESTOCKER_UNKNOWN_ITEM")
+
+print("9. A poison row with no saved name still orders its reagents: recipes are found by item ID")
+s = session()
+s.resolve(8924, 8925) -- Dust of Deterioration and Crystal Vial; the poison itself stays cold
+C_Item.GetItemCount = function()
+	return 0
+end
+s.settings.currentList = "Rogue"
+s.settings.lists = { Rogue = { [8928] = { itemID = 8928, itemName = "", amount = 2 } } }
+s.ns.SetupCraftingRecipes()
+local order = s.ns.BuildCraftingPurchaseOrder()
+check("Dust of Deterioration for two Instant Poison VI", order["Item 8924"], 8)
+check("Crystal Vial for two Instant Poison VI", order["Item 8925"], 2)
+
+print("10. A row shows the client's name for its item, not the name saved with it")
+s = session()
+s.resolve(1179)
+s.list[1179] = { itemID = 1179, itemName = "Eiskalte Milch", itemType = "Consumable", amount = 20 }
+check("the client's name", s.redraw()[1179].name, "Ice Cold Milk")
+check("written onto the row, so the filter and sort read it too", s.list[1179].itemName, "Ice Cold Milk")
 
 print("")
 if failures == 0 then

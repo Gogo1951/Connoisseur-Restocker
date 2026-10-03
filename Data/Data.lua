@@ -284,11 +284,11 @@ ns.DRUID_MACRO_HELPER_GUARDS = {
                                    currently know <Localized Spell Name>."
     A key the flavor folder leaves out, or a spell ID the current client
     doesn't know, resolves to nil, so ConnoisseurTip silently skips the print
-    rather than naming a spell the player will never see.
+    rather than naming a spell the player will never see. The noPetSkills tip
+    names four pet spells, so Runtime.lua builds it at print time too.
 ]]
 ns.TIP_MESSAGES = {
 	noPetFood = ns.L["TIP_PET_NO_FOOD"],
-	noPetSkills = ns.L["TIP_PET_NO_SKILLS"],
 	noMendPet = ns.L["TIP_PET_NO_MEND"],
 	noHandPoison = ns.L["TIP_NO_HAND_POISON"],
 }
@@ -347,14 +347,15 @@ ns.GOLD_ICON = "|TInterface\\MoneyFrame\\UI-GoldIcon:0:0:2:0|t"
     requirement". `discount` is the standard Classic faction-vendor price saving for
     that standing, shown for reference (it is informational, not enforced here).
     "Neutral" is omitted: requiring Neutral is the same as no requirement ("Any"), since
-    you can already buy from any vendor you're at least Neutral with.
+    you can already buy from any vendor you're at least Neutral with. Labels come from
+    ns.GetStandingLabel, which reads the client's own standing names.
 ]]
 ns.REPUTATION_STANDINGS = {
-	{ value = 0, label = ns.L["RESTOCKER_REPUTATION_ANY"], discount = 0 },
-	{ value = 5, label = ns.L["RESTOCKER_REPUTATION_FRIENDLY"], discount = 5 },
-	{ value = 6, label = ns.L["RESTOCKER_REPUTATION_HONORED"], discount = 10 },
-	{ value = 7, label = ns.L["RESTOCKER_REPUTATION_REVERED"], discount = 15 },
-	{ value = 8, label = ns.L["RESTOCKER_REPUTATION_EXALTED"], discount = 20 },
+	{ value = 0, discount = 0 },
+	{ value = 5, discount = 5 },
+	{ value = 6, discount = 10 },
+	{ value = 7, discount = 15 },
+	{ value = 8, discount = 20 },
 }
 
 --------------------------------------------------------------------------------

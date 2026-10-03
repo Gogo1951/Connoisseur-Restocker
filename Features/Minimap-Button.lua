@@ -14,6 +14,16 @@ function ns.RegisterMinimapIcon()
 	if ns.dataBrokerObject and not ns.minimapIconRegistered then
 		LibDBIcon:Register(ns.LOCALE_NAME, ns.dataBrokerObject, ns.db.global.minimap)
 		ns.minimapIconRegistered = true
+
+		-- On the Retail engine LibDBIcon leaves the square icon off-center in its ring.
+		if ns.FLAVOR == "Camelot" or ns.FLAVOR == "Mainline" then
+			LibDBIcon:SetButtonIcon(ns.LOCALE_NAME, nil, 20, "CENTER", 1, -0.35)
+			local button = LibDBIcon:GetMinimapButton(ns.LOCALE_NAME)
+			local mask = button:CreateMaskTexture()
+			mask:SetTexture(130924, "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE") -- Interface\CharacterFrame\TempPortraitAlphaMask
+			mask:SetAllPoints(button.icon)
+			button.icon:AddMaskTexture(mask)
+		end
 	end
 end
 
@@ -378,8 +388,8 @@ local function RogueNotes()
 		{
 			title = L["NOTE_MACRO_POISONS"],
 			rows = {
-				{ L["MINIMAP_LEFT_CLICK"], L["MINIMAP_OFF_HAND"] },
-				{ L["MINIMAP_RIGHT_CLICK"], L["MINIMAP_MAIN_HAND"] },
+				{ L["MINIMAP_LEFT_CLICK"], SECONDARYHANDSLOT },
+				{ L["MINIMAP_RIGHT_CLICK"], MAINHANDSLOT },
 				{ L["MINIMAP_MIDDLE_CLICK"], L["NOTE_POISONS_WINDOW"] },
 			},
 			note = L["NOTE_POISONS_REPLACED"],
@@ -388,28 +398,29 @@ local function RogueNotes()
 end
 
 local CLASS_NOTES = {
-	HUNTER = { header = L["PREFIX_HUNTER"], build = HunterNotes },
-	MAGE = { header = L["PREFIX_MAGE"], build = MageNotes },
-	ROGUE = { header = L["PREFIX_ROGUE"], build = RogueNotes },
-	WARLOCK = { header = L["PREFIX_WARLOCK"], build = WarlockNotes },
+	HUNTER = HunterNotes,
+	MAGE = MageNotes,
+	ROGUE = RogueNotes,
+	WARLOCK = WarlockNotes,
 }
 
 --[[
-    The class-colored header, then the class's blocks with a blank line between
+    The class-colored header, the client's name for the player's class, then
+    the class's blocks with a blank line between
     them; the first follows the header directly. The blocks are collected before
     anything is drawn, so a gated-out block leaves no doubled gap, and a
     character with none gets no header.
 ]]
 local function AddClassNotes(tooltip)
-	local _, playerClass = UnitClass("player")
-	local notes = CLASS_NOTES[playerClass]
-	local blocks = notes and notes.build()
+	local className, playerClass = UnitClass("player")
+	local buildNotes = CLASS_NOTES[playerClass]
+	local blocks = buildNotes and buildNotes()
 	if not blocks or #blocks == 0 then
 		return
 	end
 
 	tooltip:AddLine(" ")
-	tooltip:AddLine((ns.GetClassColor(playerClass) or GetColor("TEXT")) .. notes.header .. "|r")
+	tooltip:AddLine((ns.GetClassColor(playerClass) or GetColor("TEXT")) .. className .. "|r")
 	for index, block in ipairs(blocks) do
 		if index > 1 then
 			tooltip:AddLine(" ")
@@ -452,7 +463,7 @@ UpdateTooltip = function(anchor)
 		tooltip,
 		L["FEATURE_BUFF_FOOD"],
 		SwitchState(settings.useBuffFood, settings.buffFoodMode),
-		L["MENU_BUFF_FOOD_DESCRIPTION"],
+		string.format(L["MENU_BUFF_FOOD_DESCRIPTION_FORMAT"], ns.GetWellFedName()),
 		L["MINIMAP_LEFT_CLICK"],
 		L["MINIMAP_TOGGLE"]
 	)

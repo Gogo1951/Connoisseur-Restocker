@@ -30,10 +30,20 @@ end
 
 -- Menu label, e.g. "Honored  (10% off)"
 local function ReputationMenuText(standing)
+	local label = ns.GetStandingLabel(standing.value)
 	if standing.discount and standing.discount > 0 then
-		return string.format(L["RESTOCKER_REPUTATION_DISCOUNT_FORMAT"], standing.label, standing.discount)
+		return string.format(L["RESTOCKER_REPUTATION_DISCOUNT_FORMAT"], label, standing.discount)
 	end
-	return standing.label
+	return label
+end
+
+-- The Rep column's explanation, naming the four standings by the client's own labels.
+local function ReputationTooltipBody()
+	local labels = {}
+	for index = 2, #REPUTATION_STANDINGS do
+		labels[#labels + 1] = ns.GetStandingLabel(REPUTATION_STANDINGS[index].value)
+	end
+	return string.format(L["RESTOCKER_REPUTATION_TOOLTIP_DISCOUNTS"], unpack(labels))
 end
 
 --------------------------------------------------------------------------------
@@ -117,7 +127,8 @@ end
     width -- the name was down to 58 pixels -- so this is load-bearing, not taste.
 
     Every column carries its tooltip keys, so the header cell and the row cell
-    explain themselves from one place.
+    explain themselves from one place. A body line that names game records is a
+    function returning the finished line instead of a key.
 ]]
 local COLUMNS = {
 	{
@@ -155,7 +166,7 @@ local COLUMNS = {
 		key = "reputation",
 		caption = "RESTOCKER_COLUMN_REPUTATION",
 		title = "RESTOCKER_REPUTATION_TOOLTIP_TITLE",
-		body = { "RESTOCKER_REPUTATION_TOOLTIP_STANDING" },
+		body = { ReputationTooltipBody },
 		isText = true,
 	},
 	{
@@ -235,7 +246,7 @@ local function MeasureColumns()
 			    "Rep" is three letters and "Exalted" is seven.
 			]]
 			for _, standing in ipairs(REPUTATION_STANDINGS) do
-				fontString:SetText(standing.label)
+				fontString:SetText(ns.GetStandingLabel(standing.value))
 				local standingWidth = fontString:GetStringWidth() or 0
 				if standingWidth > width then
 					width = standingWidth
@@ -269,8 +280,8 @@ end
 local function TooltipBody(column)
 	if not column.bodyText then
 		local lines = {}
-		for _, key in ipairs(column.body) do
-			lines[#lines + 1] = L[key]
+		for _, line in ipairs(column.body) do
+			lines[#lines + 1] = type(line) == "function" and line() or L[line]
 		end
 		column.bodyText = lines
 	end
