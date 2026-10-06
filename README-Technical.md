@@ -8,7 +8,8 @@ This document combines architecture notes and contribution guidance for develope
 Connoisseur-Restocker/
 ├── .github/
 │   └── workflows/
-│       └── package.yml                          CurseForge + Wago release + library vendoring
+│       ├── ci.yml                               Calls Common-Core: Lua 5.1 syntax, luacheck, StyLua and tests on every PR
+│       └── package.yml                          Calls Common-Core: CurseForge + Wago release + library vendoring
 ├── .gitattributes                               Line-ending normalization
 ├── .gitignore                                   Dev-clutter ignore list
 ├── .luacheckrc                                  Lint config; skips Includes/ and .claude/
@@ -120,6 +121,8 @@ Connoisseur-Restocker/
 │   ├── Options-Profiles.lua                     Stock AceDBOptions-3.0 panel, suggested profiles off
 │   ├── Options-Diagnostics.lua                  Diagnostic Tools panel
 │   └── Options.lua                              Registration, the options opener, /foodie and /crs
+├── Tests/
+│   └── Run.lua                                  Runs every offline suite; dev-only (see Offline Test Suites)
 ├── LICENSE                                      MIT
 ├── README.md                                    End-user documentation
 ├── README-Notes.md                              The maintainer's settled exceptions and decisions
@@ -569,11 +572,12 @@ The log sees only events currently registered on Core's frame, so an on-demand e
 
 ## Offline Test Suites
 
-WoW's sandboxed Lua has no test framework, so logic tests are plain-Lua scripts beside the code they test. They are dev-only: no TOC lists them and `.pkgmeta` strips both `Tests/` folders. Each prints its `ALL ... PASSED` line and exits 0. Those in `Features/Tests/` run from the add-on root and the rest from `Features/Restocker/`:
+WoW's sandboxed Lua has no test framework, so logic tests are plain-Lua scripts beside the code they test. They are dev-only: no TOC lists them and `.pkgmeta` strips every `Tests/` folder. Each prints its `ALL ... PASSED` line and exits 0. Those in `Features/Tests/` run from the add-on root and the rest from `Features/Restocker/`. `Tests/Run.lua` runs them all that way, on Lua 5.1 (the version WoW embeds, and what CI runs on every PR), and exits 1 if any fails; one suite can still be run alone:
 
 ```
-lua Features/Tests/Readiness-Report-Test.lua
-cd Features/Restocker && lua Tests/Restocker-Cold-Item-Test.lua
+lua5.1 Tests/Run.lua
+lua5.1 Features/Tests/Readiness-Report-Test.lua
+cd Features/Restocker && lua5.1 Tests/Restocker-Cold-Item-Test.lua
 ```
 
 | Suite | Kind | Pins |

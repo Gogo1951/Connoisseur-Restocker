@@ -51,7 +51,7 @@ function strsplit(delimiter, text)
 	for part in (text .. delimiter):gmatch("(.-)" .. delimiter) do
 		parts[#parts + 1] = part
 	end
-	return table.unpack(parts)
+	return (table.unpack or unpack)(parts)
 end
 
 function strtrim(text)

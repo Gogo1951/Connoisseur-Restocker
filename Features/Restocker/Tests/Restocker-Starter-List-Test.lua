@@ -194,7 +194,8 @@ local function session(classToken, level, client, noStockCheckBox)
 			self.points = {}
 		end
 		function new:SetPoint(point, _, _, x, y)
-			self.points[point] = (x or 0) .. "," .. (y or 0)
+			-- + 0 turns -0 into 0: on Lua 5.1, as in game, a negated zero inset is -0 and prints so.
+			self.points[point] = ((x or 0) + 0) .. "," .. ((y or 0) + 0)
 		end
 		function new:SetFrameStrata(strata)
 			self.strata = strata
@@ -307,7 +308,8 @@ local function session(classToken, level, client, noStockCheckBox)
 		}
 		stock.text = {
 			SetPoint = function(_, _, to, _, x, y)
-				stock.label = (to == stock.image and "image" or "box") .. " " .. (x or 0) .. " " .. (y or 0)
+				-- + 0 turns -0 into 0: on Lua 5.1, as in game, -nudge with no nudge is -0 and prints so.
+				stock.label = (to == stock.image and "image" or "box") .. " " .. ((x or 0) + 0) .. " " .. ((y or 0) + 0)
 			end,
 		}
 		local function align(nudge)
