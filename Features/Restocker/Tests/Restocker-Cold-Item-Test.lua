@@ -111,7 +111,7 @@ local function session(level)
 		for part in (text .. separator):gmatch("(.-)" .. separator) do
 			parts[#parts + 1] = part
 		end
-		return table.unpack(parts)
+		return (table.unpack or unpack)(parts)
 	end
 	function strtrim(text)
 		return (text:gsub("^%s+", ""):gsub("%s+$", ""))
@@ -369,7 +369,7 @@ for itemID = 90001, 90050 do
 	C_Item.GetItemInfo(itemID) -- other items the client is asked about during the login
 	others[#others + 1] = itemID
 end
-check("fifty unrelated answers heard", s.deliver(table.unpack(others)), 50)
+check("fifty unrelated answers heard", s.deliver((table.unpack or unpack)(others)), 50)
 check("Melon Juice asked about at most once", s.calls[1205] <= 1, true)
 check("still waiting on it", s.ns.HasPendingUpgrade(), true)
 

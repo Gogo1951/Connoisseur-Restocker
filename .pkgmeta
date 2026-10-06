@@ -37,3 +37,4 @@ ignore:
   - Data/Wrath
   - Features/Restocker/Tests
   - Features/Tests
+  - Tests
