@@ -140,7 +140,7 @@ globals = {
 	"ConnoisseurNoItem",
 	"SLASH_CONNOISSEUR1",
 	"SLASH_CONNOISSEURRESTOCKER1",
-	"SlashCmdList",
+	SlashCmdList = { fields = { "CONNOISSEUR", "CONNOISSEURRESTOCKER" } }, -- fields, so only the add-on's own slash entries are writable
 	-- MIGRATION (remove after 2026-10-18): the short macro globals an older build's saved macro bodies still call
 	"ConnFire",
 	"ConnTip",
