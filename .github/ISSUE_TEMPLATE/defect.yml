@@ -25,13 +25,13 @@ body:
       description: |
         Optional. Pick the closest match, or "Not sure."
         - **Code**: something errors, freezes, or stops working.
-        - **Copy**: text is wrong, unclear, or misspelled.
+        - **Copywriting**: text is wrong, unclear, or misspelled.
         - **Data**: wrong item, spell, NPC, or numbers.
         - **Interface Design**: something looks wrong or is hard to use.
         - **Localization**: a translation is wrong or missing.
       options:
         - Code
-        - Copy
+        - Copywriting
         - Data
         - Interface Design
         - Localization
