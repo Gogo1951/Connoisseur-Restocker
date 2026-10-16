@@ -13,6 +13,11 @@ ns.LOCALE_NAME = "Connoisseur"
 
 ns.L = LibStub("AceLocale-3.0"):GetLocale(ns.LOCALE_NAME)
 
+ns.ADDON_TITLE = ns.L["ADDON_TITLE"]
+
+-- Must match every TOC's ## SavedVariables line.
+ns.SAVED_VARIABLES_NAME = "ConnoisseurDB"
+
 --------------------------------------------------------------------------------
 -- Brand Colors
 --------------------------------------------------------------------------------
@@ -207,7 +212,7 @@ ns.MACRO_CONFIG = {
 	["Soulstone"] = { macro = ns.L["MACRO_SOULSTONE"], label = ns.L["LABEL_SOULSTONE"] },
 	["Water"] = { macro = ns.L["MACRO_WATER"], label = ns.L["LABEL_WATER"] },
 	["Feed Pet"] = { macro = ns.L["MACRO_FEED_PET"], label = ns.L["LABEL_PET_FOOD"] },
-	["Poisons"] = { macro = ns.L["MACRO_POISONS"], label = ns.L["LABEL_POISONS"] },
+	["Poisons"] = { macro = ns.L["MACRO_POISONS"], label = ns.L["LABEL_POISON"] },
 }
 
 --[[
@@ -395,7 +400,18 @@ ns.PET_DIET_MAP[ns.L["DIET_FUNGUS"]] = 6
     Starter List. A group's name is the client's own name for its first item
     (ns.GetPoisonGroupName), so no string here names one.
 ]]
-ns.POISON_GROUPS = { ANESTHETIC = 1, CRIPPLING = 2, DEADLY = 3, INSTANT = 4, MIND_NUMBING = 5, WOUND = 6 }
+ns.POISON_GROUPS = {
+	ANESTHETIC = 1,
+	CRIPPLING = 2,
+	DEADLY = 3,
+	INSTANT = 4,
+	MIND_NUMBING = 5,
+	WOUND = 6,
+	SEBACIOUS = 7,
+	NUMBING = 8,
+	ATROPHIC = 9,
+	OCCULT = 10,
+}
 
 --------------------------------------------------------------------------------
 -- Scroll Scan Priority
@@ -596,13 +612,23 @@ ns.STARTER_LIST_CATEGORIES = {
 	    buy themselves. Availability does the level work: every ladder opens
 	    at its spell's training level, so the section fills out as the rogue
 	    earns each type -- and Anesthetic's all-TBC ladder simply never comes
-	    up on Era.
+	    up on Era. Atrophic, Numbing, Occult and Sebacious are Season of
+	    Discovery's: only the Discovery folder has their ladders, so every
+	    other client drops the rows.
 	]]
 	{
 		key = "anesthetic",
 		section = "poisons",
 		namesFirstTier = true,
 		chainKey = "poison:" .. POISON_GROUP.ANESTHETIC,
+		maxStacks = POISON_MAX_STACKS,
+		classes = { ROGUE = true },
+	},
+	{
+		key = "atrophic",
+		section = "poisons",
+		namesFirstTier = true,
+		chainKey = "poison:" .. POISON_GROUP.ATROPHIC,
 		maxStacks = POISON_MAX_STACKS,
 		classes = { ROGUE = true },
 	},
@@ -635,6 +661,30 @@ ns.STARTER_LIST_CATEGORIES = {
 		section = "poisons",
 		namesFirstTier = true,
 		chainKey = "poison:" .. POISON_GROUP.MIND_NUMBING,
+		maxStacks = POISON_MAX_STACKS,
+		classes = { ROGUE = true },
+	},
+	{
+		key = "numbing",
+		section = "poisons",
+		namesFirstTier = true,
+		chainKey = "poison:" .. POISON_GROUP.NUMBING,
+		maxStacks = POISON_MAX_STACKS,
+		classes = { ROGUE = true },
+	},
+	{
+		key = "occult",
+		section = "poisons",
+		namesFirstTier = true,
+		chainKey = "poison:" .. POISON_GROUP.OCCULT,
+		maxStacks = POISON_MAX_STACKS,
+		classes = { ROGUE = true },
+	},
+	{
+		key = "sebacious",
+		section = "poisons",
+		namesFirstTier = true,
+		chainKey = "poison:" .. POISON_GROUP.SEBACIOUS,
 		maxStacks = POISON_MAX_STACKS,
 		classes = { ROGUE = true },
 	},

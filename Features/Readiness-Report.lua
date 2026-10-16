@@ -116,30 +116,6 @@ local function GroupHasClass(classToken)
 	end)
 end
 
---[[
-    The soulstone aura's own localized name, resolved once from whichever id in
-    ns.SOULSTONE_BUFF_SPELL_IDS the client answers for. Every rank shares one name,
-    so this single string covers them all -- including a rank whose id is wrong
-    or missing from that list, which is why the name pass exists at all. `false`
-    is the cached "asked and got nothing" answer, so a cold spell cache costs
-    one lookup rather than one per aura per unit.
-]]
-local soulstoneBuffName
-
-local function SoulstoneBuffName()
-	if soulstoneBuffName == nil then
-		soulstoneBuffName = false
-		for _, spellID in ipairs(ns.SOULSTONE_BUFF_SPELL_IDS) do
-			local name = C_Spell.GetSpellName(spellID)
-			if name then
-				soulstoneBuffName = name
-				break
-			end
-		end
-	end
-	return soulstoneBuffName or nil
-end
-
 local SOULSTONE_BUFF_LOOKUP = {}
 for _, spellID in ipairs(ns.SOULSTONE_BUFF_SPELL_IDS) do
 	SOULSTONE_BUFF_LOOKUP[spellID] = true
@@ -150,13 +126,12 @@ local function UnitHasSoulstone(unit)
 		return false
 	end
 
-	local wantedName = SoulstoneBuffName()
 	for index = 1, 40 do
 		local aura = C_UnitAuras.GetBuffDataByIndex(unit, index, "HELPFUL")
 		if not aura then
 			return false
 		end
-		if SOULSTONE_BUFF_LOOKUP[aura.spellId] or (wantedName and aura.name == wantedName) then
+		if SOULSTONE_BUFF_LOOKUP[aura.spellId] then
 			return true
 		end
 	end
@@ -414,7 +389,7 @@ local function BuildCharacter(reports, inArena)
 	local entries = {}
 
 	if reports.readinessSpec then
-		local spec = ns.GetCurrentSpecLabel()
+		local spec = ns.GetCurrentSpecializationLabel()
 		if spec then
 			entries[#entries + 1] = spec
 		end

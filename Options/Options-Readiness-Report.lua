@@ -59,7 +59,7 @@ end
 
 --[[
     Hidden where the client has no classic talent tabs (Forever's talents are
-    Retail's), since ns.GetCurrentSpecLabel can never answer there and the
+    Retail's), since ns.GetCurrentSpecializationLabel can never answer there and the
     switch would do nothing.
 ]]
 local function SpecHidden()
@@ -286,8 +286,8 @@ local SECTIONS = {
 		rows = {
 			{
 				key = "readinessSpec",
-				name = "OPTIONS_READINESS_SPEC",
-				description = "OPTIONS_READINESS_SPEC_DESCRIPTION",
+				name = "OPTIONS_READINESS_SPECIALIZATION",
+				description = "OPTIONS_READINESS_SPECIALIZATION_DESCRIPTION",
 				hidden = SpecHidden,
 			},
 			{
@@ -316,12 +316,10 @@ local SECTIONS = {
 ]]
 local function AddSection(args, section, order, isFirst)
 	if isFirst then
-		args["space" .. section.key .. "Top"] =
-			{ type = "description", name = " ", order = order, hidden = ReportsHidden }
+		args["space" .. section.key .. "Top"] = Spacer(order, ReportsHidden)
 	end
 	args["header" .. section.key] = Header(L[section.title], order + 1, ReportsHidden)
-	args["space" .. section.key .. "Under"] =
-		{ type = "description", name = " ", order = order + 2, hidden = ReportsHidden }
+	args["space" .. section.key .. "Under"] = Spacer(order + 2, ReportsHidden)
 	return order + 3
 end
 
@@ -391,7 +389,7 @@ local function AddReportRow(args, row, order)
 		order = order + 1
 	end
 
-	args["space" .. key] = { type = "description", name = " ", order = order, hidden = hidden }
+	args["space" .. key] = Spacer(order, hidden)
 	return order + 1
 end
 
@@ -412,19 +410,7 @@ function ns.BuildReadinessReportOptions()
 	order = order + 1
 	args.spaceIntro = Spacer(order)
 	order = order + 1
-	args.toggleReadiness = {
-		type = "toggle",
-		name = L["OPTIONS_READINESS_ENABLE"],
-		desc = L["OPTIONS_READINESS_ENABLE_DESCRIPTION"],
-		order = order,
-		width = "full",
-		get = function()
-			return ns.db and ns.db.global.readinessReportEnabled
-		end,
-		set = function(_, value)
-			ns.db.global.readinessReportEnabled = value
-		end,
-	}
+	args.toggleReadiness = ns.OptionsFeatureSwitch("ReadinessReport", order)
 	order = order + 1
 
 	--[[

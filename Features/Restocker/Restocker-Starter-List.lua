@@ -459,7 +459,8 @@ local function IsDefaultCategory(category)
 end
 
 function ns.MaybeShowStarterListPopup()
-	if not ns.restockerLoaded or ns.IsStarterPopupDismissed() then
+	-- Read again here, since the login trigger waits out a delay the switch can be flipped in.
+	if not ns.restockerLoaded or not ns.IsRestockerEnabled() or ns.IsStarterPopupDismissed() then
 		return
 	end
 	if (UnitLevel("player") or 1) < STARTER_MIN_LEVEL then

@@ -56,7 +56,7 @@ local shownItems = {}
 --[[
     An item carried onto a row is being dropped on the list, not aimed at the
     control under it, so every control on a row hands the cursor to the add path
-    (ns.AddRestockItemFromCursor in Restocker-Window.lua) and acts as itself only
+    (ns.AddRestockItemFromCursor in Restocker-Window-Widgets.lua) and acts as itself only
     when the cursor holds no item. This is the drag-release half; each click
     handler makes the same call first.
 ]]
@@ -196,7 +196,12 @@ local function CreateAmountEditBox(frame)
 	editBox:SetScript("OnKeyUp", function(self)
 		if self.item then
 			self.item.amount = tonumber(self:GetText()) or 0
-			-- The amount is live from here, so its mark and the count under the list follow it.
+			--[[
+			    Saved as the player types, so closing the window without
+			    pressing Enter keeps what the box holds, and an emptied box
+			    saves 0 (store all of it at the bank). The amount is live from
+			    here, so its mark and the count under the list follow it.
+			]]
 			PaintKeep(self, self.item)
 			ns.UpdateRestockStatus()
 		end

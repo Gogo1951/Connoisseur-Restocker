@@ -2,7 +2,7 @@
 --[[
     Headless test for the Inventory Report (no WoW client needed).
 
-    Run it with:   lua Features/Tests/Inventory-Report-Test.lua        (from the add-on root)
+    Run it with:   lua Tests/Inventory-Report-Test.lua        (from the add-on root)
 
     Like the other headless tests, this does NOT model the feature: every scenario
     loads the REAL Features/Inventory-Report.lua behind the thinnest stubs that

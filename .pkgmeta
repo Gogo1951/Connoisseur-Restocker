@@ -38,6 +38,4 @@ ignore:
   - Data/Mainline
   - Data/Mists
   - Data/Wrath
-  - Features/Restocker/Tests
-  - Features/Tests
   - Tests

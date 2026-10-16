@@ -7,18 +7,20 @@ local _, ns = ...
 -- MIGRATION (remove after 2026-10-30)
 --[[
     One-time upgrade shim. Delete on the first code pass after that date, all
-    four pieces together:
+    five pieces together:
       1. this file
       2. its line in all three flavor TOCs (Consumable-Connoisseur_Vanilla.toc,
          _TBC.toc and _Camelot.toc)
       3. the ns.MoveCharactersOntoOwnProfiles() call in Features/Core.lua
-      4. the MIGRATION block that ends Features/Tests/Character-Profile-Test.lua,
+      4. the MIGRATION block that ends Tests/Character-Profile-Test.lua,
          and this file's line in that suite's load list
+      5. the tagged noDefaultProfiles argument in Options/Options-Profiles.lua,
+         with its README-Notes exception
 ]]
 
 --[[
     Every character has a profile of its own, named as AceDB names the
-    character (the maintainer's ruling, README-Notes.md): scrolls, buff food
+    character (the maintainer's ruling): scrolls, buff food
     and the rest of the Macros panel differ from one character to the next.
     Three things a release saved have to be carried into that shape.
 
@@ -29,7 +31,9 @@ local _, ns = ...
     the day it moves. They all move in the first login, the logged-out ones
     too: AceDB keeps every character's name in profileKeys, and a character's
     profile is named exactly that. Default is deleted once nobody is left on
-    it. A profile the player named, and every character on it, is left as it
+    it. On Forever an older AceDB's first-name key ("Gogodruid - PvE") can
+    still point at Default, and stays (see Forever's Older Names), which keeps
+    Default for the namesake who takes its copy at its own login. A profile the player named, and every character on it, is left as it
     is.
 
     The list each character uses. The Restock Lists are shared by the account,
@@ -51,10 +55,11 @@ local _, ns = ...
 
     Called from InitializeSavedVariables in Features/Core.lua before the
     profile callbacks are wired, so the switch fires no handler halfway through
-    login, and after ns.RekeyCharactersByFullName, so a Forever character's
-    list choice is already under its whole name. Once it has run nobody is on
-    Default, no entry is left for this character and its profile holds
-    settings, so a second login changes nothing.
+    login, and after ns.RekeyCharactersByFullName, so this Forever character's
+    list choice is already under its whole name. Once it has run no character
+    is on Default but an older Forever name, no entry is left for this
+    character and its profile holds settings, so a second login changes
+    nothing.
 
     A player who makes a profile called Default inside the window and puts a
     character on it is moved off it again at the next login, onto a copy.

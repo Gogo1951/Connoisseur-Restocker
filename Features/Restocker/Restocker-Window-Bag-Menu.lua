@@ -22,7 +22,7 @@ local AceGUI = LibStub("AceGUI-3.0")
     the list in use, so nothing has to be kept in step with either.
 
     A field and a pullout, like the list selector above it: the field is the
-    window's own (ns.CreateRestockMenuField in Restocker-Window.lua), and
+    window's own (ns.CreateRestockMenuField in Restocker-Window-Widgets.lua), and
     Restocker-Window-List-Bar.lua says why the menu is an AceGUI pullout.
     Restocker-Window.lua places the field on the row and sizes it.
 ]]

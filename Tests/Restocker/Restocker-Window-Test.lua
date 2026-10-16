@@ -2,7 +2,7 @@
 --[[
     Headless test for the Restock List window (no WoW client needed).
 
-    Run it with:   lua Tests/Restocker-Window-Test.lua        (from Features/Restocker/)
+    Run it with:   lua Tests/Restocker/Restocker-Window-Test.lua        (from the add-on root)
 
     Like the Starter List test, this does NOT model the feature. Every scenario builds the
     REAL window from the real files -- Restocker-Window.lua and its Columns, Filter, Rows,
@@ -47,7 +47,7 @@
      19. The filter lets go of the keyboard on Enter, and the add box after a drop.
 ]]
 
-local ROOT = arg[1] or "../.."
+local ROOT = arg[1] or "."
 
 -- The add-on is written for the client's Lua 5.1; a newer interpreter has moved unpack.
 unpack = unpack or table.unpack
@@ -622,6 +622,7 @@ local function session(opts)
 	loadAddonFile("Features/Restocker/Restocker-Bags.lua")
 	loadAddonFile("Features/Restocker/Restocker-Merchant.lua")
 	loadAddonFile("Features/Restocker/Restocker-Upgrade.lua")
+	loadAddonFile("Features/Restocker/Restocker-Window-Widgets.lua")
 	loadAddonFile("Features/Restocker/Restocker-Window.lua")
 	loadAddonFile("Features/Restocker/Restocker-Window-Columns.lua")
 	loadAddonFile("Features/Restocker/Restocker-Window-Filter.lua")
@@ -661,6 +662,7 @@ local function session(opts)
 	]]
 	ns.db = {
 		global = {
+			restockerEnabled = true,
 			inventory = {
 				[nameOf("Thornhoof") .. "-Whitemane"] = {
 					name = nameOf("Thornhoof"),
@@ -714,8 +716,8 @@ local function session(opts)
 	ns.restockCategoryRowPool = {}
 	ns.restockHiddenFrame = CreateFrame("Frame")
 	ns.restockerLoaded = true
-	ns.InitRestockerEvents()
-	ns.InitRestockBagDefinitions()
+	ns.InitializeRestockerEvents()
+	ns.InitializeRestockBagDefinitions()
 
 	-- Bags: the Hearthstone, a full 40 water, 22 of 40 pies, 4 of 10 potions, 6 of 20 squid.
 	bags[6948], bags[8766], bags[8950], bags[13444], bags[13928] = 1, 40, 22, 4, 6

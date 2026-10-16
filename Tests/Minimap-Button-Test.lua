@@ -3,7 +3,7 @@
     Headless test for the mini-map button: its tooltip and its clicks (no WoW
     client needed).
 
-    Run it with:   lua Features/Tests/Minimap-Button-Test.lua        (from the add-on root)
+    Run it with:   lua Tests/Minimap-Button-Test.lua        (from the add-on root)
 
     Like the other headless tests, this does NOT model the feature: every
     scenario loads the REAL Features/Minimap-Button.lua behind the thinnest
@@ -14,8 +14,8 @@
     WHAT IS PINNED HERE.
 
     The tooltip's blocks, in the order the maintainer settled: Current Food,
-    Buff Food, Scroll Buffs, the Restocker List, the class notes, the Restocker
-    Report, the Ignore List, then Options.
+    Buff Food & Scrolls, the Readiness Report, the Restocker List, the class
+    notes, the Restocker Report, the Ignore List, then Options.
 
     Their shapes. An item is right-aligned on the row under its title, and the
     "no suitable item" sentence takes that row when there is none. The Restocker
@@ -29,12 +29,15 @@
     The limits and the honest states. The Restocker Report and the Ignore List
     list eight items and show a count past that; an empty Restock List is not a
     stocked one; a switch whose when-to-use choice does not hold shows that
-    choice in place of Enabled.
+    choice in place of Enabled, and Buff Food & Scrolls reads Enabled while
+    either of its two switches applies.
 
     The colors that carry meaning: blue for a click on the mini-map button,
     silver for a click on a macro.
 
-    And the six clicks, each doing what its hint says.
+    And the six clicks, each doing what its hint says: Left-Click lands Buff
+    Food and Scroll Buffs together, Shift + Left-Click flips the account-wide
+    Readiness Report and repaints the panels that show it.
 ]]
 
 local ROOT = arg[1] or "."
@@ -192,7 +195,8 @@ end
     ({ main, off }, false for an empty hand), groceries (the Restocker's
     shortfall rows), restockEmpty, ignoreList ({ [itemID] = true }), itemNames
     (what the client has cached, by item ID), profile (overrides), raid (the
-    character is in one), conjureSpells (the flavor's lists), noDatabase.
+    character is in one), conjureSpells (the flavor's lists), readiness (the
+    Readiness Report's switch), noDatabase.
 ]]
 local function session(opts)
 	opts = opts or {}
@@ -265,6 +269,13 @@ local function session(opts)
 				end,
 			}
 		end
+		if name == "AceConfigRegistry-3.0" then
+			return {
+				NotifyChange = function(_, registry)
+					calls[#calls + 1] = "NotifyChange " .. registry
+				end,
+			}
+		end
 		assert(name == "LibDBIcon-1.0", "unexpected library " .. tostring(name))
 		return {
 			Register = function(_, objectName)
@@ -331,6 +342,7 @@ local function session(opts)
 		CONJURE_SPELLS = opts.conjureSpells or conjureSpells(),
 		POISONS_SPELL_ID = POISONS,
 		MACRO_DEFAULT_ITEM_IDS = { Food = 117 },
+		OPTIONS_REGISTRY = { General = "General", ReadinessReport = "ReadinessReport" },
 		GetBestPoisonForHand = function(hand)
 			local poison = opts.poisons and opts.poisons[hand]
 			if poison then
@@ -363,6 +375,9 @@ local function session(opts)
 		ToggleRestockWindow = function()
 			calls[#calls + 1] = "ToggleRestockWindow"
 		end,
+		IsRestockerEnabled = function()
+			return opts.restockerOff ~= true
+		end,
 		IgnoreItem = function(itemID)
 			calls[#calls + 1] = "IgnoreItem " .. itemID
 		end,
@@ -370,13 +385,20 @@ local function session(opts)
 			calls[#calls + 1] = "ClearIgnoreList"
 		end,
 	}
-	-- The real setter flips the profile switch; the tooltip must read the result.
-	function ns.ToggleMacroSetting(key)
-		calls[#calls + 1] = "ToggleMacroSetting " .. key
-		profile[key] = not profile[key]
+	-- The real setter flips the profile switch, or sets it to a value given; the tooltip must read the result.
+	function ns.ToggleMacroSetting(key, value)
+		calls[#calls + 1] = "ToggleMacroSetting " .. key .. " " .. tostring(value)
+		if value == nil then
+			profile[key] = not profile[key]
+		else
+			profile[key] = value
+		end
 	end
 	if not opts.noDatabase then
-		ns.db = { profile = profile, global = { minimap = { hide = false } } }
+		ns.db = {
+			profile = profile,
+			global = { minimap = { hide = false }, readinessReportEnabled = opts.readiness or false },
+		}
 	end
 	if opts.food ~= false then
 		ns.bestFoodID, ns.bestFoodLink = SKYWALL_SOUFFLE, link(SKYWALL_SOUFFLE, "Skywall Souffle")
@@ -437,12 +459,12 @@ checkLines("every line", lines, 1, {
 	"(right) Skywall Souffle",
 	"Right-Click | Ignore",
 	" ",
-	"Buff Food | Enabled",
-	'Prioritizes food that grants "Well Fed" whenever the buff is missing.',
+	"Buff Food & Scrolls | Enabled",
+	"Uses Well Fed food and applies missing scroll buffs before you eat.",
 	"Left-Click | Toggle",
 	" ",
-	"Scroll Buffs | Enabled",
-	"Applies missing scroll buffs from your Food macro before you eat.",
+	"Readiness Report | Disabled",
+	"Lists what to fix on each ready check.",
 	"Shift + Left-Click | Toggle",
 	" ",
 	"Restocker List",
@@ -469,6 +491,8 @@ check(
 check("a click on the button is blue", lines[6].left, "<INFO>Right-Click|r")
 check("and so is what it does", lines[6].right, "<INFO>Ignore|r")
 check("a description wraps", lines[9].wrap, true)
+check("the Readiness Report's description wraps too", lines[13].wrap, true)
+check("its click is blue", lines[14].left, "<INFO>Shift + Left-Click|r")
 check("the Restocker List title stands alone", lines[16].right, nil)
 check("its description wraps", lines[17].wrap, true)
 check("its click is blue", lines[18].left, "<INFO>Shift + Right-Click|r")
@@ -803,26 +827,61 @@ checkLines("nine become a count beside the title", lines, find(lines, "Ignore Li
 check("and no item is looked up to say so", s.itemInfoReads(), 0)
 
 print("8. A switch's state: off, on, or waiting on its when-to-use choice")
-s = session({ profile = { useBuffFood = false } })
-lines = s.hover()
-check("off is red", lines[find(lines, "Buff Food | Disabled")].right, "<OFF>Disabled|r")
-check("the other switch is judged on its own", lines[find(lines, "Scroll Buffs | Enabled")].right, "<ON>Enabled|r")
+local MERGED = "Buff Food & Scrolls"
+local function mergedState(tooltipLines)
+	for _, line in ipairs(tooltipLines) do
+		if line.right and plain(line.left) == MERGED then
+			return line.right
+		end
+	end
+end
 
-s = session({ profile = { buffFoodMode = "raid" } })
-lines = s.hover()
+check("both on is green", mergedState(session({}).hover()), "<ON>Enabled|r")
+check(
+	"both off is red",
+	mergedState(session({ profile = { useBuffFood = false, useScrolls = false } }).hover()),
+	"<OFF>Disabled|r"
+)
+check("either one on is Enabled", mergedState(session({ profile = { useBuffFood = false } }).hover()), "<ON>Enabled|r")
 check(
 	"on, but solo with When in a Raid: the choice, in gray",
-	lines[find(lines, "Buff Food | When in a Raid")].right,
+	mergedState(session({ profile = { buffFoodMode = "raid", useScrolls = false } }).hover()),
 	"<SEPARATOR>When in a Raid|r"
 )
+check(
+	"one waiting and one applying is Enabled",
+	mergedState(session({ profile = { buffFoodMode = "raid" } }).hover()),
+	"<ON>Enabled|r"
+)
+check(
+	"Scroll Buffs alone, waiting, shows its own choice",
+	mergedState(session({ profile = { useBuffFood = false, scrollsMode = "raid" } }).hover()),
+	"<SEPARATOR>When in a Raid|r"
+)
+check(
+	"in a raid it holds, so Enabled in green",
+	mergedState(session({ profile = { buffFoodMode = "raid", scrollsMode = "raid" }, raid = true }).hover()),
+	"<ON>Enabled|r"
+)
+check(
+	"off wins over a waiting choice",
+	mergedState(session({ profile = { useBuffFood = false, useScrolls = false, scrollsMode = "raid" } }).hover()),
+	"<OFF>Disabled|r"
+)
 
-s = session({ profile = { buffFoodMode = "raid", scrollsMode = "raid" }, raid = true })
-lines = s.hover()
-check("in a raid it holds, so Enabled in green", lines[find(lines, "Buff Food | Enabled")].right, "<ON>Enabled|r")
-check("Scroll Buffs reads its own choice", lines[find(lines, "Scroll Buffs | Enabled")].right, "<ON>Enabled|r")
-
-s = session({ profile = { useScrolls = false, scrollsMode = "raid" } })
-check("off wins over a waiting choice", find(s.hover(), "Scroll Buffs | Disabled") ~= nil, true)
+lines = session({}).hover()
+check(
+	"the Readiness Report ships off, in red",
+	lines[find(lines, "Readiness Report | Disabled")].right,
+	"<OFF>Disabled|r"
+)
+lines = session({ readiness = true }).hover()
+check("on, it is green", lines[find(lines, "Readiness Report | Enabled")].right, "<ON>Enabled|r")
+check(
+	"and it is still a block with its click",
+	plainLine(lines[find(lines, "Readiness Report | Enabled") + 2]),
+	"Shift + Left-Click | Toggle"
+)
 
 print("9. No food in the bags")
 s = session({ food = false })
@@ -831,16 +890,25 @@ checkLines("the sentence takes the item's row, and there is no Ignore hint", lin
 	"Current Food",
 	"No suitable Food found in your bags.",
 	" ",
-	"Buff Food | Enabled",
+	"Buff Food & Scrolls | Enabled",
 })
 check("the sentence wraps", lines[5].wrap, true)
 
 print("10. The six clicks")
 s = session({})
 s.click("LeftButton")
-check("Left-Click toggles Buff Food", s.lastCall(), "ToggleMacroSetting useBuffFood")
+check(
+	"Left-Click turns Buff Food and Scroll Buffs off together",
+	table.concat(s.calls, ", "),
+	"ToggleMacroSetting useBuffFood false, ToggleMacroSetting useScrolls false"
+)
 s.click("LeftButton", true)
-check("Shift + Left-Click toggles Scroll Buffs", s.lastCall(), "ToggleMacroSetting useScrolls")
+check(
+	"Shift + Left-Click flips the Readiness Report and repaints both panels",
+	table.concat(s.calls, ", ", 3),
+	"NotifyChange General, NotifyChange ReadinessReport"
+)
+check("(it is on now)", s.ns.db.global.readinessReportEnabled, true)
 s.click("RightButton")
 check("Right-Click ignores the current food", s.lastCall(), "IgnoreItem " .. SKYWALL_SOUFFLE)
 s.click("RightButton", true)
@@ -849,7 +917,18 @@ s.click("MiddleButton")
 check("Middle-Click clears the Ignore List", s.lastCall(), "ClearIgnoreList")
 s.click("MiddleButton", true)
 check("Shift + Middle-Click opens the options", s.lastCall(), "OpenOptionsPanel")
-check("six clicks, six calls", #s.calls, 6)
+check("six clicks, eight calls", #s.calls, 8)
+
+s = session({ profile = { useScrolls = false } })
+s.click("LeftButton")
+check("one of the two on: a click turns both off", s.profile.useBuffFood or s.profile.useScrolls, false)
+s.click("LeftButton")
+check("both off: a click turns both on", s.profile.useBuffFood and s.profile.useScrolls, true)
+
+s = session({ readiness = true })
+s.click("LeftButton", true)
+check("Shift + Left-Click turns the report back off", s.ns.db.global.readinessReportEnabled, false)
+check("and touches no macro setting", s.calls[1], "NotifyChange General")
 
 s = session({ food = false })
 s.click("RightButton")
@@ -860,7 +939,9 @@ print("11. A click redraws the tooltip while the mouse is still over the button"
 s = session({})
 s.hover()
 s.click("LeftButton")
-check("the state flips without a new hover", find(GameTooltip.lines, "Buff Food | Disabled") ~= nil, true)
+check("the state flips without a new hover", find(GameTooltip.lines, "Buff Food & Scrolls | Disabled") ~= nil, true)
+s.click("LeftButton", true)
+check("and so does the Readiness Report's", find(GameTooltip.lines, "Readiness Report | Enabled") ~= nil, true)
 check("the icon follows the current food", s.button.icon.texture, "icon" .. SKYWALL_SOUFFLE)
 GameTooltip:Hide()
 s.click("LeftButton")
@@ -887,7 +968,16 @@ check(
 check("and masked round", s.button.icon.mask and s.button.icon.mask.file, 130924)
 check("over the icon itself", s.button.icon.mask.region == s.button.icon, true)
 
-print("13. Before the saved settings exist, the tooltip draws nothing")
+print("13. With the Restocker switched off, its block says so where the click goes")
+s = session({ restockerOff = true })
+lines = s.hover()
+check(
+	"the Restocker List block reads Disabled",
+	find(lines, "Shift + Right-Click | Disabled") ~= nil and find(lines, "Shift + Right-Click | Open") == nil,
+	true
+)
+
+print("14. Before the saved settings exist, the tooltip draws nothing")
 s = session({ noDatabase = true })
 check("no lines", #s.hover(), 0)
 check("and nothing shown", GameTooltip.shown, false)

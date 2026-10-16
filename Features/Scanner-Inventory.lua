@@ -126,6 +126,9 @@ local RANKING_PRIORITY = {
 	    handed a weaker conjured water would rather drink it than buy the
 	    vendor one. Buff food stays above it so Buff Food still lands Well
 	    Fed. Gated off, the ordinary isConjured tiebreak below still applies.
+	    It is the only way a macro passes over its best item: potions, pet
+	    food and every other macro always use the best, and there are no
+	    custom sort orders or second-best rules.
 	]]
 	{ field = "isConjured", kind = "bool", gatedOnAllowConjuredFirst = true },
 

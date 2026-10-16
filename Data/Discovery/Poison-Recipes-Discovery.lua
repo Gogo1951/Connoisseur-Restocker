@@ -4,40 +4,6 @@ if not ns.IS_DISCOVERY then
 	return
 end
 
---------------------------------------------------------------------------------
--- Poison Recipes
---------------------------------------------------------------------------------
-
---[[
-    What a rogue poison costs to craft. Read by
-    Features/Restocker/Restocker-Crafting-Reagents.lua: when the Restock List is short of a
-    poison, the shortfall is turned into an order for these reagents, and the
-    vendor has to stock every one of them before any is bought.
-
-    Blizzard rebalanced most of these counts in TBC, so each folder carries
-    its own client's counts: the Classic Era folders the original ones, and
-    TBC and later the rebalanced ones.
-
-    Vials are listed like any other reagent rather than special-cased: a recipe
-    needs one, the vendor has to sell it, and the all-or-nothing gate treats it
-    as it treats the rest.
-]]
-
---[[
-    Reagents by ID, so the rows below stay one line each:
-      2928 Dust of Decay          8924 Dust of Deterioration
-      2930 Essence of Pain        8923 Essence of Agony
-      2931 Maiden's Anguish       5173 Deathweed
-      3371 Empty Vial             3372 Leaded Vial            8925 Crystal Vial
-]]
-
---[[
-    Source: the pre-split shared data files, as the Classic Era client loaded
-    them, pruned of the rows Validate Data on the Classic Era client (1.15.9,
-    build 69722) flagged NOT ON CLIENT. The values await Validate Data on a
-    Season of Discovery realm.
-]]
--- TODO: Add SQL Query
 -- { craftedItemID, { { reagentID, count }, ... } }, -- Crafted item
 ns.POISON_RECIPES = {
 	-- Instant Poisons
@@ -69,4 +35,36 @@ ns.POISON_RECIPES = {
 	{ 10921, { { 8923, 1 }, { 5173, 2 }, { 8925, 1 } } }, -- Wound Poison III
 	{ 10920, { { 2930, 1 }, { 5173, 2 }, { 3372, 1 } } }, -- Wound Poison II
 	{ 10918, { { 2930, 1 }, { 5173, 1 }, { 3372, 1 } } }, -- Wound Poison
+
+	-- Season of Discovery Poisons
+	{ 217345, { { 8923, 4 }, { 8925, 1 } } }, -- Sebacious Poison
+	{ 217346, { { 8924, 3 }, { 8925, 1 }, { 8923, 1 } } }, -- Numbing Poison
+	{ 217347, { { 8924, 7 }, { 8925, 1 } } }, -- Atrophic Poison
+	{ 234444, { { 5173, 7 }, { 8925, 1 } } }, -- Occult Poison II
+	{ 226374, { { 5173, 5 }, { 8925, 1 }, { 8923, 5 } } }, -- Occult Poison I
 }
+
+--[[
+How We Got the Data
+
+Last Validated
+	2026-10-16, Season of Discovery 1.15.9.70003
+
+Notes
+	- What a rogue poison costs to craft, read by Features/Restocker/Restocker-Crafting-Reagents.lua: when the Restock List is short of a poison, the shortfall becomes an order for these reagents, and the vendor has to stock every one of them before any is bought.
+	- Blizzard rebalanced most of these counts in TBC, so each folder carries its own client's counts: the Classic Era folders the original ones, TBC and later the rebalanced ones. Every recipe matches its crafting spell's reagents in this client's tables.
+	- Vials are listed like any other reagent rather than special-cased: a recipe needs one, the vendor has to sell it, and the all-or-nothing gate treats it as it treats the rest.
+	- Reagents by ID: 2928 Dust of Decay, 8924 Dust of Deterioration, 2930 Essence of Pain, 8923 Essence of Agony, 2931 Maiden's Anguish, 5173 Deathweed, 3371 Empty Vial, 3372 Leaded Vial, 8925 Crystal Vial.
+	- Season of Discovery's own poisons (Sebacious, Numbing, Atrophic, Occult I and II) take their reagents from their crafting spells in the Classic Era tables on wago.tools (build 1.15.9.70003, SpellReagents), pending a Season of Discovery Validate Data run.
+
+SQL (CMaNGOS)
+	TODO: Add SQL Query
+
+Wowhead
+	None.
+
+wago.tools
+	https://wago.tools/db2/SkillLineAbility?build=1.15.9.70003
+	https://wago.tools/db2/SpellEffect?build=1.15.9.70003
+	https://wago.tools/db2/SpellReagents?build=1.15.9.70003
+]]

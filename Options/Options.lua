@@ -16,14 +16,18 @@ local REGISTRY = ns.OPTIONS_REGISTRY
     because the Profiles panel's tree label is read from the stock
     AceDBOptions-3.0 table (ns.BuildProfilesOptions().name), which needs the
     database to exist. Child-panel order in Blizzard's settings tree is the
-    order of the AddToBlizOptions calls: General (root) -> Macros -> Ignore List
-    -> Restocker -> Readiness Report -> Profiles -> Diagnostic Tools. The third
-    AddToBlizOptions argument is the parent's display name (L["ADDON_TITLE"]) so
-    each child nests under the root.
+    order of the AddToBlizOptions calls: General (root) -> Macros (-> Ignore
+    List) -> Restocker -> Readiness Report -> Profiles -> Diagnostic Tools. The
+    third AddToBlizOptions argument is the parent: the root's display name
+    (L["ADDON_TITLE"]) by default, or a child's category ID to nest a panel a
+    level deeper. AceConfigDialog maps only root names to IDs, so a nested
+    panel passes the ID its parent's registration returned; Settings.GetCategory
+    searches subcategories, and the tree draws each level indented.
 ]]
-local function RegisterChild(appName, builder, displayName)
+local function RegisterChild(appName, builder, displayName, parentID)
 	AceConfig:RegisterOptionsTable(appName, builder)
-	AceConfigDialog:AddToBlizOptions(appName, displayName, L["ADDON_TITLE"])
+	local _, categoryID = AceConfigDialog:AddToBlizOptions(appName, displayName, parentID or L["ADDON_TITLE"])
+	return categoryID
 end
 
 function ns.RegisterOptionsPanels()
@@ -32,19 +36,20 @@ function ns.RegisterOptionsPanels()
 	ns.optionsFrames = { main = mainPanel, categoryID = mainCategoryID }
 
 	--[[
-	    Macros panel (Options-Macros.lua) -- every macro setting, the Enable
-	    Macros toggles first. Its tree label is TAB_MACROS rather than that
-	    section's "Enable Macros" header.
+	    Macros panel (Options-Macros.lua) -- every macro setting, led by the
+	    Macros master switch. Its tree label is TAB_MACROS rather than the
+	    "Enable Macros" section's header.
 	]]
-	RegisterChild(REGISTRY.Macros, ns.BuildMacrosOptions, L["TAB_MACROS"])
+	local macrosCategoryID = RegisterChild(REGISTRY.Macros, ns.BuildMacrosOptions, L["TAB_MACROS"])
 
 	--[[
-	    Ignore List panel (Options-Ignore-List.lua). The builder function, not a
+	    Ignore List panel (Options-Ignore-List.lua), nested under Macros: the
+	    list only says what the macros may offer. The builder function, not a
 	    built table: its rows are the ignore lists themselves, so AceConfig
 	    re-invokes it on every open and every NotifyChange and the panel never
 	    renders a stale list.
 	]]
-	RegisterChild(REGISTRY.IgnoreList, ns.BuildIgnoreListOptions, L["TAB_IGNORE_LIST"])
+	RegisterChild(REGISTRY.IgnoreList, ns.BuildIgnoreListOptions, L["TAB_IGNORE_LIST"], macrosCategoryID)
 
 	--[[
 	    Widen the Ignore List tree. AceGUI defaults it to 175px, which truncates

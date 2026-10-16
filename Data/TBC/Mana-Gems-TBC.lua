@@ -1,35 +1,5 @@
 local _, ns = ...
 
---[[
-    Source: Validate Data on the TBC Anniversary client (2.5.6, build 69795).
-
-    SELECT
-        CONCAT(
-            '    [', it.entry, '] = {',
-
-            -- Calculates the instant mana restore amount
-            (st.EffectBasePoints1 + 1),
-
-            '}, -- ', it.name
-        ) AS `ns.RAW_DATA.ManaGem`
-    FROM item_template it
-    -- Failsafe: Joins on spellid_1, but seamlessly falls back to spellid_2 if slot 1 is blank
-    JOIN spell_template st ON st.Id = COALESCE(NULLIF(it.spellid_1, 0), NULLIF(it.spellid_2, 0))
-    WHERE it.name IN (
-        'Mana Agate',
-        'Mana Jade',
-        'Mana Citrine',
-        'Mana Ruby',
-        'Mana Emerald',
-        'Mana Sapphire'
-    )
-      -- Garbage collector for any weird [PH] or test server gems
-      AND st.EffectBasePoints1 > 0
-    ORDER BY
-        (st.EffectBasePoints1 + 1) DESC,
-        it.entry DESC;
-
-]]
 -- [ID] = {Mana Amount}, -- Name
 ns.MANA_GEMS = {
 	[22044] = { 2340 }, -- Mana Emerald
@@ -39,25 +9,65 @@ ns.MANA_GEMS = {
 	[5514] = { 390 }, -- Mana Agate
 }
 
--- TODO: Add SQL Query
---[[
-    Demonic and Dark Runes restore 900 to 1500 mana at the cost of 600 to 1000
-    life, and they share the Mana Gems' cooldown. The Mana Gem macro ranks
-    them in with the gems when the player opts in (see
-    Features/Macros/Mana-Gem.lua). The mana column is the low end of the
-    restore, the same convention as the gems above.
-
-    The two runes restore the same amount, so the selection ladder's
-    isSoulbound step burns the soulbound Demonic Rune before the tradeable Dark
-    Rune.
-
-    Luminous Bluetail shares that cooldown too and costs no life. It rides with
-    the runes rather than the potions so the Mana Potion macro never spends the
-    Mana Gem cooldown on it.
-]]
 -- [ID] = {Mana Amount}, -- Name
 ns.MANA_RUNES = {
 	[20520] = { 900 }, -- Dark Rune
 	[12662] = { 900 }, -- Demonic Rune
 	[35287] = { 455 }, -- Luminous Bluetail
 }
+
+--[[
+How We Got the Data
+
+Last Validated
+	2026-10-16, TBC Anniversary 2.5.6.70006
+
+Notes
+	- ns.MANA_GEMS holds the mage's mana gems, read by the item cache (Features/Item-Cache.lua) for the Mana Gem macro and by the Readiness Report. Mana Amount is the low end of the restore.
+	- ns.MANA_RUNES holds the Demonic and Dark Runes, which restore mana at the cost of life and share the mana gems' cooldown. The Mana Gem macro ranks them in with the gems when the player opts in (Features/Macros/Mana-Gem.lua). The mana column is the low end, as for the gems. The two restore the same amount, so the selection ladder's isSoulbound step burns the soulbound Demonic Rune before the tradeable Dark Rune.
+	- Luminous Bluetail shares that cooldown too and costs no life. It rides with the runes rather than the potions so the Mana Potion macro never spends the Mana Gem cooldown on it.
+	- Crystalized Mana Residue (23354), Condensed Mana Powder (23386) and Pure Energy (31451) restore mana on the same cooldown; they were left out as optional in the September 2026 TBC pass.
+
+SQL (CMaNGOS)
+	ns.MANA_GEMS, database not recorded:
+
+	SELECT
+	    CONCAT(
+	        '    [', it.entry, '] = {',
+
+	        -- Calculates the instant mana restore amount
+	        (st.EffectBasePoints1 + 1),
+
+	        '}, -- ', it.name
+	    ) AS `ns.RAW_DATA.ManaGem`
+	FROM item_template it
+	-- Failsafe: Joins on spellid_1, but seamlessly falls back to spellid_2 if slot 1 is blank
+	JOIN spell_template st ON st.Id = COALESCE(NULLIF(it.spellid_1, 0), NULLIF(it.spellid_2, 0))
+	WHERE it.name IN (
+	    'Mana Agate',
+	    'Mana Jade',
+	    'Mana Citrine',
+	    'Mana Ruby',
+	    'Mana Emerald',
+	    'Mana Sapphire'
+	)
+	  -- Garbage collector for any weird [PH] or test server gems
+	  AND st.EffectBasePoints1 > 0
+	ORDER BY
+	    (st.EffectBasePoints1 + 1) DESC,
+	    it.entry DESC;
+
+	ns.MANA_RUNES: TODO: Add SQL Query
+
+Wowhead
+	None.
+
+wago.tools
+	https://wago.tools/db2/Item?build=2.5.6.70006
+	https://wago.tools/db2/ItemSparse?build=2.5.6.70006
+	https://wago.tools/db2/ItemEffect?build=2.5.6.70006
+	https://wago.tools/db2/Spell?build=2.5.6.70006
+	https://wago.tools/db2/SpellEffect?build=2.5.6.70006
+	https://wago.tools/db2/SpellMisc?build=2.5.6.70006
+	https://wago.tools/db2/SpellDuration?build=2.5.6.70006
+]]

@@ -2,7 +2,7 @@
 --[[
     Headless test for character profiles (no WoW client needed).
 
-    Run it with:   lua Features/Tests/Character-Profile-Test.lua        (from the add-on root)
+    Run it with:   lua Tests/Character-Profile-Test.lua        (from the add-on root)
 
     This does NOT model the login. Every login loads the REAL LibStub,
     CallbackHandler-1.0 and AceDB-3.0 from Includes/Libraries, the REAL
@@ -16,7 +16,7 @@
     client is simulated, and the parts of the add-on a login reaches that
     draw or scan.
 
-    WHAT IS PINNED HERE. The maintainer's ruling (README-Notes.md): every
+    WHAT IS PINNED HERE. The maintainer's ruling: every
     character has a profile of its own, named "Name - Realm" on Era and TBC
     and by first name and surname on WoW Forever, so two Forever characters
     sharing a first name never share one. What one character sets, another
@@ -222,6 +222,7 @@ local function login(who, saved, opts)
 		PALETTE = {},
 		CLASS_COLORS = {},
 		OPTIONS_REGISTRY = {},
+		SAVED_VARIABLES_NAME = "ConnoisseurDB",
 		IGNORE_SCOPE_GLOBAL = "**global**",
 		FLAVOR = "Vanilla",
 	}
@@ -229,7 +230,7 @@ local function login(who, saved, opts)
 	for _, name in ipairs({
 		"RegisterOptionsPanels",
 		"EnsureItemCache",
-		"InitCharacterConstants",
+		"InitializeCharacterConstants",
 		"RegisterMinimapIcon",
 		"ResetMacroState",
 		"UpdateAuraTracking",
@@ -239,7 +240,7 @@ local function login(who, saved, opts)
 		"ClearRestockNewItems",
 		"UpdateRestockList",
 		"SyncRestockItemInfoSubscription",
-		"InitRestockBagDefinitions",
+		"InitializeRestockBagDefinitions",
 		"SetupCraftingRecipes",
 		"CreateRestockWindow",
 		"SaveRestockWindowGeometry",

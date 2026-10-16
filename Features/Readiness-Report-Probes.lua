@@ -66,6 +66,9 @@ end
     the whole test: the client only lets one battle and one guardian elixir sit
     on a character at once, so two elixir auras are already one of each and
     nothing here needs to know which kind either one is (see Data/{Game}/Elixirs-{Game}.lua).
+    The zone-limited flask and elixir auras (the Unstable and Shattrath flasks,
+    and Bloodberry) count everywhere: they persist outside their zones, and
+    the check errs toward silence.
 
     Returns true when either data table is empty, so the check reads as
     "nothing to report": an empty table cannot tell a flasked player from an
@@ -239,7 +242,7 @@ end
     login -- the caller drops the line rather than printing a half-answer. Always
     nil on Forever, whose Retail-style talents have no GetNumTalentTabs.
 ]]
-function ns.GetCurrentSpecLabel()
+function ns.GetCurrentSpecializationLabel()
 	local tabs = ns.GetNumTalentTabs()
 	if not tabs or tabs == 0 then
 		return nil
@@ -260,7 +263,7 @@ function ns.GetCurrentSpecLabel()
 		return nil
 	end
 
-	return string.format(ns.L["READINESS_SPEC_FORMAT"], best, table.concat(spread, "/"))
+	return string.format(ns.L["READINESS_SPECIALIZATION_FORMAT"], best, table.concat(spread, "/"))
 end
 
 --[[

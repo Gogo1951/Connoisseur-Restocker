@@ -6,12 +6,10 @@ local _, ns = ...
 
 --[[
     Stealth Drinking's spell and state flag, or nil while the option is off.
-    Night Elves only -- and not Night Elf Rogues: their options section is the
-    Rogues one (which has no Stealth Drinking toggle), so this must never fire
-    off a stale enableShadowmeldDrinking value.
+    Night Elves only, Rogues included: every character sees the toggle.
 ]]
 local function ShadowmeldDrinkingSpell()
-	if not ns.isNightElf or ns.isRogue then
+	if not ns.isNightElf then
 		return nil
 	end
 	local settings = ns.db and ns.db.profile
@@ -80,4 +78,16 @@ ns.RegisterMacroType({
 	    (outOfCombatTypeName), and melds the same way while it does.
 	]]
 	stealthSpell = ShadowmeldDrinkingSpell,
+
+	--[[
+	    Forsaken Cannibalize Drinking, as Food's Cannibalize Eating, and only
+	    where Cannibalize restores mana: elsewhere its options toggle is
+	    hidden, so a stale saved value must never fire.
+	]]
+	corpseSpell = function(entry)
+		if not ns.CANNIBALIZE_RESTORES_MANA then
+			return nil
+		end
+		return ns.CannibalizeCast("enableCannibalizeDrinking", entry)
+	end,
 })

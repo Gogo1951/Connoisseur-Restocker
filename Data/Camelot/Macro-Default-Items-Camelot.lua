@@ -1,17 +1,5 @@
 local _, ns = ...
 
---------------------------------------------------------------------------------
--- Macro Default Items
---------------------------------------------------------------------------------
-
---[[
-    The item each macro shows (#showtooltip) while the bags hold nothing it
-    can use, keyed by ns.MACRO_CONFIG's macro type (Data/Data.lua).
-]]
-
---[[
-    Source: Validate Data on the WoW Forever client (1.60.1, build 70124).
-]]
 -- [macroType] = itemID, -- Item Name
 ns.MACRO_DEFAULT_ITEM_IDS = {
 	["Bandage"] = 1251, -- Linen Bandage
@@ -26,3 +14,22 @@ ns.MACRO_DEFAULT_ITEM_IDS = {
 	["Feed Pet"] = 117, -- Tough Jerky
 	["Poisons"] = 6947, -- Instant Poison
 }
+
+--[[
+How We Got the Data
+
+Last Validated
+	2026-10-16, WoW Forever 1.60.1.70425
+
+Notes
+	- The item each macro shows (#showtooltip) while the bags hold nothing it can use, keyed by ns.MACRO_CONFIG's macro type (Data/Data.lua). Read by the macro body builder, the mini-map tooltip, the rogue tools and the Macros options panel.
+
+SQL (CMaNGOS)
+	TODO: Add SQL Query
+
+Wowhead
+	None.
+
+wago.tools
+	https://wago.tools/db2/ItemSparse?build=1.60.1.70425
+]]

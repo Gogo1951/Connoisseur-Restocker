@@ -4,28 +4,6 @@ if ns.IS_DISCOVERY then
 	return
 end
 
---------------------------------------------------------------------------------
--- Rogue Poisons
---------------------------------------------------------------------------------
-
---[[
-    Poison items grouped by type. Each group's display name is resolved at
-    runtime via C_Item.GetItemInfo on the base (rank 1) item of the series, so the
-    client's own item localization does the work, with the options panels'
-    loading text standing in until that item is cached (see
-    ns.GetPoisonGroupName in Features/Macros/Tools-Rogues.lua).
-
-    The group numbering (ns.POISON_GROUPS) carries no game IDs, so it lives in
-    Data/Data.lua.
-]]
-
---[[
-    Source: rows carried over from the pre-split shared Data/Poisons.lua, as the
-    Classic Era client loaded them. The client database they were pulled from is
-    not recorded. Instant Toxin (5654) came from the wago.tools tables for build
-    1.15.9.69722, for the next Validate Data run to confirm.
-]]
-
 -- [groupID] = base item of the series (the group's runtime display name)
 ns.POISON_GROUP_BASE_ITEMS = {
 	[2] = 3775, -- Crippling Poison
@@ -35,7 +13,6 @@ ns.POISON_GROUP_BASE_ITEMS = {
 	[6] = 10918, -- Wound Poison
 }
 
--- TODO: Add SQL Query
 -- [ID] = {Required Level, Poison Group}, -- Item Name
 ns.POISON_DATA = {
 	[3775] = { 20, 2 }, -- Crippling Poison
@@ -60,3 +37,27 @@ ns.POISON_DATA = {
 	[10921] = { 48, 6 }, -- Wound Poison III
 	[10922] = { 56, 6 }, -- Wound Poison IV
 }
+
+--[[
+How We Got the Data
+
+Last Validated
+	2026-10-16, Classic Era 1.15.9.70003
+
+Notes
+	- ns.POISON_DATA holds every rogue poison the Poisons macro can apply, read by Features/Macros/Tools-Rogues.lua: Required Level is the level the tooltip requires, and Poison Group is ns.POISON_GROUPS' numbering (Data/Data.lua), which carries no game IDs and so lives there.
+	- ns.POISON_GROUP_BASE_ITEMS names the base (rank 1) item of each group. A group's display name is that item's name from C_Item.GetItemInfo, so the client's own localization does the work, with the options panels' loading text standing in until the item is cached (ns.GetPoisonGroupName).
+	- Anesthetic Poison is a TBC poison, so this client has no group 1.
+	- Season of Discovery items are left out even though this client knows their IDs: they live only in Data/Discovery/. Where a table would otherwise pick one up, a deliberately-absent line in the table says so.
+
+SQL (CMaNGOS)
+	TODO: Add SQL Query
+
+Wowhead
+	None.
+
+wago.tools
+	https://wago.tools/db2/ItemSparse?build=1.15.9.70003
+	https://wago.tools/db2/SkillLineAbility?build=1.15.9.70003
+	https://wago.tools/db2/SpellEffect?build=1.15.9.70003
+]]

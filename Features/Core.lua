@@ -21,18 +21,6 @@ local updateTimer = 0
 local UPDATE_THROTTLE = 0.5
 
 --------------------------------------------------------------------------------
--- Diagnostics State
---------------------------------------------------------------------------------
-
---[[
-    Runtime-only diagnostics state — never persisted to SavedVariables, so it
-    starts false every login and needs no teardown. The dispatcher reads
-    ns.diagnostics.logging first (see OnEvent) so logging-off costs one boolean
-    check. Features/Diagnostics.lua owns ns.LogEvent / ns.StopEventLog.
-]]
-ns.diagnostics = { enabled = false, logging = false, log = nil }
-
---------------------------------------------------------------------------------
 -- Version
 --------------------------------------------------------------------------------
 
@@ -93,8 +81,8 @@ local function InitializeSavedVariables()
 		    character lands on a profile of its own, named as AceDB names the
 		    character: its first name and surname on WoW Forever, "Name - Realm"
 		    on Era and TBC. That is where the settings live, so each character
-		    configures its own consumables (the maintainer's ruling,
-		    README-Notes.md). The account-wide keys live on ns.db.global
+		    configures its own consumables (the maintainer's ruling). The
+		    account-wide keys live on ns.db.global
 		    instead, each with its reason (see Data/Default-Settings.lua).
 		    AceDB applies ns.DATABASE_DEFAULTS itself -- no hand-merge. It
 		    copies scalar and table defaults into the saved table (rawset)
@@ -102,7 +90,7 @@ local function InitializeSavedVariables()
 		    resolve through a metatable.
 		]]
 
-		ns.db = LibStub("AceDB-3.0"):New("ConnoisseurDB", ns.DATABASE_DEFAULTS)
+		ns.db = LibStub("AceDB-3.0"):New(ns.SAVED_VARIABLES_NAME, ns.DATABASE_DEFAULTS)
 		UseOwnProfileWhenUnnamed()
 
 		-- MIGRATION (remove after 2026-10-18)
@@ -205,7 +193,7 @@ local function InitializeSavedVariables()
 	]]
 	if not sessionConstantsInitialized then
 		sessionConstantsInitialized = true
-		ns.InitCharacterConstants()
+		ns.InitializeCharacterConstants()
 		ns.RegisterMinimapIcon()
 	end
 end
@@ -219,7 +207,7 @@ end
     every loading screen. Nothing here touches the database.
 
     Order matters on the login path: this runs AFTER InitializeSavedVariables, because
-    ns.InitCharacterConstants is what resolves ns.isHunter for the registration
+    ns.InitializeCharacterConstants is what resolves ns.isHunter for the registration
     below.
 ]]
 local function RefreshArrivalState()
@@ -299,8 +287,8 @@ end
 
 frame:SetScript("OnEvent", function(_, event, ...)
 	-- Diagnostics event-log tap; the boolean is read first so logging-off is free.
-	if ns.diagnostics.logging then
-		ns.LogEvent(event, ...)
+	if ns.diagnostics and ns.diagnostics.logging then
+		ns:LogEvent(event, ...)
 	end
 
 	--[[
@@ -489,7 +477,7 @@ frame:SetScript("OnEvent", function(_, event, ...)
 	--[[
 	    A cast is sorted ahead of the lockdown guard as well, which would
 	    otherwise take every cast in a fight as a reason to rebuild. Only the
-	    conjure spells in ns.spellCache change what the macros hold, and
+	    casts ns.SpellCastChangesMacros names change what the macros hold, and
 	    ns.RequestUpdate leaves that rebuild pending until combat drops.
 	]]
 	if event == "UNIT_SPELLCAST_SUCCEEDED" then
@@ -498,7 +486,7 @@ frame:SetScript("OnEvent", function(_, event, ...)
 		if ns.IsSecretValue(spellID) then
 			return
 		end
-		if ns.spellCache and ns.spellCache[spellID] then
+		if ns.SpellCastChangesMacros(spellID) then
 			ns.RequestUpdate()
 		end
 		return

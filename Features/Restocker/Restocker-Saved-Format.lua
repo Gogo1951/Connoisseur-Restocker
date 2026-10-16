@@ -187,7 +187,7 @@ end
     stored profile uses, and any legacy "Name-Realm" list still named for a
     character AceDB knows -- older versions created one per character, and a
     player who kept theirs must not lose it to a prune. New characters get
-    class-named lists and no eponymous one (see ns.InitCharacterRestockList).
+    class-named lists and no eponymous one (see ns.InitializeCharacterRestockList).
 ]]
 function ns.PruneEmptyOrphanRestockLists(db)
 	local keep = {}

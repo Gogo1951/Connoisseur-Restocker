@@ -26,6 +26,11 @@ local _, ns = ...
     than convenience:
       * showWelcome    -- one login greeting per account, not per character.
       * showMacroNames -- a client-wide action-bar appearance tweak.
+      * macrosEnabled  -- the Macros master switch, account-wide for the same
+                          reason as enabledMacros: the macros it freezes are
+                          shared by every character.
+      * restockerEnabled -- the Restocker master switch, kept with the Restock
+                          Lists it governs, which are account-wide too.
       * readinessReportEnabled -- a behaviour preference (does Connoisseur speak
                           up on a ready check?) rather than a consumable choice.
       * enabledMacros  -- the macros themselves are account-wide: they live in
@@ -61,7 +66,7 @@ local _, ns = ...
 
     restockList, the name of the Restock List a profile uses, is not declared
     either, because no list exists to name until a character logs in:
-    ns.InitCharacterRestockList
+    ns.InitializeCharacterRestockList
     (Features/Restocker/Restocker-Saved-Lists.lua) gives a profile without one
     a list named for the character's class.
 ]]
@@ -151,6 +156,14 @@ ns.DATABASE_DEFAULTS = {
 		]]
 		enableStealthEating = false,
 		--[[
+		    Forsaken: the Food and Water macros try Cannibalize first while the
+		    target is a Humanoid or Undead and the spell is off cooldown, and
+		    eat or drink when it cannot cast (Features/Macros/Tools-Forsaken.lua). Drinking only takes effect
+		    where Cannibalize restores mana (ns.CANNIBALIZE_RESTORES_MANA).
+		]]
+		enableCannibalizeEating = false,
+		enableCannibalizeDrinking = false,
+		--[[
 		    Rogue poison groups per weapon slot, keyed by ns.POISON_GROUP_BASE_ITEMS
 		    group IDs (4 = Instant Poison). See ns.POISON_GROUPS in Data/Data.lua.
 		]]
@@ -159,6 +172,16 @@ ns.DATABASE_DEFAULTS = {
 	},
 	global = {
 		showWelcome = true,
+		--[[
+		    The features' master switches, on the General panel's Features
+		    section and atop each feature's own panel, all four account-wide.
+		    Off, macrosEnabled leaves every macro as it last was: nothing is
+		    created, rewritten or deleted until it is back on. Off,
+		    restockerEnabled stops every part of the Restocker, its window,
+		    /crs and the mini-map click included; the lists stay saved.
+		]]
+		macrosEnabled = true,
+		restockerEnabled = true,
 		--[[
 		    The Restock List subsystem. `lists` are the player's own named
 		    shopping lists, shared by every character, and the stock Reset
@@ -174,7 +197,9 @@ ns.DATABASE_DEFAULTS = {
 		    a bank you are already looking at the window that fixes it.
 
 		    The Gold Reserve ships on at 1 gold, a floor low enough that nobody
-		    notices it until a merchant run would otherwise leave them broke.
+		    notices it until a merchant run would otherwise leave them broke. It
+		    sits here with the lists, outside every profile: one floor for every
+		    character, so a reserve set on one also holds back an alt with less.
 		    goldReserveAmount is whole gold, one of ns.GOLD_RESERVE_AMOUNTS.
 		]]
 		restocker = {

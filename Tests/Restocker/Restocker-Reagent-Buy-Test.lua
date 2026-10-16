@@ -2,7 +2,7 @@
 --[[
     Headless test for the crafting-reagent purchase order (no WoW API needed).
 
-    Run it with:   lua Tests/Restocker-Reagent-Buy-Test.lua
+    Run it with:   lua Tests/Restocker/Restocker-Reagent-Buy-Test.lua        (from the add-on root)
 
     It models the SAME two steps the live add-on uses:
       * Restocker-Crafting-Reagents.lua BuildCraftingPurchaseOrder -- how many reagents the shortfall needs

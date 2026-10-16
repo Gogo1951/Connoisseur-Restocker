@@ -2,7 +2,7 @@
 --[[
     Headless test for the Ignore List (no WoW client needed).
 
-    Run it with:   lua Features/Tests/Ignore-List-Test.lua        (from the add-on root)
+    Run it with:   lua Tests/Ignore-List-Test.lua        (from the add-on root)
 
     Like the other headless tests, this does NOT model the feature. Every login
     loads the REAL LibStub, CallbackHandler-1.0, AceDB-3.0 and AceLocale-3.0

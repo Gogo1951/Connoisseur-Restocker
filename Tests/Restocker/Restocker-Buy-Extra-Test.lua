@@ -2,7 +2,7 @@
 --[[
     Headless test for the Buy Extra vendor toggle (no WoW API needed).
 
-    Run it with:   lua Tests/Restocker-Buy-Extra-Test.lua
+    Run it with:   lua Tests/Restocker/Restocker-Buy-Extra-Test.lua        (from the add-on root)
 
     It models the SAME two steps the live add-on uses:
       * Restocker-Merchant.lua BuildPurchaseOrder    -- whether an order exists, and for how much

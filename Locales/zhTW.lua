@@ -134,14 +134,14 @@ L["READINESS_MANA_GEM"] = "法力寶石"
 L["READINESS_HEALING_POTION"] = "治療藥水"
 L["READINESS_MANA_POTION"] = "法力藥水"
 L["READINESS_BANDAGES"] = "繃帶"
-L["READINESS_PVP_ON"] = "PvP 已開啟！"
+L["READINESS_PVP_ON"] = "PvP 已開啟"
 
 -- { buff name, whole minutes left }
 L["READINESS_TIME_MINUTES"] = "%s %d 分鐘"
 -- %s is the buff name; used when under a minute is left.
 L["READINESS_TIME_EXPIRING"] = "%s 不足 1 分鐘"
 -- { dominant talent tree, slash-joined point spread }
-L["READINESS_SPEC_FORMAT"] = "%s (%s)"
+L["READINESS_SPECIALIZATION_FORMAT"] = "%s (%s)"
 -- Talent points the character has not spent: exactly one, or %d for two or more.
 L["READINESS_UNSPENT_TALENTS_ONE"] = "1 個未使用的天賦點"
 L["READINESS_UNSPENT_TALENTS_MANY"] = "%d 個未使用的天賦點"
@@ -166,15 +166,23 @@ L["TIP_DONT_KNOW_SPELL"] = "你目前還沒有學會%s。"
 --------------------------------------------------------------------------------
 
 --[[
-    Feature toggles shown in the mini-map tooltip, each with a description
-    line. Both names also fill OPTIONS_MODE_DESCRIPTION's %s, and Scroll Buffs
-    labels the Readiness Report's switch. In every *_FORMAT key that quotes the
-    buff, here and below, %s is the client's name for "Well Fed".
+    The two Food macro features. Both names fill OPTIONS_MODE_DESCRIPTION's %s,
+    and Scroll Buffs labels the Readiness Report's switch. In every *_FORMAT key
+    that names the buff, here and below, %s is the client's name for "Well Fed".
 ]]
 L["FEATURE_BUFF_FOOD"] = "增益食物"
-L["MENU_BUFF_FOOD_DESCRIPTION_FORMAT"] = '缺少"%s"增益時，優先使用可提供該增益的食物。'
 L["FEATURE_SCROLL_BUFFS"] = "卷軸增益"
-L["MENU_SCROLL_BUFFS_DESCRIPTION"] = "進食前，透過你的食物巨集補上缺少的卷軸增益。"
+
+--[[
+    The mini-map tooltip's two switches, each a block with a description line.
+    Buff Food and Scroll Buffs share one block and one click, which turns both
+    on or off together. The Readiness Report's block takes its title from
+    READINESS_TITLE.
+]]
+L["MINIMAP_BUFF_FOOD_SCROLLS"] = "增益食物與卷軸"
+L["MINIMAP_BUFF_FOOD_SCROLLS_DESCRIPTION_FORMAT"] =
+	'使用提供"%s"的食物，並在進食前補上缺少的卷軸增益。'
+L["MINIMAP_READINESS_DESCRIPTION"] = "每次準備確認時列出需要處理的事項。"
 
 --[[
     Item titles in the mini-map tooltip. A title sits alone on its row and its
@@ -307,7 +315,7 @@ L["LABEL_HEALTHSTONE"] = "治療石"
 L["LABEL_MANA_GEM"] = "法力寶石"
 L["LABEL_MANA_POTION"] = "法力藥水"
 L["LABEL_PET_FOOD"] = "寵物食物"
-L["LABEL_POISONS"] = "毒藥"
+L["LABEL_POISON"] = "毒藥"
 L["LABEL_SOULSTONE"] = "靈魂石"
 L["LABEL_WATER"] = "水"
 
@@ -339,8 +347,8 @@ L["MINIMAP_SHIFT_LEFT"] = "Shift + 左鍵點擊"
     caption, so each value carries its own "when". Leveling means below the
     client's max level.
 
-    In the mini-map tooltip, a Buff Food or Scroll Buffs switch that is on
-    while its choice does not apply shows the choice's label in place of
+    In the mini-map tooltip, the Buff Food & Scrolls block, while a switch is
+    on but no choice applies, shows that choice's label in place of
     MINIMAP_ENABLED, so every label has to read as a state too.
 ]]
 L["OPTIONS_MODE_DESCRIPTION"] =
@@ -392,6 +400,15 @@ L["OPTIONS_WELCOME_MESSAGE_DESCRIPTION"] = "登入時在聊天視窗中輸出歡
 -- Minimap Button
 L["OPTIONS_MINIMAP_BUTTON"] = "啟用小地圖按鈕"
 L["OPTIONS_MINIMAP_BUTTON_DESCRIPTION"] = "顯示小地圖按鈕。"
+
+-- Features: each feature's master switch, also atop its own panel.
+L["OPTIONS_FEATURES_HEADER"] = "功能"
+L["OPTIONS_MACROS_ENABLE"] = "啟用巨集更新"
+L["OPTIONS_MACROS_ENABLE_DESCRIPTION"] =
+	"隨著背包變化，讓你的 Connoisseur 巨集始終指向你最好的物品。關閉後，每個巨集都保持最後的狀態。"
+L["OPTIONS_RESTOCKER_ENABLE"] = "啟用 Restocker"
+L["OPTIONS_RESTOCKER_ENABLE_DESCRIPTION"] =
+	"根據你的補貨清單購買物品並存入銀行，並在存貨不足時提醒你。關閉後會停用全部功能，包括補貨清單視窗。"
 
 --[[
     /Commands. Both halves of each line are locale keys: the literal, which
@@ -453,9 +470,9 @@ L["OPTIONS_FOOD_WATER_DESCRIPTION"] =
 	"你的食物和水巨集會使用背包中最好的食物和飲料。這些選項可以讓增益食物、卷軸或魔法製造的食物和水優先，並讓補貨清單中的食物和水最後使用。"
 
 --[[
-    Buff Food, the first option under Food & Water. Its hover text is a key of
-    its own because it carries the arena exception, which the mini-map
-    tooltip's MENU_BUFF_FOOD_DESCRIPTION_FORMAT has no room for.
+    Buff Food, the first option under Food & Water. Its hover text carries the
+    arena exception, which the mini-map tooltip's shared Buff Food & Scrolls
+    line has no room for.
 ]]
 L["OPTIONS_BUFF_FOOD"] = "優先增益食物"
 L["OPTIONS_BUFF_FOOD_DESCRIPTION_FORMAT"] =
@@ -539,7 +556,13 @@ L["OPTIONS_EXPLOSIVES_CLICK_LAYOUT_DESCRIPTION"] =
 L["EXPLOSIVES_MODE_ATPLAYER"] = "左鍵點擊 @player"
 L["EXPLOSIVES_MODE_TOSS"] = "左鍵點擊投擲"
 
--- Druids. This section and the Rogue one are headed with the client's name for the player's class, so neither header has a key.
+-- The class and race sections' headers; %s is the client's name for the class or race, or OPTIONS_FORSAKEN_HEADER.
+L["OPTIONS_CLASS_HEADER_FORMAT"] = "職業選項：%s"
+L["OPTIONS_RACE_HEADER_FORMAT"] = "種族選項：%s"
+
+-- Druids
+L["OPTIONS_DRUID_DESCRIPTION"] =
+	"需要 DruidMacroHelper 插件。開啟後，你的治療藥水、法力藥水和治療石巨集會讓你脫離形態、使用物品，再讓你回到熊形態或獵豹形態，取決於你在核取方塊旁選擇的那個。"
 L["OPTIONS_DRUID_MACRO_HELPER"] = "啟用 DruidMacroHelper 整合"
 L["OPTIONS_DRUID_MACRO_HELPER_DESCRIPTION"] =
 	"使用 DruidMacroHelper (/dmh) 為治療藥水、法力藥水和治療石建立變形巨集。"
@@ -560,18 +583,33 @@ L["OPTIONS_POISON_OFF_HAND"] = "副手毒藥類型"
 L["OPTIONS_POISON_MAIN_HAND_DESCRIPTION"] = "選擇你的毒藥巨集在右鍵點擊時塗抹到主手的毒藥。"
 L["OPTIONS_POISON_OFF_HAND_DESCRIPTION"] = "選擇你的毒藥巨集在左鍵點擊時塗抹到副手的毒藥。"
 --[[
-    Shared by the Rogue (Stealth) and Night Elf (Shadowmeld) toggles; a
-    character sees one at most. In both hover texts %s is the client's name for
-    the spell the macro appends.
+    Shared by the Rogue (Stealth) and Night Elf (Shadowmeld) eating toggles.
+    In both hover texts %s is the client's name for the spell the macro
+    appends.
 ]]
 L["OPTIONS_STEALTH_EATING"] = "啟用進食時潛行"
 L["OPTIONS_STEALTH_EATING_SPELL_DESCRIPTION"] = "將%s加入你的食物巨集中，以便你在進食時潛行。"
 
--- Night Elves. The section is headed with the client's name for the player's race, so its header has no key.
+-- Night Elves
 L["OPTIONS_STEALTH_DRINKING"] = "啟用喝水時潛行"
 L["OPTIONS_STEALTH_DRINKING_SPELL_DESCRIPTION"] = "將%s加入你的水巨集中，以便你在喝水時潛行。"
 L["OPTIONS_STEALTH_PICK_ONE"] =
 	"專業提示：只選一個。你可以同時進食和喝水，但潛行後再進食或喝水會解除潛行。"
+
+--[[
+    Forsaken. Headed with our own word, the race's lore name, since the client
+    names it Undead; in the five texts after the header, %s is the client's
+    name for Cannibalize. Drinking shows only where Cannibalize restores mana.
+]]
+L["OPTIONS_FORSAKEN_HEADER"] = "被遺忘者"
+L["OPTIONS_CANNIBALIZE_DESCRIPTION"] =
+	"選取一個你殺死的人型生物或不死族，你的巨集會在%s不在冷卻中時施放它，節省你的食物和飲料。如果無法施放（屍體超出距離，或該技能正在冷卻），則照常進食或喝水。"
+L["OPTIONS_CANNIBALIZE_EATING"] = "使用%s代替進食"
+L["OPTIONS_CANNIBALIZE_EATING_DESCRIPTION"] =
+	"當你的目標是%s可用的屍體且該技能不在冷卻中時，你的食物巨集會施放它而不是進食。否則照常進食。卷軸和增益食物仍然優先。"
+L["OPTIONS_CANNIBALIZE_DRINKING"] = "使用%s代替喝水"
+L["OPTIONS_CANNIBALIZE_DRINKING_DESCRIPTION"] =
+	"當你的目標是%s可用的屍體且該技能不在冷卻中時，你的水巨集會施放它而不是喝水。否則照常喝水。增益飲料仍然優先。"
 
 --[[
     Ignore List panel (Options-Ignore-List.lua). One tree scope per list: the
@@ -622,11 +660,11 @@ L["OPTIONS_RESTOCKER_BANK_REMIND_DESCRIPTION"] = "關閉銀行時，回報所有
 --[[
     The Gold Reserve: the floor the merchant restock never spends below. The
     dropdown beside it writes each amount as a number and the gold coin, so
-    it has no strings of its own.
+    its values have no strings; AMOUNT_DESCRIPTION is its hover text.
 ]]
 L["OPTIONS_RESTOCKER_GOLD_RESERVE"] = "啟用金幣儲備"
 L["OPTIONS_RESTOCKER_GOLD_RESERVE_DESCRIPTION"] = "補貨絕不會花掉你在此預留的金幣。"
-L["OPTIONS_RESTOCKER_GOLD_RESERVE_AMOUNT_DESCRIPTION"] = "補貨始終為你保留的金幣數量。"
+L["OPTIONS_RESTOCKER_GOLD_RESERVE_AMOUNT_DESCRIPTION"] = "設定補貨始終為你保留的金幣數量。"
 
 --[[
     The staples pop-up (STARTER_POPUP_TITLE below). This toggle and the
@@ -774,8 +812,8 @@ L["OPTIONS_READINESS_DURABILITY_THRESHOLD_DESCRIPTION"] =
 	"設定物品耐久度降到多低時，報告才會連結它。"
 
 -- Character
-L["OPTIONS_READINESS_SPEC"] = "當前天賦"
-L["OPTIONS_READINESS_SPEC_DESCRIPTION"] = "輸出你的天賦分配，以及尚未使用的點數。"
+L["OPTIONS_READINESS_SPECIALIZATION"] = "目前天賦"
+L["OPTIONS_READINESS_SPECIALIZATION_DESCRIPTION"] = "輸出你的天賦分配，以及尚未使用的點數。"
 L["OPTIONS_READINESS_PVP"] = "PvP 標記開啟"
 L["OPTIONS_READINESS_PVP_DESCRIPTION"] = "當你的 PvP 標記開啟時發出警告。"
 L["OPTIONS_READINESS_QUESTIONABLE_GEAR"] = "裝備了非戰鬥裝備"
@@ -796,6 +834,7 @@ L["RESTOCKER_PROFILE_EXISTS"] = '已存在名為"%s"的清單。'
 ]]
 L["RESTOCKER_UNKNOWN_ITEM"] = "沒有 ID 為 %d 的物品。"
 L["RESTOCKER_BANK_NOT_OPEN"] = "銀行未開啟。"
+L["RESTOCKER_DISABLED"] = "Restocker 已關閉。請在 選項 > 插件 > Connoisseur 中開啟。"
 --[[
     %s is the /crs slash command, colored at the call site. Only the bank flow
     prints this, so the Shift hint names the bank; Shift is read as the window
@@ -807,7 +846,7 @@ L["RESTOCKER_STOPPED_BOTH_FULL"] = "補貨已停止。你的背包和銀行都�
 L["RESTOCKER_STOPPED_BANK_FULL"] = "補貨已停止。你的銀行已滿；請騰出一格後重新開啟。"
 L["RESTOCKER_STOPPED_BAG_FULL"] = "補貨已停止。你的背包已滿；請騰出一格後重新開啟銀行。"
 L["RESTOCKER_STOPPED_NO_PROGRESS"] = "補貨已停止。無法繼續進行。"
-L["RESTOCKER_STOPPED_COULD_NOT_MOVE"] = "補貨已停止。無法移動：%s"
+L["RESTOCKER_STOPPED_COULD_NOT_MOVE"] = "補貨已停止。無法移動：%s。"
 -- { count, item name }
 L["RESTOCKER_STUCK_ITEM_FORMAT"] = "%dx %s"
 L["RESTOCKER_STUCK_ITEM_EXTRA_FORMAT"] = "%dx %s (多餘)"
@@ -899,7 +938,7 @@ L["RESTOCKER_BAGS_FULL_PARTIAL"] = "背包在全部購買完成前就已裝滿�
 L["RESTOCKER_OUT_OF_GOLD"] = "金幣不足，無法完成補貨。"
 -- RESTOCKER_OUT_OF_GOLD's line while the Gold Reserve is on, whole so each locale joins its sentences its own way. %s is the reserve with the gold coin.
 L["RESTOCKER_OUT_OF_GOLD_RESERVE"] =
-	"補貨已暫停；金幣不足。一旦能在不動用你的儲備（%s）的情況下完成採購訂單，補貨就會繼續。"
+	"補貨已暫停；金幣不足。一旦能在不動用你的儲備（%s）的情況下完成補貨訂單，補貨就會繼續。"
 
 -- /crs help lines. The command literals stay in code; these are the descriptions, and the show line reuses RESTOCKER_COMMAND_DESCRIPTION.
 -- Stands for the list name the player types after a /crs profile subcommand.
@@ -952,8 +991,8 @@ L["STARTER_POPUP_ARROWS"] = "箭矢"
     spell reagents. Rogues additionally get a Poisons section of their own,
     whose note under the header opens with the client's name for the class
     (rogue-colored at the call site) to say the ingredients take care of
-    themselves. Both sections name
-    their rows with the client's own item names, so neither has row labels here.
+    themselves. Both sections name their rows with the client's own item
+    names, so neither has row labels here.
 ]]
 L["STARTER_POPUP_REAGENTS_HEADER"] = "材料與工具"
 L["STARTER_POPUP_POISONS_HEADER"] = "毒藥"
@@ -991,12 +1030,11 @@ L["RESTOCKER_FILTER_CLEAR_TOOLTIP"] = "清除"
 L["RESTOCKER_ADD_BUTTON"] = "新增"
 --[[
     The button that opens the staples pop-up over the window, on the control
-    row and on an empty list, and its tooltip. The keys keep the pop-up's
-    earlier name, the List Builder. "Check" is the pop-up's own word
-    (STARTER_POPUP_INTRO_HOW).
+    row and on an empty list, and its tooltip. "Check" is the pop-up's own
+    word (STARTER_POPUP_INTRO_HOW).
 ]]
-L["RESTOCKER_LIST_BUILDER_BUTTON"] = "挑選基礎物資"
-L["RESTOCKER_LIST_BUILDER_TOOLTIP"] =
+L["RESTOCKER_PICK_STAPLES_BUTTON"] = "挑選基礎物資"
+L["RESTOCKER_PICK_STAPLES_TOOLTIP"] =
 	"從適合你職業和等級的基礎物資中選擇：食物、水、彈藥、毒藥和施法材料。勾選一項即可將其加入此清單，取消勾選則會將其移除。"
 L["RESTOCKER_ADD_TOOLTIP_TITLE"] = "新增物品"
 L["RESTOCKER_ADD_TOOLTIP_BODY"] =
@@ -1045,14 +1083,12 @@ L["RESTOCKER_MANAGE_TOOLTIP"] = "新建一個清單，或複製、重新命名�
 --[[
     The Manage Lists menu, top to bottom. Menu entries take title case and no
     terminal punctuation, like every title in the window. New List is also the
-    last entry on the selector's own menu. The Copy and Delete keys end in
-    _TOOLTIP because they began as the tooltips of two buttons this menu
-    replaced.
+    last entry on the selector's own menu.
 ]]
 L["RESTOCKER_NEW_PROFILE"] = "新清單"
-L["RESTOCKER_COPY_PROFILE_TOOLTIP"] = "將此清單複製為新清單"
+L["RESTOCKER_MANAGE_COPY"] = "將此清單複製為新清單"
 L["RESTOCKER_RENAME_PROFILE"] = "重新命名此清單"
-L["RESTOCKER_DELETE_PROFILE_TOOLTIP"] = "刪除此清單"
+L["RESTOCKER_MANAGE_DELETE"] = "刪除此清單"
 -- %s becomes "<list name> Copy"; numbered if that name is taken.
 L["RESTOCKER_PROFILE_COPY_NAME"] = "%s 副本"
 -- The button that commits a rename, beside the field Rename This List opens, and that button's tooltip.
@@ -1153,13 +1189,13 @@ L["RESTOCKER_GROUP_ALL"] = "全部物品"
     What the list area shows in place of rows. EMPTY_ is a list with nothing on
     it: a heading (title case), a body of two sentences (the two ways to add,
     then what the list does with what is on it), the Pick Staples button
-    (RESTOCKER_LIST_BUILDER_BUTTON), and a hint under it. NO_MATCH_ is one line
+    (RESTOCKER_PICK_STAPLES_BUTTON), and a hint under it. NO_MATCH_ is one line
     for a list that has items and is showing none: the filter matches nothing,
     or the selected category just lost its last item.
 ]]
 L["RESTOCKER_EMPTY_TITLE"] = "此清單中還沒有物品"
 L["RESTOCKER_EMPTY_BODY"] =
-	"選擇食物、水或職業施法材料等基礎物資，或透過上方的選單新增背包中的任何物品。選取的物品會自動補足或存入你的銀行，讓你的背包保持整潔。"
+	"挑選食物、水或職業施法材料等基礎物資，或透過上方的選單新增背包中的任何物品。此清單中的物品會自動補足或存入你的銀行，讓你的背包保持整潔。"
 L["RESTOCKER_EMPTY_DROP_HINT"] = "將物品拖曳到此視窗的任意位置也能新增。"
 L["RESTOCKER_NO_MATCH_FILTER"] = "此清單中沒有符合篩選條件的物品。"
 L["RESTOCKER_NO_MATCH_GROUP"] = "此分類中已沒有物品。"

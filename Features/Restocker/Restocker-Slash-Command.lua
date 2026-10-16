@@ -54,6 +54,12 @@ function ns.HandleRestockerCommand(args)
 	local command, rest = strsplit(" ", args, 2)
 	command = command:lower()
 
+	-- The master switch stops every command but help and config, which opens the panel that turns it back on.
+	if command ~= "help" and command ~= "config" and not ns.IsRestockerEnabled() then
+		ns.PrintMessage(L["RESTOCKER_DISABLED"])
+		return
+	end
+
 	if command == "show" then
 		ns.ShowRestockWindow()
 	elseif command == "profile" then

@@ -4,7 +4,7 @@
     Headless test for keying WoW Forever characters by their whole names
     (no WoW client needed).
 
-    Run it with:   lua Features/Tests/Character-Key-Migration-Test.lua        (from the add-on root)
+    Run it with:   lua Tests/Character-Key-Migration-Test.lua        (from the add-on root)
 
     This does NOT model the key or the migration. Every login loads the REAL
     Features/Utilities.lua (ns.GetPlayerFullName), the REAL
@@ -22,13 +22,11 @@
     that character is keyed by first name and surname, in all three tables
     keyed by character (the list it uses, its staples answer, its Inventory
     Report record), so the list it was using is found under its name. Every
-    other character AceDB has written a whole name for
-    moves in the same login, realm kept and its record named in full, and a
-    key an earlier beta build left
-    under the whole name gives way to the first-name key that replaced it. A
-    first name two characters share waits for each one's own login, and so does
-    every other character when AceDB cannot vouch for this one's name. An Era
-    or TBC character's key does not change. A second login changes nothing.
+    other character waits under its first name for its own login, so a
+    namesake on another realm keeps its own entries, and a key an earlier beta
+    build left under the whole name gives way to the first-name key that
+    replaced it. An Era or TBC character's key does not change. A second login
+    changes nothing.
 
     This file retires with the migration (remove after 2026-10-30).
 ]]
@@ -78,6 +76,9 @@ end
 --------------------------------------------------------------------------------
 
 local REALM = "Classic Beta PvE"
+
+-- Every client ships C_Item, and Utilities picks its item-stats reader from it as it loads.
+C_Item = {}
 
 --[[
     One login. `character` is { first, surname, class, realm, era, wholeNameFirst }:
@@ -189,35 +190,33 @@ end
 
 --------------------------------------------------------------------------------
 
-print("1. One Forever login re-keys this character and every other one AceDB has a whole name for")
+print("1. One Forever login re-keys this character alone")
 local saved = betaFile()
 local druidRecord = saved.global.inventory["Gogodruid-ClassicBetaPvE"]
+local mageRecord = saved.global.inventory["Gogomage-ClassicBetaPvE"]
 local ns = login(DRUID, saved)
 local restocker = saved.global.restocker
 check("this character's key", ns.GetCharacterKey(), "Gogodruid Forever-ClassicBetaPvE")
 check(
-	"every character under its whole name, once",
+	"only this character is under its whole name",
 	dump(restocker.listsByCharacter),
 	dump({
 		["Gogodruid Forever-ClassicBetaPvE"] = "Druid",
-		["Gogohunter Classic-ClassicBetaPvE"] = "Hunter",
-		["Gogomage Classic-ClassicBetaPvE"] = "Mage",
-		["Gogorogue Classic-ClassicBetaPvE"] = "Rogue",
-		["Gogowarrior Classic-ClassicBetaPvE"] = "Warrior",
+		["Gogohunter-ClassicBetaPvE"] = "Hunter",
+		["Gogomage-ClassicBetaPvE"] = "Mage",
+		["Gogorogue-ClassicBetaPvE"] = "Rogue",
+		["Gogowarrior-ClassicBetaPvE"] = "Warrior",
+		["Gogowarrior Classic-ClassicBetaPvE"] = "Warrior (old)",
 	})
 )
 check(
-	"the staples answers follow",
+	"its staples answer follows, and the mage's waits",
 	dump(restocker.starterListDismissed),
-	dump({ ["Gogodruid Forever-ClassicBetaPvE"] = true, ["Gogomage Classic-ClassicBetaPvE"] = true })
+	dump({ ["Gogodruid Forever-ClassicBetaPvE"] = true, ["Gogomage-ClassicBetaPvE"] = true })
 )
 check("the Inventory Report record follows", saved.global.inventory["Gogodruid Forever-ClassicBetaPvE"], druidRecord)
-check(
-	"a logged-out character's record is named in full too",
-	(saved.global.inventory["Gogomage Classic-ClassicBetaPvE"] or {}).name,
-	"Gogomage Classic"
-)
-check("and nothing is left behind", count(saved.global.inventory), 2)
+check("a logged-out character's record waits as it was", saved.global.inventory["Gogomage-ClassicBetaPvE"], mageRecord)
+check("... under the name it was saved with", mageRecord.name, "Gogomage")
 check("the list it was using is under its key", restocker.listsByCharacter[ns.GetCharacterKey()], "Druid")
 
 print("2. A second login changes nothing")
@@ -225,12 +224,13 @@ local before = dump(saved.global)
 login(DRUID, saved)
 check("same saved shape", dump(saved.global), before)
 
-print("3. A character re-keyed while logged out comes back to its own list")
+print("3. Each character moves at its own login, and its first-name key wins")
 ns = login(WARRIOR, saved)
 check("the first-name key's list, not the early build's", restocker.listsByCharacter[ns.GetCharacterKey()], "Warrior")
-check("still one entry for it", count(restocker.listsByCharacter), 5)
+check("and its first-name key is gone", restocker.listsByCharacter["Gogowarrior-ClassicBetaPvE"], nil)
+check("one entry for it", count(restocker.listsByCharacter), 5)
 
-print("4. An older AceDB knows no surnames, so only this character moves")
+print("4. An older AceDB's names make no difference: only this character moves")
 saved = betaFile({ ["Gogodruid - PvE"] = "Default", ["Gogohunter - PvE"] = "Default" })
 restocker = saved.global.restocker
 login(DRUID, saved)
@@ -242,40 +242,24 @@ login(HUNTER, saved)
 check("and moves at its own login", restocker.listsByCharacter["Gogohunter Classic-ClassicBetaPvE"], "Hunter")
 check("the early build's key for the warrior is still there", count(restocker.listsByCharacter), 6)
 
-print("5. AceDB's names are believed only while this character's own is among them")
-local unvouched = wholeNames()
-unvouched["Gogodruid Forever"] = nil
-saved = betaFile(unvouched)
-restocker = saved.global.restocker
-login(DRUID, saved)
-check(
-	"this character moved by what the client says",
-	restocker.listsByCharacter["Gogodruid Forever-ClassicBetaPvE"],
-	"Druid"
-)
-check("nobody else did", restocker.listsByCharacter["Gogohunter-ClassicBetaPvE"], "Hunter")
-
-print("6. A first name two characters share waits for each one's own login")
-local shared = wholeNames()
-shared["Gogohunter Forever"] = "Default"
-saved = betaFile(shared)
-restocker = saved.global.restocker
-login(DRUID, saved)
-check("the shared first name is left alone", restocker.listsByCharacter["Gogohunter-ClassicBetaPvE"], "Hunter")
-check("the others still move", restocker.listsByCharacter["Gogomage Classic-ClassicBetaPvE"], "Mage")
-login(HUNTER, saved)
-check("the one that logs in takes it", restocker.listsByCharacter["Gogohunter Classic-ClassicBetaPvE"], "Hunter")
-check("and the first-name key is gone", restocker.listsByCharacter["Gogohunter-ClassicBetaPvE"], nil)
-
-print("7. A character on another realm keeps its realm")
+print("5. A namesake on another realm keeps its own entries")
 saved = betaFile()
 restocker = saved.global.restocker
-restocker.listsByCharacter["Gogomage-ClassicBetaPvP"] = "Mage"
+restocker.lists["Mage (PvP)"] = {}
+restocker.listsByCharacter["Gogomage-ClassicBetaPvP"] = "Mage (PvP)"
+local otherMageRecord = { name = "Gogomage", realm = "Classic Beta PvP", class = "MAGE", bags = "" }
+saved.global.inventory["Gogomage-ClassicBetaPvP"] = otherMageRecord
 login(DRUID, saved)
-check("re-keyed there", restocker.listsByCharacter["Gogomage Classic-ClassicBetaPvP"], "Mage")
-check("beside its namesake here", restocker.listsByCharacter["Gogomage Classic-ClassicBetaPvE"], "Mage")
+check("its list stays under its own key", restocker.listsByCharacter["Gogomage-ClassicBetaPvP"], "Mage (PvP)")
+check("never under the other mage's name", restocker.listsByCharacter["Gogomage Classic-ClassicBetaPvP"], nil)
+check("and so does its bag record", saved.global.inventory["Gogomage-ClassicBetaPvP"], otherMageRecord)
+ns = login({ first = "Gogomage", surname = "Jones", realm = "Classic Beta PvP", class = "Mage" }, saved)
+check("at its own login it takes its own list", restocker.listsByCharacter[ns.GetCharacterKey()], "Mage (PvP)")
+check("... under its own whole name", ns.GetCharacterKey(), "Gogomage Jones-ClassicBetaPvP")
+check("... with its bags", saved.global.inventory[ns.GetCharacterKey()], otherMageRecord)
+check("and the mage here still waits", restocker.listsByCharacter["Gogomage-ClassicBetaPvE"], "Mage")
 
-print("8. A new Forever character has nothing to move, and takes nobody's entry")
+print("6. A new Forever character has nothing to move, and takes nobody's entry")
 saved = betaFile()
 restocker = saved.global.restocker
 before = dump(saved.global)
@@ -283,7 +267,7 @@ login({ first = "Gogopriest", surname = "Forever", class = "Priest" }, saved)
 check("no entry under its name", restocker.listsByCharacter["Gogopriest Forever-ClassicBetaPvE"], nil)
 check("same saved shape", dump(saved.global), before)
 
-print("9. The early beta build gave the whole name first: the surname is never said twice")
+print("7. The early beta build gave the whole name first: the surname is never said twice")
 saved = betaFile()
 restocker = saved.global.restocker
 ns = login({ first = "Gogowarrior", surname = "Classic", class = "Warrior", wholeNameFirst = true }, saved)
@@ -291,7 +275,7 @@ check("the key", ns.GetCharacterKey(), "Gogowarrior Classic-ClassicBetaPvE")
 check("which is the key that build wrote", restocker.listsByCharacter[ns.GetCharacterKey()], "Warrior (old)")
 check("and nothing is moved on its say", restocker.listsByCharacter["Gogodruid-ClassicBetaPvE"], "Druid")
 
-print("10. A Forever character with no surname keeps its one name")
+print("8. A Forever character with no surname keeps its one name")
 saved = betaFile()
 restocker = saved.global.restocker
 ns = login({ first = "Gogodruid", class = "Druid" }, saved)
@@ -299,7 +283,7 @@ check("the key", ns.GetCharacterKey(), "Gogodruid-ClassicBetaPvE")
 check("with its list under it", restocker.listsByCharacter[ns.GetCharacterKey()], "Druid")
 check("with nothing moved", restocker.listsByCharacter["Gogohunter-ClassicBetaPvE"], "Hunter")
 
-print("11. Era and TBC: a character has the one name, and nothing changes")
+print("9. Era and TBC: a character has the one name, and nothing changes")
 saved = {
 	sv = { profileKeys = { ["Mossbark - Old Blanchy"] = "Default", ["Thornhoof - Old Blanchy"] = "Default" } },
 	global = {

@@ -4,23 +4,6 @@ if not ns.IS_DISCOVERY then
 	return
 end
 
--- TODO: Add SQL Query
---[[
-    Source: the pre-split shared data files, as the Classic Era client loaded
-    them, pruned of the rows Validate Data on the Classic Era client (1.15.9,
-    build 69722) flagged NOT ON CLIENT. The values await Validate Data on a
-    Season of Discovery realm.
-
-    Buff Food flag and Food/Water % + amounts come from the spell taught
-    by item_template.spellid_1; Allowed Zones from Map/Area restrictions.
-
-    Arena (column 7) marks arena usability, a fixed per-item property:
-      1 = usable ONLY inside a PvP Arena
-      2 = a conjured item, so it ALSO works inside an arena
-    Whether the item is actually offered is gated live on IsInInstance() at
-    scan time -- no arena zone/map IDs are maintained -- see ns.CacheItemData
-    and ns.ScanBags.
-]]
 -- [ID] = {Buff Food, Food %, Food Amount, Water %, Water Amount, {Allowed Zones} or nil, Arena or nil}, -- Name
 ns.FOOD_AND_WATER = {
 	[19301] = { 0, 0, 4410, 0, 4410 }, -- Alterac Manna Biscuit
@@ -35,7 +18,7 @@ ns.FOOD_AND_WATER = {
 	[2888] = { 1, 0, 61, 0, 0 }, -- Beer Basted Boar Ribs
 	[18635] = { 0, 0, 1392, 0, 0 }, -- Bellara's Nutterbar
 	[3726] = { 1, 0, 552, 0, 0 }, -- Big Bear Steak
-	[17404] = { 0, 0, 0, 0, 437 }, -- Blended Bean Brew
+	[17404] = { 0, 0, 0, 0, 436 }, -- Blended Bean Brew
 	[13810] = { 1, 0, 1933, 0, 0 }, -- Blessed Sunfruit
 	-- Blessed Sunfruit Juice (13813) is deliberately absent; its Well Fed buff is still recognized via ns.WELL_FED_BUFF_IDS in Well-Fed-Buffs-Discovery.lua.
 	[3220] = { 1, 0, 243, 0, 0 }, -- Blood Sausage
@@ -61,10 +44,16 @@ ns.FOOD_AND_WATER = {
 	[16971] = { 1, 0, 1392, 0, 0 }, -- Clamlette Surprise
 	[8683] = { 0, 0, 30, 0, 0 }, -- Clara's Fresh Apple
 	[1113] = { 0, 0, 243, 0, 0, nil, 2 }, -- Conjured Bread
-	[22895] = { 0, 0, 4320, 0, 0, nil, 2 }, -- Conjured Cinnamon Roll
+	[22895] = { 0, 0, 3180, 0, 0, nil, 2 }, -- Conjured Cinnamon Roll
 	[8079] = { 0, 0, 0, 0, 4200, nil, 2 }, -- Conjured Crystal Water
-	[2288] = { 0, 0, 0, 0, 437, nil, 2 }, -- Conjured Fresh Water
+	[2288] = { 0, 0, 0, 0, 436, nil, 2 }, -- Conjured Fresh Water
 	[8077] = { 0, 0, 0, 0, 1992, nil, 2 }, -- Conjured Mineral Water
+	[232436] = { 1, 0, 2148, 0, 0 }, -- Darkclaw Bisque
+	[227813] = { 0, 0, 0, 0, 6618 }, -- Drinkable Stratholme Holy Water
+	[238638] = { 1, 0, 2550, 0, 0 }, -- Filet o' Flank
+	[17405] = { 0, 0, 0, 0, 1344 }, -- Green Garden Tea
+	[221444] = { 0, 0, 3222, 0, 6618 }, -- Jungle Durian
+	[4696] = { 0, 0, 0, 0, 1992 }, -- Lapidis Tankard of Tidesippe
 	[231778] = { 0, 0, 0, 0, 5100, nil, 2 }, -- Mountain Spring Water
 	[5349] = { 0, 0, 61, 0, 0, nil, 2 }, -- Conjured Muffin
 	[1487] = { 0, 0, 874, 0, 0, nil, 2 }, -- Conjured Pumpernickel
@@ -100,15 +89,15 @@ ns.FOOD_AND_WATER = {
 	[20224] = { 0, 0, 1608, 0, 3306, { 1461 } }, -- Defiler's Iron Ration
 	[4607] = { 0, 0, 874, 0, 0 }, -- Delicious Cave Mold
 	[5478] = { 0, 0, 552, 0, 0 }, -- Dig Rat Stew
-	[21023] = { 1, 0, 4320, 0, 0 }, -- Dirge's Kickin' Chimaerok Chops
+	[21023] = { 1, 0, 2550, 0, 0 }, -- Dirge's Kickin' Chimaerok Chops
 	[8948] = { 0, 0, 2148, 0, 0 }, -- Dried King Bolete
 	[2687] = { 1, 0, 243, 0, 0 }, -- Dry Pork Ribs
 	[422] = { 0, 0, 552, 0, 0 }, -- Dwarven Mild
 	[17198] = { 1, 0, 61, 0, 0 }, -- Egg Nog
 	[4791] = { 0, 0, 0, 0, 1344 }, -- Enchanted Water
 	[13724] = { 0, 0, 2148, 0, 4410 }, -- Enriched Manna Biscuit
-	[20031] = { 0, 0, 4320, 0, 4410 }, -- Essence Mango
-	[21537] = { 0, 4, 0, 3, 0 }, -- Festival Dumplings
+	[20031] = { 0, 0, 2550, 0, 4410 }, -- Essence Mango
+	[21537] = { 0, 4, 0, 4, 0 }, -- Festival Dumplings
 	[13930] = { 0, 0, 1392, 0, 0 }, -- Filet of Redgill
 	[5476] = { 1, 0, 243, 0, 0 }, -- Fillet of Frenzy
 	[3927] = { 0, 0, 1392, 0, 0 }, -- Fine Aged Cheddar
@@ -153,7 +142,7 @@ ns.FOOD_AND_WATER = {
 	[13929] = { 1, 0, 874, 0, 0 }, -- Hot Smoked Bass
 	[13851] = { 1, 0, 874, 0, 0 }, -- Hot Wolf Ribs
 	[18300] = { 0, 0, 0, 0, 4200 }, -- Hyjal Nectar
-	[1179] = { 0, 0, 0, 0, 437 }, -- Ice Cold Milk
+	[1179] = { 0, 0, 0, 0, 436 }, -- Ice Cold Milk
 	[12212] = { 1, 0, 874, 0, 0 }, -- Jungle Stew
 	[5472] = { 1, 0, 61, 0, 0 }, -- Kaldorei Spider Kabob
 	[13893] = { 0, 0, 1392, 0, 0 }, -- Large Raw Mightfish
@@ -166,7 +155,7 @@ ns.FOOD_AND_WATER = {
 	[7806] = { 1, 0, 61, 0, 0 }, -- Lollipop
 	[4592] = { 0, 0, 243, 0, 0 }, -- Longjaw Mud Snapper
 	[1205] = { 0, 0, 0, 0, 835 }, -- Melon Juice
-	[13934] = { 1, 0, 4320, 0, 0 }, -- Mightfish Steak
+	[13934] = { 1, 0, 1933, 0, 0 }, -- Mightfish Steak
 	[8364] = { 0, 0, 874, 0, 0 }, -- Mithril Head Trout
 	[11415] = { 0, 0, 2148, 0, 0 }, -- Mixed Berries
 	[4542] = { 0, 0, 552, 0, 0 }, -- Moist Cornbread
@@ -182,7 +171,9 @@ ns.FOOD_AND_WATER = {
 	[13931] = { 1, 0, 874, 0, 0 }, -- Nightfin Soup
 	[6458] = { 0, 0, 61, 0, 0 }, -- Oil Covered Fish
 	[19305] = { 0, 0, 552, 0, 0 }, -- Pickled Kodo Foot
+	[206177] = { 1, 0, 61, 0, 0 }, -- Pine Nut Butter
 	[13932] = { 1, 0, 874, 0, 0 }, -- Poached Sunscale Salmon
+	[238637] = { 1, 0, 2550, 0, 0 }, -- Prowler Steak
 	[21033] = { 0, 0, 2148, 0, 0 }, -- Radish Kimchi
 	[5095] = { 0, 0, 243, 0, 0 }, -- Rainbow Fin Albacore
 	[4608] = { 0, 0, 1392, 0, 0 }, -- Raw Black Truffle
@@ -225,10 +216,12 @@ ns.FOOD_AND_WATER = {
 	[4536] = { 0, 0, 61, 0, 0 }, -- Shiny Red Apple
 	[6299] = { 0, 0, 30, 0, 0 }, -- Sickly Looking Fish
 	-- Skullfish Soup (33825) is deliberately absent; an oddity of a buff drink we leave out of the running.
+	[240945] = { 0, 0, 61, 0, 0 }, -- Slice of Carrie's Apple Pie
 	[787] = { 0, 0, 61, 0, 0 }, -- Slitherskin Mackerel
 	[4656] = { 0, 0, 61, 0, 0 }, -- Small Pumpkin
 	[6890] = { 0, 0, 243, 0, 0 }, -- Smoked Bear Meat
 	[20452] = { 1, 0, 2148, 0, 0 }, -- Smoked Desert Dumplings
+	[232438] = { 1, 0, 1392, 0, 0 }, -- Smoked Redgill
 	[21072] = { 1, 0, 378, 0, 567 }, -- Smoked Sagefish
 	[4538] = { 0, 0, 552, 0, 0 }, -- Snapvine Watermelon
 	[4601] = { 0, 0, 1392, 0, 0 }, -- Soft Banana Bread
@@ -249,6 +242,7 @@ ns.FOOD_AND_WATER = {
 	[21552] = { 0, 0, 1392, 0, 0 }, -- Striped Yellowtail
 	[18633] = { 0, 0, 243, 0, 0 }, -- Styleen's Sour Suckerpop
 	[2685] = { 0, 0, 552, 0, 0 }, -- Succulent Pork Ribs
+	[238639] = { 1, 0, 2550, 0, 0 }, -- Sunrise Omelette
 	[1708] = { 0, 0, 0, 0, 1344 }, -- Sweet Nectar
 	[3728] = { 1, 0, 874, 0, 0 }, -- Tasty Lion Steak
 	[4537] = { 0, 0, 243, 0, 0 }, -- Tel'Abim Banana
@@ -275,3 +269,37 @@ ns.FOOD_AND_WATER = {
 	[21236] = { 0, 2, 0, 0, 0 }, -- Winter Veil Loaf
 	[21235] = { 0, 2, 0, 0, 0 }, -- Winter Veil Roast
 }
+
+--[[
+How We Got the Data
+
+Last Validated
+	2026-10-16, Season of Discovery 1.15.9.70003
+
+Notes
+	- Every food and drink this client knows that restores health or mana while seated, read by the item cache (Features/Item-Cache.lua) for the Food and Water macros and the buff-food choices.
+	- Buff Food is 1 when eating gives a Well Fed buff (the text says "well fed", "also increases" or the like). Food % and Water % are percent of health or mana per second (100% over 20 sec is 5). Food Amount and Water Amount are the whole restore over the meal.
+	- Allowed Zones are uiMapIDs: 1460 Warsong Gulch and 1461 Arathi Basin. Each zone-locked ration's text says where it works.
+	- Arena (column 7) is a fixed per-item property: 1 = offered only inside a PvP Arena. 2 = a conjured item, so it also works inside an arena. Harvest Bread and Winter Veil Loaf say Conjured Item but carry no arena value, as on TBC, whose client doesn't flag them usable in arenas. Whether an item is actually offered is gated live on IsInInstance() at scan time (ns.CacheItemData and ns.ScanBags); no arena zone IDs are kept.
+	- Left out on purpose: Scorpid Surprise (5473) and Green Tea Leaf (1401), oddballs that share the food cooldown, and items that share it but restore nothing (alcohol, Deviate fish, holiday novelties, feasts that place a table).
+	- Green Garden Tea (17405) and Lapidis Tankard of Tidesippe (4696) are Classic Era foods the Classic Era report confirms, copied in. Season of Discovery's own foods (Pine Nut Butter, Jungle Durian, Drinkable Stratholme Holy Water, Darkclaw Bisque, Smoked Redgill, Prowler Steak, Filet o' Flank, Sunrise Omelette, Slice of Carrie's Apple Pie) came from the Classic Era tables on wago.tools (build 1.15.9.70003: the regen value times the duration over 5, rounded down), pending a Season of Discovery Validate Data run.
+	- Blessed Sunfruit Juice (13813) and Bottled Alterac Spring Water (19318) are left out; their Well Fed buffs are still recognized through ns.WELL_FED_BUFF_IDS.
+
+SQL (CMaNGOS)
+	TODO: Add SQL Query
+
+Wowhead
+	None.
+
+wago.tools
+	https://wago.tools/db2/Item?build=1.15.9.70003
+	https://wago.tools/db2/ItemSparse?build=1.15.9.70003
+	https://wago.tools/db2/ItemEffect?build=1.15.9.70003
+	https://wago.tools/db2/Spell?build=1.15.9.70003
+	https://wago.tools/db2/SpellEffect?build=1.15.9.70003
+	https://wago.tools/db2/SpellMisc?build=1.15.9.70003
+	https://wago.tools/db2/SpellDuration?build=1.15.9.70003
+	https://wago.tools/db2/SpellCastingRequirements?build=1.15.9.70003
+	https://wago.tools/db2/AreaGroupMember?build=1.15.9.70003
+	https://wago.tools/db2/UiMapAssignment?build=1.15.9.70003
+]]

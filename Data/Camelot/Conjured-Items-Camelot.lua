@@ -1,20 +1,5 @@
 local _, ns = ...
 
---------------------------------------------------------------------------------
--- Conjured Items
---------------------------------------------------------------------------------
-
---[[
-    Conjure-spell ID to conjured-item IDs. Conjured stones are unique in bags,
-    so GetSmartSpell consults this when called with checkUnique and skips a rank
-    whose item the player already holds: the macro then conjures the next rank
-    down instead of failing on a duplicate. Each Create Healthstone rank and
-    each Mana Gem spell makes exactly one item: Forever has no Improved
-    Healthstone talent, whose ranks made two stronger copies of each stone.
-
-    Source: Validate Data on the WoW Forever client (1.60.1, build 70124).
-]]
--- TODO: Add SQL Query
 -- [conjureSpellID] = { itemID, ... }, -- Conjured item
 ns.CONJURED_ITEM_IDS_BY_SPELL = {
 	[11730] = { 9421 }, -- Major Healthstone
@@ -27,3 +12,25 @@ ns.CONJURED_ITEM_IDS_BY_SPELL = {
 	[3552] = { 5513 }, -- Conjure Mana Jade
 	[759] = { 5514 }, -- Conjure Mana Agate
 }
+
+--[[
+How We Got the Data
+
+Last Validated
+	2026-10-16, WoW Forever 1.60.1.70425
+
+Notes
+	- Conjure spell ID to the items it makes, read by GetSmartSpell (Features/Macros/Smart-Spell.lua) when it is called with checkUnique. Conjured stones are unique in bags, so a rank whose item the player already holds is skipped and the macro conjures the next rank down instead of failing on a duplicate.
+	- Each Create Healthstone rank and each Mana Gem spell makes exactly one item: WoW Forever has no Improved Healthstone talent, whose ranks made two stronger copies of each stone elsewhere.
+	- Soulstones have no rows here on purpose: they share a 30-minute use cooldown that matches the buff duration, so only one stone can ever be deployed at a time, and conjuring a lower rank while holding the best one would just waste a soul shard. The Soulstone resolver runs with checkUnique off and always offers the best known conjure.
+
+SQL (CMaNGOS)
+	TODO: Add SQL Query
+
+Wowhead
+	None.
+
+wago.tools
+	https://wago.tools/db2/SpellEffect?build=1.60.1.70425
+	https://wago.tools/db2/ItemSparse?build=1.60.1.70425
+]]

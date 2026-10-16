@@ -17,7 +17,10 @@ local MACRO_CONFIG = ns.MACRO_CONFIG
     The body applies in two steps — /use the poison item, then /use the
     inventory slot number — and then clicks StaticPopup1Button1 to confirm
     the client's "replace your current enchant/poison" popup, so pressing the
-    macro overwrites whatever poison is already on the weapon. The trailing
+    macro overwrites whatever poison is already on the weapon. The click
+    accepts whichever confirmation box is on top, and stays all the same: it
+    is the only way a macro can confirm the replace, and a Weapon Buff macro
+    may reuse it. The trailing
     UIErrorsFrame:Clear() swallows the noise from clicking with no off-hand
     weapon equipped or a poison already pending.
 

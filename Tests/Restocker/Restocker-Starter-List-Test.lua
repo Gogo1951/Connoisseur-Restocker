@@ -2,7 +2,7 @@
 --[[
     Headless test for the staples pop-up's stack counts (no WoW client needed).
 
-    Run it with:   lua Tests/Restocker-Starter-List-Test.lua        (from Features/Restocker/)
+    Run it with:   lua Tests/Restocker/Restocker-Starter-List-Test.lua        (from the add-on root)
 
     Like the upgrade test, this does NOT model the feature. Every scenario loads the REAL
     enUS strings, ladders, category rows, Restocker-Starter-List.lua and the pop-up that
@@ -50,7 +50,7 @@
     both handed back when the frame hides.
 ]]
 
-local ROOT = arg[1] or "../.."
+local ROOT = arg[1] or "."
 
 -- The items these scenarios resolve: { name, item type }.
 local ITEMS = {
@@ -396,9 +396,16 @@ local function session(classToken, level, client, noStockCheckBox)
 		return false
 	end
 	ns.restockerLoaded = true
+	ns.restockerSwitchedOn = true
+	function ns.IsRestockerEnabled()
+		return ns.restockerSwitchedOn
+	end
 	ns.restockSettings = { currentList = "Test", lists = { Test = {} }, starterListDismissed = {} }
 
 	function ns.GetColor()
+		return ""
+	end
+	function ns.GetClassColor()
 		return ""
 	end
 
@@ -922,6 +929,14 @@ s.host.strata, s.host.level = "BACKGROUND", 3
 s.ns.ShowStarterListPopup()
 check("a host in the lowest strata keeps the fill there", fill:GetFrameStrata(), "BACKGROUND")
 check("a level under it", fill:GetFrameLevel(), 2)
+
+print("16. The delayed login trigger reads the Restocker switch again when it fires")
+s = session("PALADIN", 60)
+s.resolve(8950, 8766)
+s.ns.restockerSwitchedOn = false
+s.ns.MaybeShowStarterListPopup()
+check("switched off in the delay, nothing is added", next(s.list), nil)
+check("... and no window opens", s.restockWindowShown(), 0)
 
 print("")
 if failures == 0 then

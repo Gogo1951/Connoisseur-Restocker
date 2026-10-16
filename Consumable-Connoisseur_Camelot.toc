@@ -98,6 +98,8 @@ Features/Macros/Tools-Mages.lua
 Features/Macros/Tools-Warlocks.lua
 Features/Macros/Tools-Rogues.lua
 Features/Macros/Tools-Hunters.lua
+Features/Macros/Tools-Hunters-Pet-Food.lua
+Features/Macros/Tools-Forsaken.lua
 Features/Macros/Bandage.lua
 Features/Macros/Explosive.lua
 Features/Macros/Food.lua
@@ -118,11 +120,13 @@ Features/Restocker/Restocker-Saved-Lists.lua
 Features/Restocker/Restocker-Saved-Format.lua
 # MIGRATION (remove after 2026-10-18)
 Features/Restocker/Restocker-Saved-Migration.lua
+Features/Restocker/Restocker-Inventory-Model.lua
 Features/Restocker/Restocker-Bags.lua
 Features/Restocker/Restocker-Bank.lua
 Features/Restocker/Restocker-Merchant.lua
 Features/Restocker/Restocker-Crafting-Reagents.lua
 Features/Restocker/Restocker-Upgrade.lua
+Features/Restocker/Restocker-Window-Widgets.lua
 Features/Restocker/Restocker-Window.lua
 Features/Restocker/Restocker-Window-Columns.lua
 Features/Restocker/Restocker-Window-Filter.lua
@@ -135,8 +139,19 @@ Features/Restocker/Restocker-Starter-List.lua
 Features/Restocker/Restocker-Reminders.lua
 Features/Restocker/Restocker-Events.lua
 Features/Restocker/Restocker-Slash-Command.lua
-Features/Diagnostics.lua
 Features/Minimap-Button.lua
+
+# Diagnostics
+Diagnostics/Diagnostics-Core.lua
+Diagnostics/Manifests.lua
+Diagnostics/Event-Log.lua
+Diagnostics/Code-Reports.lua
+Diagnostics/Settings-Reports.lua
+Diagnostics/Validate-Data.lua
+Diagnostics/Localization-Reports.lua
+Diagnostics/Report-Runner.lua
+
+# Options
 Options/Options-Utilities.lua
 Options/Options-General.lua
 Options/Options-Macros.lua
@@ -145,7 +160,7 @@ Options/Options-Restocker.lua
 Options/Options-Starter-List-Popup.lua
 Options/Options-Readiness-Report.lua
 Options/Options-Profiles.lua
-Options/Options-Diagnostics.lua
+Diagnostics/Options-Diagnostics.lua
 Options/Options.lua
 
 # Feedback Welcome! (=

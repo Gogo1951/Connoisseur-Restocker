@@ -1,24 +1,5 @@
 local _, ns = ...
 
---------------------------------------------------------------------------------
--- Rogue Poisons
---------------------------------------------------------------------------------
-
---[[
-    Poison items grouped by type. Each group's display name is resolved at
-    runtime via C_Item.GetItemInfo on the base (rank 1) item of the series, so the
-    client's own item localization does the work, with the options panels'
-    loading text standing in until that item is cached (see
-    ns.GetPoisonGroupName in Features/Macros/Tools-Rogues.lua).
-
-    The group numbering (ns.POISON_GROUPS) carries no game IDs, so it lives in
-    Data/Data.lua.
-]]
-
---[[
-    Source: Validate Data on the TBC Anniversary client (2.5.6, build 69795).
-]]
-
 -- [groupID] = base item of the series (the group's runtime display name)
 ns.POISON_GROUP_BASE_ITEMS = {
 	[1] = 21835, -- Anesthetic Poison
@@ -29,7 +10,6 @@ ns.POISON_GROUP_BASE_ITEMS = {
 	[6] = 10918, -- Wound Poison
 }
 
--- TODO: Add SQL Query
 -- [ID] = {Required Level, Poison Group}, -- Item Name
 ns.POISON_DATA = {
 	[21835] = { 68, 1 }, -- Anesthetic Poison
@@ -58,3 +38,26 @@ ns.POISON_DATA = {
 	[10922] = { 56, 6 }, -- Wound Poison IV
 	[22055] = { 64, 6 }, -- Wound Poison V
 }
+
+--[[
+How We Got the Data
+
+Last Validated
+	2026-10-16, TBC Anniversary 2.5.6.70006
+
+Notes
+	- ns.POISON_DATA holds every rogue poison the Poisons macro can apply, read by Features/Macros/Tools-Rogues.lua: Required Level is the level the tooltip requires, and Poison Group is ns.POISON_GROUPS' numbering (Data/Data.lua), which carries no game IDs and so lives there.
+	- ns.POISON_GROUP_BASE_ITEMS names the base (rank 1) item of each group. A group's display name is that item's name from C_Item.GetItemInfo, so the client's own localization does the work, with the options panels' loading text standing in until the item is cached (ns.GetPoisonGroupName).
+	- Season of Discovery items are left out; this client doesn't know them. They live only in Data/Discovery/.
+
+SQL (CMaNGOS)
+	TODO: Add SQL Query
+
+Wowhead
+	None.
+
+wago.tools
+	https://wago.tools/db2/ItemSparse?build=2.5.6.70006
+	https://wago.tools/db2/SkillLineAbility?build=2.5.6.70006
+	https://wago.tools/db2/SpellEffect?build=2.5.6.70006
+]]

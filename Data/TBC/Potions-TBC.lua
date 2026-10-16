@@ -1,15 +1,5 @@
 local _, ns = ...
 
--- TODO: Add SQL Query
---[[
-    Source: Validate Data on the TBC Anniversary client (2.5.6, build 69795).
-    Rulkster's Brain Juice (32762), Rulkster's Secret Sauce (32763) and Wildvine
-    Potion (9144) came from the wago.tools tables for build 2.5.6.69795, for the
-    next Validate Data run to confirm.
-
-    Healing/Mana amounts derived from item_template.spellid_1 spell
-    effects; Allowed Zones from Map/Area restrictions where present.
-]]
 -- [ID] = {Healing Amount, Mana Amount, {Allowed Zones} or nil, requiredAlchemy or nil}, -- Name
 ns.POTIONS = {
 	[32947] = { 1500, 0 }, -- Auchenai Healing Potion
@@ -74,3 +64,35 @@ ns.POTIONS = {
 	[34440] = { 1650, 1650, nil, 315 }, -- Mad Alchemist's Potion
 	-- Whipper Root Tuber (11951) is absent on purpose: its live row is in Healthstones-TBC.lua, sharing the Healthstone cooldown category.
 }
+
+--[[
+How We Got the Data
+
+Last Validated
+	2026-10-16, TBC Anniversary 2.5.6.70006
+
+Notes
+	- Every potion this client knows that restores health or mana instantly on the potion cooldown, read by the item cache (Features/Item-Cache.lua) for the Health Potion and Mana Potion macros. Healing Amount and Mana Amount are each effect's low end; requiredAlchemy is the Alchemy rank the tooltip requires.
+	- Allowed Zones are uiMapIDs. The draughts' text says they work only in PvP battlegrounds: 1459 Alterac Valley, 1460 Warsong Gulch, 1461 Arathi Basin, 1956 Eye of the Storm.
+	- Holy Spring Water (737) is left out on purpose, an oddball on the potion cooldown. Potions that do something else (rage, speed, protection, invisibility) are not in this table.
+	- The TBC zone potions have no area requirement in this client's tables; their zones come from their text. The Ogre Brews say only the Blade's Edge Plateaus (1949), and keep Gruul's Lair (330) too: they work there. Bottled Nethergon Energy and Vapor work inside Tempest Keep's four wings, and the Cenarion salves inside Coilfang's four.
+	- Season of Discovery items are left out; this client doesn't know them. They live only in Data/Discovery/.
+
+SQL (CMaNGOS)
+	TODO: Add SQL Query
+
+Wowhead
+	None.
+
+wago.tools
+	https://wago.tools/db2/Item?build=2.5.6.70006
+	https://wago.tools/db2/ItemSparse?build=2.5.6.70006
+	https://wago.tools/db2/ItemEffect?build=2.5.6.70006
+	https://wago.tools/db2/Spell?build=2.5.6.70006
+	https://wago.tools/db2/SpellEffect?build=2.5.6.70006
+	https://wago.tools/db2/SpellMisc?build=2.5.6.70006
+	https://wago.tools/db2/SpellDuration?build=2.5.6.70006
+	https://wago.tools/db2/SpellCastingRequirements?build=2.5.6.70006
+	https://wago.tools/db2/AreaGroupMember?build=2.5.6.70006
+	https://wago.tools/db2/UiMapAssignment?build=2.5.6.70006
+]]

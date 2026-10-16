@@ -19,8 +19,9 @@ local LINK_URL_WIDTH = ns.OPTIONS_ROW_WIDTH - LINK_LABEL_WIDTH
 --------------------------------------------------------------------------------
 
 --[[
-    The root page holds add-on-level behavior only -- nothing here changes what
-    a macro does. In order: intro, Welcome Message, Mini-map Button, /Commands,
+    The root page holds add-on-level behavior only -- nothing here shapes what
+    a macro holds. In order: intro, Welcome Message, Mini-map Button, Features
+    (each feature's master switch, also atop its own panel), /Commands,
     Feedback & Support, and version.
 
     Everything that shapes a macro lives on the Macros panel
@@ -74,6 +75,15 @@ function ns.BuildGeneralOptions()
 					ns.ToggleMinimapButton(value)
 				end,
 			},
+
+			-- Features: every feature's master switch, two to a line.
+			spaceFeatures0 = Spacer(14),
+			headerFeatures = Header(L["OPTIONS_FEATURES_HEADER"], 15),
+			spaceFeatures1 = Spacer(16),
+			toggleMacros = ns.OptionsFeatureSwitch("Macros", 17, ns.OPTIONS_ROW_WIDTH / 2),
+			toggleRestocker = ns.OptionsFeatureSwitch("Restocker", 17.1, ns.OPTIONS_ROW_WIDTH / 2),
+			toggleReadinessReport = ns.OptionsFeatureSwitch("ReadinessReport", 17.2, ns.OPTIONS_ROW_WIDTH / 2),
+			toggleInventoryReport = ns.OptionsFeatureSwitch("InventoryReport", 17.3, ns.OPTIONS_ROW_WIDTH / 2),
 
 			-- /Commands
 			spaceCommands0 = Spacer(20),

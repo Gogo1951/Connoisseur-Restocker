@@ -1,48 +1,5 @@
 local _, ns = ...
 
---[[
-    Source: Validate Data on the TBC Anniversary client (2.5.6, build 69795).
-    Crystal Infused Bandage (23684) came from the wago.tools tables for build
-    2.5.6.69795, for the next Validate Data run to confirm.
-
-    SELECT
-        CONCAT(
-            '    [',
-            it.entry, '] = {',
-
-            -- Dynamically calculates the Total Heal amount!
-            (st.EffectBasePoints1 + 1) *
-            CASE
-                WHEN it.RequiredSkillRank < 50 THEN 6   -- Linen (6 ticks)
-                WHEN it.RequiredSkillRank < 100 THEN 7  -- Wool (7 ticks)
-                ELSE 8                                  -- Silk and above (8 ticks)
-            END,
-
-            ', ', it.RequiredSkillRank,
-            ', ', it.SellPrice,
-
-            -- Appends the optional Zone restrictions for Battlegrounds
-            CASE
-                WHEN it.entry IN (19307) THEN ', {1459}'
-                WHEN it.entry IN (20065, 20066, 20067, 20232, 20234, 20235, 20237, 20243, 20244) THEN ', {1461}'
-                WHEN it.entry IN (19066, 19067, 19068) THEN ', {1460}'
-                ELSE ''
-            END,
-
-            '}, -- ', it.name
-        ) AS `ns.RAW_DATA.Bandage`
-    FROM item_template it
-    JOIN spell_template st ON it.spellid_1 = st.Id
-    WHERE it.class = 0
-      AND it.subclass = 7
-      AND it.spellid_1 > 0
-      AND st.EffectBasePoints1 > 0
-      AND it.entry NOT IN (38640, 44646)
-    ORDER BY
-      it.RequiredSkillRank DESC,
-      it.entry DESC;
-
-]]
 -- [ID] = {Bandage Amount, First Aid Skill, Vendor Value, {Allowed Zones}}, -- Name
 ns.BANDAGES = {
 	[19307] = { 2000, 225, 100, { 1459 } }, -- Alterac Heavy Runecloth Bandage
@@ -74,3 +31,72 @@ ns.BANDAGES = {
 	[3530] = { 161, 50, 25 }, -- Wool Bandage
 	-- Dense Frostweave Bandage (38640) and Dalaran Bandage (44646) are deliberately absent; the query above excludes them too, so a regeneration will not bring them back.
 }
+
+--[[
+How We Got the Data
+
+Last Validated
+	2026-10-16, TBC Anniversary 2.5.6.70006
+
+Notes
+	- Every First Aid bandage on this client, read by the item cache (Features/Item-Cache.lua) to rank the Bandage macro's picks.
+	- Bandage Amount is the whole heal over the channel, the per-tick heal times the ticks. First Aid Skill is the rank the tooltip requires (0 when it names none). Vendor Value is the sell price in copper.
+	- Allowed Zones are uiMapIDs: 1459 Alterac Valley, 1460 Warsong Gulch, 1461 Arathi Basin. Each battleground bandage's tooltip says where it works ("Usable only inside Arathi Basin"; Alterac's says "May only be used in Alterac Valley"), and the item is offered nowhere else.
+	- Dense Frostweave Bandage (38640) and Dalaran Bandage (44646) are Wrath items, left out; the query below excludes them too.
+	- Season of Discovery items are left out; this client doesn't know them. They live only in Data/Discovery/.
+
+SQL (CMaNGOS)
+	Database not recorded.
+
+	SELECT
+	    CONCAT(
+	        '    [',
+	        it.entry, '] = {',
+
+	        -- Dynamically calculates the Total Heal amount!
+	        (st.EffectBasePoints1 + 1) *
+	        CASE
+	            WHEN it.RequiredSkillRank < 50 THEN 6   -- Linen (6 ticks)
+	            WHEN it.RequiredSkillRank < 100 THEN 7  -- Wool (7 ticks)
+	            ELSE 8                                  -- Silk and above (8 ticks)
+	        END,
+
+	        ', ', it.RequiredSkillRank,
+	        ', ', it.SellPrice,
+
+	        -- Appends the optional Zone restrictions for Battlegrounds
+	        CASE
+	            WHEN it.entry IN (19307) THEN ', {1459}'
+	            WHEN it.entry IN (20065, 20066, 20067, 20232, 20234, 20235, 20237, 20243, 20244) THEN ', {1461}'
+	            WHEN it.entry IN (19066, 19067, 19068) THEN ', {1460}'
+	            ELSE ''
+	        END,
+
+	        '}, -- ', it.name
+	    ) AS `ns.RAW_DATA.Bandage`
+	FROM item_template it
+	JOIN spell_template st ON it.spellid_1 = st.Id
+	WHERE it.class = 0
+	  AND it.subclass = 7
+	  AND it.spellid_1 > 0
+	  AND st.EffectBasePoints1 > 0
+	  AND it.entry NOT IN (38640, 44646)
+	ORDER BY
+	  it.RequiredSkillRank DESC,
+	  it.entry DESC;
+
+Wowhead
+	None.
+
+wago.tools
+	https://wago.tools/db2/Item?build=2.5.6.70006
+	https://wago.tools/db2/ItemSparse?build=2.5.6.70006
+	https://wago.tools/db2/ItemEffect?build=2.5.6.70006
+	https://wago.tools/db2/Spell?build=2.5.6.70006
+	https://wago.tools/db2/SpellEffect?build=2.5.6.70006
+	https://wago.tools/db2/SpellMisc?build=2.5.6.70006
+	https://wago.tools/db2/SpellDuration?build=2.5.6.70006
+	https://wago.tools/db2/SpellCastingRequirements?build=2.5.6.70006
+	https://wago.tools/db2/AreaGroupMember?build=2.5.6.70006
+	https://wago.tools/db2/UiMapAssignment?build=2.5.6.70006
+]]

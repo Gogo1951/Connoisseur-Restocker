@@ -76,11 +76,18 @@ local AceConfigRegistry = LibStub("AceConfigRegistry-3.0")
                            potionsUseFoodAndWater (Health Potion: "Food",
                            Mana Potion: "Water"). The scanned item only: no
                            scrolls, pet food or conjure clicks. Its stealth
-                           comes along, from that type's stealthSpell
+                           and Cannibalize come along, from that type's
+                           stealthSpell and corpseSpell
       stealthSpell()    -- (spellName, stateFlag) the definition's macro casts
                            while eating or drinking, or nil while off: Food's
                            Stealth Eating, Water's Stealth Drinking. Read by
                            a potion macro whose outOfCombatTypeName names it
+      corpseSpell(entry) -- a spell name the body tries first on a dead target,
+                           falling through to eating or drinking when it
+                           cannot cast, or nil: Food's and Water's Forsaken
+                           Cannibalize. entry is the scanned pick; the
+                           engine asks only when the body uses that pick, and
+                           a potion macro asks its outOfCombatTypeName's
       buildModeOverride(context) -- full-body takeover; returns body, stateKey
                            or nil (Food's scroll-only mode). Mode state keys
                            MUST use their own prefix (e.g. "SCROLLS:") so they
@@ -291,6 +298,19 @@ function ns.UpdateMacros(forced)
 	end
 
 	--[[
+	    The Macros master switch: off, every macro stays as it last was, but the
+	    scan still runs, because the Readiness Report and the mini-map read what
+	    it publishes.
+	]]
+	if not ns.db.global.macrosEnabled then
+		if ns.isHunter then
+			ns.ScanPetFood()
+		end
+		ns.UpdateMinimapIcon()
+		return
+	end
+
+	--[[
 	    Scrolls are dropped from the macro when targeting a friendly player so
 	    the macro reads cleanly as a conjure-for-friend action (Mage food).
 	    Computed once per update and handed to buildModeOverride hooks via the
@@ -315,6 +335,16 @@ function ns.UpdateMacros(forced)
 			-- Definition hook: swap the scanned item (Food's pet-buff override).
 			if definition.modifyItem then
 				itemID = definition.modifyItem(itemID)
+			end
+
+			--[[
+			    Definition hook: the Cannibalize line, for a body that uses the
+			    scanned pick (or has none). A swapped item, Food's pet-buff
+			    override, feeds the pet, so it gets no line.
+			]]
+			local corpseCast
+			if definition.corpseSpell and itemID == (bestEntry and bestEntry.id) then
+				corpseCast = definition.corpseSpell(bestEntry)
 			end
 
 			--[[
@@ -351,15 +381,21 @@ function ns.UpdateMacros(forced)
 			    stands, buff food included, whether or not that type's own
 			    macro is enabled; none in bags leaves the body as it was.
 			]]
-			local outOfCombatID, outOfCombatStealth
+			local outOfCombatID, outOfCombatStealth, outOfCombatCorpse
 			if definition.outOfCombatTypeName and ns.db.profile.potionsUseFoodAndWater then
 				local outOfCombatEntry = best[definition.outOfCombatTypeName]
 				outOfCombatID = outOfCombatEntry and outOfCombatEntry.id
 
-				-- Its own macro's stealth, so eating from the potion macro hides you the same way.
+				--[[
+				    Its own macro's stealth and Cannibalize, so eating from the
+				    potion macro hides you, or cannibalizes, the same way.
+				]]
 				local source = definitionsByType[definition.outOfCombatTypeName]
 				if outOfCombatID and source and source.stealthSpell then
 					outOfCombatStealth = source.stealthSpell()
+				end
+				if outOfCombatID and source and source.corpseSpell then
+					outOfCombatCorpse = source.corpseSpell(outOfCombatEntry)
 				end
 			end
 
@@ -437,7 +473,9 @@ function ns.UpdateMacros(forced)
 					conjureInfo,
 					appendFlag,
 					outOfCombatID,
-					outOfCombatStealth
+					outOfCombatStealth,
+					corpseCast,
+					outOfCombatCorpse
 				)
 
 				if currentMacroState[typeName] ~= stateID or forced then
@@ -449,7 +487,9 @@ function ns.UpdateMacros(forced)
 						conjureInfo,
 						appendText,
 						outOfCombatID,
-						outOfCombatStealth
+						outOfCombatStealth,
+						corpseCast,
+						outOfCombatCorpse
 					)
 					WriteMacro(config.macro, body, stateID, typeName)
 				end
@@ -507,4 +547,24 @@ function ns.ToggleMacroSetting(key, value)
 	ns.ResetMacroState()
 	ns.RequestUpdate()
 	AceConfigRegistry:NotifyChange(ns.OPTIONS_REGISTRY.Macros)
+end
+
+--[[
+    Whether the player's own cast changes what the macros hold: a conjure spell
+    in ns.spellCache, or Cannibalize, whose cooldown takes its line out of the
+    Food and Water macros.
+]]
+function ns.SpellCastChangesMacros(spellID)
+	return (ns.spellCache ~= nil and ns.spellCache[spellID] ~= nil)
+		or (ns.isForsaken and spellID == ns.CANNIBALIZE_SPELL_ID)
+		or false
+end
+
+-- The Macros master switch. Back on, every body is rewritten from the bags as they are now.
+function ns.SetMacrosEnabled(value)
+	ns.db.global.macrosEnabled = value
+	if value then
+		ns.ResetMacroState()
+		ns.RequestUpdate()
+	end
 end

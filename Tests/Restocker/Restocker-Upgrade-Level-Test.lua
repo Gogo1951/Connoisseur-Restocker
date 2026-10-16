@@ -2,7 +2,7 @@
 --[[
     Headless test for the Restock List consumable upgrader (no WoW client needed).
 
-    Run it with:   lua Tests/Restocker-Upgrade-Level-Test.lua        (from Features/Restocker/)
+    Run it with:   lua Tests/Restocker/Restocker-Upgrade-Level-Test.lua        (from the add-on root)
 
     Unlike the other tests in this folder, this one does NOT model the algorithm: it
     loads the REAL Data/Vanilla/Consumable-Upgrade-Paths-Vanilla.lua and Restocker-Upgrade.lua and drives
@@ -21,7 +21,7 @@
     fell behind for any other reason.
 ]]
 
-local ROOT = arg[1] or "../.."
+local ROOT = arg[1] or "."
 
 local ns = { L = {} }
 ns.L["RESTOCKER_UPGRADED"] = "Your Restock List has been upgraded."

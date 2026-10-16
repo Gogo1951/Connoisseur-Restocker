@@ -64,8 +64,9 @@ ns.restockRowHeight = 26
 ns.restockButtonHeight = 22
 
 --[[
-    A row is one line and shows everything about its item: the six toggles are lit
-    or dim glyphs in fixed columns under a header that names them, so the list
+    A row is one line and shows everything about its item: its six toggles sit in
+    fixed columns under a header that names them, five as lit or dim glyphs and
+    Rep as its standing's text, so the list
     answers "which of these buy from vendors?" by being looked at. Never hide a
     row's state behind an expander -- with only the open row showing anything, the
     list needs a marker to say which rows are worth opening and a panel to say

@@ -109,7 +109,7 @@ end
     Is this name spoken for? By a list, or by another profile still pointed at
     a list of that name which has since been deleted. A character on that
     profile makes the list again, empty, at its next login
-    (ns.InitCharacterRestockList), so a fresh list that took the name first
+    (ns.InitializeCharacterRestockList), so a fresh list that took the name first
     would be joined by it uninvited -- the very thing a fresh name exists to
     prevent, arrived at by the back door.
 ]]
@@ -224,10 +224,10 @@ end
     first of those that remain in the selector's own order. nil when the list is
     the last one and there is nothing left to land on.
 
-    The maintainer's ruling (README-Notes): a delete never makes a list while
-    another one exists. It used to start a fresh class-named list every time,
-    so deleting "Druid (2)" made "Druid (3)" and deleting that made "Druid (2)"
-    again -- a list could be renamed by deleting it, but never got rid of.
+    The maintainer's ruling: a delete never makes a list while
+    another one exists. A fresh class-named list on every delete would turn
+    deleting "Druid (2)" into "Druid (3)", so a list could be renamed by
+    deleting it but never got rid of.
 
     The top list can be another character's. That is part of the ruling, and it
     is why the confirm names the list before the player agrees
@@ -470,7 +470,7 @@ end
     delete it between logins. No character is given an eponymous "Name-Realm"
     list, so hand-deleting one of those legacy lists sticks.
 ]]
-function ns.InitCharacterRestockList()
+function ns.InitializeCharacterRestockList()
 	local settings = ns.restockSettings
 	local listName = ns.db.profile.restockList or FreeClassListName(settings)
 

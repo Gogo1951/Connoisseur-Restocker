@@ -4,15 +4,6 @@ if ns.IS_DISCOVERY then
 	return
 end
 
--- TODO: Add SQL Query
---[[
-    Source: Validate Data on the Classic Era client (1.15.9, build 69722).
-    Wildvine Potion (9144) came from the wago.tools tables for build
-    1.15.9.69722, for the next Validate Data run to confirm.
-
-    Healing/Mana amounts derived from item_template.spellid_1 spell
-    effects; Allowed Zones from Map/Area restrictions where present.
-]]
 -- [ID] = {Healing Amount, Mana Amount, {Allowed Zones} or nil, requiredAlchemy or nil}, -- Name
 ns.POTIONS = {
 	[18839] = { 700, 0 }, -- Combat Healing Potion
@@ -43,3 +34,35 @@ ns.POTIONS = {
 	-- Whipper Root Tuber (11951) is absent on purpose: its live row is in Healthstones-Vanilla.lua, sharing the Healthstone cooldown category.
 	[9144] = { 1, 1 }, -- Wildvine Potion
 }
+
+--[[
+How We Got the Data
+
+Last Validated
+	2026-10-16, Classic Era 1.15.9.70003
+
+Notes
+	- Every potion this client knows that restores health or mana instantly on the potion cooldown, read by the item cache (Features/Item-Cache.lua) for the Health Potion and Mana Potion macros. Healing Amount and Mana Amount are each effect's low end; requiredAlchemy is the Alchemy rank the tooltip requires.
+	- Allowed Zones are uiMapIDs. The draughts' text says they work only in PvP battlegrounds: 1459 Alterac Valley, 1460 Warsong Gulch, 1461 Arathi Basin.
+	- Holy Spring Water (737) is left out on purpose, an oddball on the potion cooldown. Potions that do something else (rage, speed, protection, invisibility) are not in this table.
+	- Wildvine Potion's 0 to 1,500 health and mana is entered as 1 and 1, so it ranks below every other potion.
+	- Season of Discovery items are left out even though this client knows their IDs: they live only in Data/Discovery/. Where a table would otherwise pick one up, a deliberately-absent line in the table says so.
+
+SQL (CMaNGOS)
+	TODO: Add SQL Query
+
+Wowhead
+	None.
+
+wago.tools
+	https://wago.tools/db2/Item?build=1.15.9.70003
+	https://wago.tools/db2/ItemSparse?build=1.15.9.70003
+	https://wago.tools/db2/ItemEffect?build=1.15.9.70003
+	https://wago.tools/db2/Spell?build=1.15.9.70003
+	https://wago.tools/db2/SpellEffect?build=1.15.9.70003
+	https://wago.tools/db2/SpellMisc?build=1.15.9.70003
+	https://wago.tools/db2/SpellDuration?build=1.15.9.70003
+	https://wago.tools/db2/SpellCastingRequirements?build=1.15.9.70003
+	https://wago.tools/db2/AreaGroupMember?build=1.15.9.70003
+	https://wago.tools/db2/UiMapAssignment?build=1.15.9.70003
+]]

@@ -218,6 +218,10 @@ function ns.CacheItemData(itemID)
 		    records the conjured status on its own so the scanner can prefer a
 		    free, infinite conjured ration over an equal-value purchased,
 		    quested, or arena-only item (see IsBetter in Scanner-Inventory).
+		    Only flag 2 marks an item conjured: one that merely sells for
+		    nothing, or whose tooltip says Conjured Item without an arena value
+		    (Harvest Bread, Winter Veil Loaf), is ordinary food to Use Conjured
+		    Food & Water First.
 		]]
 		data.isConjured = (arenaFlag == 2)
 

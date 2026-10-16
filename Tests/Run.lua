@@ -1,7 +1,7 @@
 --[[
 	Runs every offline suite (README-Technical → Offline Test Suites), each in its own
-	interpreter and from the folder it expects: Features/Tests/ from the add-on root,
-	Features/Restocker/Tests/ from Features/Restocker/. Exits 1 if any suite fails.
+	interpreter from the add-on root: Tests/, then Tests/Restocker/. Exits 1 if any
+	suite fails.
 
 	Dev-only, like the suites: no TOC lists it and .pkgmeta strips Tests/.
 	Run from the add-on root with Lua 5.1, the version WoW embeds: lua5.1 Tests/Run.lua
@@ -11,8 +11,8 @@
 local LUA = arg and arg[-1] or "lua5.1"
 
 local FOLDERS = {
-	{ cwd = ".", folder = "Features/Tests" },
-	{ cwd = "Features/Restocker", folder = "Tests" },
+	{ cwd = ".", folder = "Tests" },
+	{ cwd = ".", folder = "Tests/Restocker" },
 }
 
 local function listSuites(cwd, folder)

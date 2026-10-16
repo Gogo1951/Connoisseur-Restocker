@@ -5,7 +5,7 @@ ns.restockerLoaded = false
 --[[
     Handlers keyed by event name, read by Core's dispatcher (Features/Core.lua).
     Each takes the event's own arguments with no leading event-name, which is what
-    Core's own branches use. Filled by ns.InitRestockerEvents.
+    Core's own branches use. Filled by ns.InitializeRestockerEvents.
 ]]
 ns.restockerEventHandlers = {}
 
@@ -45,7 +45,7 @@ function ns.InitializeRestocker()
 	ns.InflateSavedRestockItems(ns.restockSettings)
 
 	-- Select the list this character's profile uses (creating one if the profile has chosen none)
-	ns.InitCharacterRestockList()
+	ns.InitializeCharacterRestockList()
 
 	-- Drop leftover empty orphan lists (e.g. an old shared "default")
 	ns.PruneEmptyOrphanRestockLists(ns.restockSettings)
@@ -54,13 +54,13 @@ function ns.InitializeRestocker()
 	    ns.DeflateRestockItemsForSave just before WoW writes the SavedVariables file.)
 	]]
 
-	ns.InitRestockerEvents()
+	ns.InitializeRestockerEvents()
 
 	--[[
 	    The two modules with real one-time setup, called by name so it stays
 	    plain which two they are.
 	]]
-	ns.InitRestockBagDefinitions()
+	ns.InitializeRestockBagDefinitions()
 	ns.SetupCraftingRecipes()
 
 	if not ns.restockWindow then
@@ -256,27 +256,72 @@ function ns.OnRestockerUiErrorMessage(_, message)
 	end
 end
 
+--------------------------------------------------------------------------------
+-- Master Switch
+--------------------------------------------------------------------------------
+
+function ns.IsRestockerEnabled()
+	return ns.db ~= nil and ns.db.global.restockerEnabled
+end
+
+--[[
+    Off stops every part of the Restocker. A visit in progress ends here
+    rather than at its _CLOSED event, which the switched-off handlers no longer
+    see, so no flag is left saying a merchant or bank is open.
+]]
+function ns.SetRestockerEnabled(value)
+	ns.db.global.restockerEnabled = value
+	if value then
+		-- What a loading screen would have done while the switched-off handlers slept.
+		ns.ArmRestockerReminders()
+		ns.UpgradeRestockList()
+		return
+	end
+	ns.CloseStarterListPopup()
+	ns.StopBankRestock()
+	ns.bankIsOpen = false
+	bankRestockSkipped = false
+	bankRestockStarted = false
+	ns.merchantIsOpen = false
+	ns.merchantBuyingSkipped = false
+	ns.restockBuying = false
+	ns.HideRestockWindow()
+end
+
+-- A handler that runs only while the Restocker is on.
+local function WhileEnabled(handler)
+	return function(...)
+		if ns.IsRestockerEnabled() then
+			return handler(...)
+		end
+	end
+end
+
 --[[
     Core's dispatcher keeps ONE handler per event name, so anything else wanting an
     event already in this table shares the existing entry rather than adding a
     second one. That is why the arrival check, the Starter List pop-up and the
     upgrade catch-up all hang off ns.OnRestockerEnteringWorld: each is called from
     inside that handler rather than registering a second one of its own.
+
+    Every handler but two stops while the Restocker is off. The logout handler
+    still packs the lists for the saved-variables file, and item info still
+    lands for the lists' names.
 ]]
-function ns.InitRestockerEvents()
+function ns.InitializeRestockerEvents()
 	ns.restockerEventHandlers = {
-		MERCHANT_SHOW = ns.OnRestockerMerchantShow,
-		MERCHANT_CLOSED = ns.OnRestockerMerchantClose,
-		BANKFRAME_OPENED = ns.OnRestockerBankFrameOpened,
-		BANKFRAME_CLOSED = ns.OnRestockerBankClose,
+		MERCHANT_SHOW = WhileEnabled(ns.OnRestockerMerchantShow),
+		MERCHANT_CLOSED = WhileEnabled(ns.OnRestockerMerchantClose),
+		BANKFRAME_OPENED = WhileEnabled(ns.OnRestockerBankFrameOpened),
+		BANKFRAME_CLOSED = WhileEnabled(ns.OnRestockerBankClose),
 		GET_ITEM_INFO_RECEIVED = ns.OnRestockerItemInfoReceived,
-		BAG_UPDATE_DELAYED = ns.OnRestockerBagUpdate,
+		BAG_UPDATE_DELAYED = WhileEnabled(ns.OnRestockerBagUpdate),
 		PLAYER_LOGOUT = ns.OnRestockerLogout,
-		UI_ERROR_MESSAGE = ns.OnRestockerUiErrorMessage,
-		PLAYER_UPDATE_RESTING = ns.OnRestockerUpdateResting,
-		PLAYER_CONTROL_GAINED = ns.OnRestockerControlGained,
-		PLAYER_LEVEL_UP = ns.OnRestockerLevelUp,
-		PLAYER_ENTERING_WORLD = ns.OnRestockerEnteringWorld,
+		UI_ERROR_MESSAGE = WhileEnabled(ns.OnRestockerUiErrorMessage),
+		PLAYER_UPDATE_RESTING = WhileEnabled(ns.OnRestockerUpdateResting),
+		PLAYER_CONTROL_GAINED = WhileEnabled(ns.OnRestockerControlGained),
+		PLAYER_LEVEL_UP = WhileEnabled(ns.OnRestockerLevelUp),
+		PLAYER_ENTERING_WORLD = WhileEnabled(ns.OnRestockerEnteringWorld),
 	}
 	ns.SyncRestockItemInfoSubscription()
 end

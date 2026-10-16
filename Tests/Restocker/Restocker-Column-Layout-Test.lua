@@ -2,7 +2,7 @@
 --[[
     Headless test for the Restock List's column layout (no WoW API needed).
 
-    Run it with:   lua Tests/Restocker-Column-Layout-Test.lua
+    Run it with:   lua Tests/Restocker/Restocker-Column-Layout-Test.lua        (from the add-on root)
 
     It models the SAME walk as LayoutColumns in Restocker-Window-Columns.lua, which lays out both the
     column header and every item row: start at the row's right edge, step left past the

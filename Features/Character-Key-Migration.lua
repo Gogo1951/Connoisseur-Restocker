@@ -7,12 +7,13 @@ local _, ns = ...
 -- MIGRATION (remove after 2026-10-30)
 --[[
     One-time upgrade shim. Delete on the first code pass after that date, all
-    four pieces together:
+    five pieces together:
       1. this file
       2. its line in all three flavor TOCs (Consumable-Connoisseur_Vanilla.toc,
          _TBC.toc and _Camelot.toc)
       3. the ns.RekeyCharactersByFullName() call in Features/Core.lua
-      4. Features/Tests/Character-Key-Migration-Test.lua
+      4. Tests/Character-Key-Migration-Test.lua
+      5. this file's tagged line in Tests/Character-Profile-Test.lua's load list
 ]]
 
 --[[
@@ -44,24 +45,20 @@ local _, ns = ...
     a file that has been through it holds the same character under both keys,
     and the first-name key is the one the add-on has been writing since.
 
-    This character moves by what the client says its names are. The others are
-    logged out, and nothing tells an add-on a logged-out character's surname --
-    but AceDB has written each one's whole name down, because from minor 39 it
-    keys profileKeys on Forever by first name and surname with a space between.
-    So a first name that exactly one of those names begins with takes that
-    name, and a first name two of them share is left for each character's own
-    login to settle. AceDB's names are believed only while this character's own
-    is among them, spelled the way the client gives it; an older AceDB keys by
-    first name and rule set, which says nothing about surnames and so moves
-    nobody but this character.
+    Only the character playing moves, by what the client says its names are,
+    and every other character moves at its own login. A logged-out character's
+    entries wait under its first name: nothing tells an add-on its surname, and
+    profileKeys holds no realm for a Forever character, so a first name alone
+    could belong to a namesake on another realm, and matching by it would hand
+    one character's list and bags to the other.
 
     Era and TBC characters have the one name, so their keys do not change and
     this returns at once.
 
     Called from InitializeSavedVariables in Features/Core.lua, after the
     Restocker's saved-key rename and before ns.MoveCharactersOntoOwnProfiles
-    reads listsByCharacter. Once it has run no first-name key is left, so a
-    second login changes nothing.
+    reads listsByCharacter. Once it has run this character's first-name key is
+    gone, so a second login changes nothing.
 ]]
 
 -- Every saved table keyed by character, handed to `visit` one at a time.
@@ -85,25 +82,6 @@ local function MoveCharacter(oldKey, newKey)
 	end)
 end
 
---[[
-    The whole names AceDB has written down, by first name, and the set of them.
-    A first name that two of them share maps to false: it stands for neither.
-]]
-local function FullNamesByFirstName()
-	local fullNames, known = {}, {}
-	for characterKey in pairs(ns.db.sv.profileKeys or {}) do
-		-- Before minor 39 AceDB added " - " and the realm's rule set to the name, and knew no surname.
-		if type(characterKey) == "string" and not characterKey:find(" - ", 1, true) then
-			known[characterKey] = true
-			local firstName = characterKey:match("^(%S+) %S")
-			if firstName then
-				fullNames[firstName] = fullNames[firstName] == nil and characterKey or false
-			end
-		end
-	end
-	return fullNames, known
-end
-
 function ns.RekeyCharactersByFullName()
 	local firstName = UnitName("player")
 	local fullName = ns.GetPlayerFullName()
@@ -115,42 +93,4 @@ function ns.RekeyCharactersByFullName()
 	-- This character's old key is its new one with the surname taken back out.
 	local newKey = ns.GetCharacterKey()
 	MoveCharacter(firstName .. newKey:sub(#fullName + 1), newKey)
-
-	local fullNames, known = FullNamesByFirstName()
-	if not known[fullName] then
-		return
-	end
-
-	--[[
-	    Every other key still on a first name AceDB can complete. The realm
-	    rides along as it is: everything from the key's first hyphen on.
-	    Collected before anything moves, because a table cannot take new keys
-	    while it is being walked.
-	]]
-	local moves = {}
-	ForEachCharacterTable(function(keyed)
-		for characterKey in pairs(keyed) do
-			if type(characterKey) == "string" and not moves[characterKey] then
-				local name, realmSuffix = characterKey:match("^([^%-]+)(%-.*)$")
-				local otherFullName = fullNames[name or characterKey]
-				if otherFullName then
-					moves[characterKey] = { name = otherFullName, key = otherFullName .. (realmSuffix or "") }
-				end
-			end
-		end
-	end)
-
-	local inventory = ns.db.global.inventory
-	for oldKey, whole in pairs(moves) do
-		MoveCharacter(oldKey, whole.key)
-		--[[
-		    An Inventory Report record carries the name its character is listed
-		    by, which only that character's own login refreshes. Completed here,
-		    so the report and the Restock List name a character alike meanwhile.
-		]]
-		local record = type(inventory) == "table" and inventory[whole.key]
-		if type(record) == "table" then
-			record.name = whole.name
-		end
-	end
 end
