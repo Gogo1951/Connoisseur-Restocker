@@ -75,7 +75,7 @@ body:
         ## Diagnostic Reports (optional, but they help the most)
 
         > [!NOTE]
-        > **Diagnostic reports are the single best way to get your issue fixed fast.** They show exactly what the add-on sees on your end, so the problem can be tracked down without a lot of back-and-forth. Paste in as many as you can! If all four together are very long, attach the biggest one as a .txt file in Screenshots instead.
+        > **Diagnostic reports are the single best way to get your issue fixed fast.** They show exactly what the add-on sees on your end, so the problem can be tracked down without a lot of back-and-forth. Paste in as many as you can, thanks!
 
         **How to grab them**
         1. Open the add-on's settings and find **Diagnostic Tools**.
