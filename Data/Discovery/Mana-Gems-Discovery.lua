@@ -4,60 +4,71 @@ if not ns.IS_DISCOVERY then
 	return
 end
 
---[[
-    Source: the pre-split shared data files, as the Classic Era client loaded
-    them, pruned of the rows Validate Data on the Classic Era client (1.15.9,
-    build 69722) flagged NOT ON CLIENT. The values await Validate Data on a
-    Season of Discovery realm.
-
-    SELECT
-        CONCAT(
-            '    [', it.entry, '] = {',
-
-            -- Calculates the instant mana restore amount
-            (st.EffectBasePoints1 + 1),
-
-            '}, -- ', it.name
-        ) AS `ns.RAW_DATA.ManaGem`
-    FROM item_template it
-    -- Failsafe: Joins on spellid_1, but seamlessly falls back to spellid_2 if slot 1 is blank
-    JOIN spell_template st ON st.Id = COALESCE(NULLIF(it.spellid_1, 0), NULLIF(it.spellid_2, 0))
-    WHERE it.name IN (
-        'Mana Agate',
-        'Mana Jade',
-        'Mana Citrine',
-        'Mana Ruby',
-        'Mana Emerald',
-        'Mana Sapphire'
-    )
-      -- Garbage collector for any weird [PH] or test server gems
-      AND st.EffectBasePoints1 > 0
-    ORDER BY
-        (st.EffectBasePoints1 + 1) DESC,
-        it.entry DESC;
-
-]]
 -- [ID] = {Mana Amount}, -- Name
 ns.MANA_GEMS = {
-	[8008] = { 1073 }, -- Mana Ruby
-	[8007] = { 829 }, -- Mana Citrine
-	[5513] = { 585 }, -- Mana Jade
-	[5514] = { 390 }, -- Mana Agate
+	[8008] = { 1000 }, -- Mana Ruby
+	[8007] = { 775 }, -- Mana Citrine
+	[5513] = { 550 }, -- Mana Jade
+	[5514] = { 375 }, -- Mana Agate
 }
 
--- TODO: Add SQL Query
---[[
-    Demonic and Dark Runes restore 900 to 1500 mana at the cost of 600 to 1000
-    life, and they share the Mana Gems' cooldown. The Mana Gem macro ranks
-    them in with the gems when the player opts in (see
-    Features/Macros/Mana-Gem.lua). The mana column is the low end of the
-    restore, the same convention as the gems above.
-
-    The two restore the same amount, so the selection ladder's isSoulbound step
-    burns the soulbound Demonic Rune before the tradeable Dark Rune.
-]]
 -- [ID] = {Mana Amount}, -- Name
 ns.MANA_RUNES = {
 	[20520] = { 900 }, -- Dark Rune
 	[12662] = { 900 }, -- Demonic Rune
 }
+
+--[[
+How We Got the Data
+
+Last Validated
+	2026-10-16, Season of Discovery 1.15.9.70003
+
+Notes
+	- ns.MANA_GEMS holds the mage's mana gems, read by the item cache (Features/Item-Cache.lua) for the Mana Gem macro and by the Readiness Report. Mana Amount is the low end of the restore.
+	- ns.MANA_RUNES holds the Demonic and Dark Runes, which restore mana at the cost of life and share the mana gems' cooldown. The Mana Gem macro ranks them in with the gems when the player opts in (Features/Macros/Mana-Gem.lua). The mana column is the low end, as for the gems. The two restore the same amount, so the selection ladder's isSoulbound step burns the soulbound Demonic Rune before the tradeable Dark Rune.
+	- The gem amounts follow the Season of Discovery report (Agate 375, Jade 550, Citrine 775, Ruby 1000), which replaced the TBC figures this folder had carried.
+
+SQL (CMaNGOS)
+	ns.MANA_GEMS, database not recorded:
+
+	SELECT
+	    CONCAT(
+	        '    [', it.entry, '] = {',
+
+	        -- Calculates the instant mana restore amount
+	        (st.EffectBasePoints1 + 1),
+
+	        '}, -- ', it.name
+	    ) AS `ns.RAW_DATA.ManaGem`
+	FROM item_template it
+	-- Failsafe: Joins on spellid_1, but seamlessly falls back to spellid_2 if slot 1 is blank
+	JOIN spell_template st ON st.Id = COALESCE(NULLIF(it.spellid_1, 0), NULLIF(it.spellid_2, 0))
+	WHERE it.name IN (
+	    'Mana Agate',
+	    'Mana Jade',
+	    'Mana Citrine',
+	    'Mana Ruby',
+	    'Mana Emerald',
+	    'Mana Sapphire'
+	)
+	  -- Garbage collector for any weird [PH] or test server gems
+	  AND st.EffectBasePoints1 > 0
+	ORDER BY
+	    (st.EffectBasePoints1 + 1) DESC,
+	    it.entry DESC;
+
+	ns.MANA_RUNES: TODO: Add SQL Query
+
+Wowhead
+	None.
+
+wago.tools
+	https://wago.tools/db2/Item?build=1.15.9.70003
+	https://wago.tools/db2/ItemSparse?build=1.15.9.70003
+	https://wago.tools/db2/ItemEffect?build=1.15.9.70003
+	https://wago.tools/db2/Spell?build=1.15.9.70003
+	https://wago.tools/db2/SpellEffect?build=1.15.9.70003
+	https://wago.tools/db2/SpellMisc?build=1.15.9.70003
+	https://wago.tools/db2/SpellDuration?build=1.15.9.70003
+]]

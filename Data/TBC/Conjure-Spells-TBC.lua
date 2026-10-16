@@ -1,38 +1,5 @@
 local _, ns = ...
 
---------------------------------------------------------------------------------
--- Mage and Warlock Spells
---------------------------------------------------------------------------------
-
---[[
-    Source: Validate Data on the TBC Anniversary client (2.5.6, build 69795).
-]]
-
---[[
-    Conjure spell lists. Features/Macros/Smart-Spell.lua sorts each by requiredLevel,
-    highest first, at load, so row order carries no meaning. Each entry is:
-
-        { spellID, requiredLevel[, rankNumber] }
-
-    spellID        The conjure spell the macro /casts.
-    requiredLevel  The level needed to USE the conjured item — not the
-                   level the spell is learned (Create Healthstone rank 1
-                   is learned at 10, but its stone is usable at level 1).
-                   GetSmartSpell compares this against the player's level
-                   — or a friendly target's level — so the macro downranks
-                   to conjure an item the recipient can actually use. For
-                   lists that never downrank by target (Mana Gems,
-                   Soulstones) and the ritual utilities (Refreshment
-                   Table, Ritual of Souls), it is simply the spell's
-                   learn level.
-    rankNumber     Optional. When present, the /cast line is written as
-                   "Spell Name(Rank N)" to pin that exact rank. Omitted
-                   where every entry already has a unique spell name
-                   (each Mana Gem tier is its own spell). The warlock
-                   stones carry it here and in none of the Classic Era
-                   folders: see the RECURRING BUG note on
-                   WarlockCreateHealthstone.
-]]
 ns.CONJURE_SPELLS = {
 	MageCreateTable = {
 		-- {Spell ID, Spell Learn Level}
@@ -74,19 +41,6 @@ ns.CONJURE_SPELLS = {
 		{ 29893, 68 }, -- Ritual of Souls, Rank 1
 	},
 	WarlockCreateHealthstone = {
-		--[[
-		    RECURRING BUG — this has broken Era three times; read before
-		    touching this table, WarlockCreateSoulstone, or GetSmartSpell.
-		    On TBC the warlock stones are one spell with numeric ranks, cast
-		    as "Create Healthstone(Rank N)", so these rows carry the rank.
-		    The Classic Era folders' rows carry none: there each tier is its
-		    own distinctly-named spell ("Create Healthstone (Minor)") that
-		    must be cast bare, because appending "(Rank N)" builds a spell
-		    that does not exist and the /cast silently no-ops. Never copy
-		    rows between the two without adding or dropping the rank column.
-		    Mage Conjure Water/Food ARE numeric-rank on every client — do not
-		    "simplify" the two spell families together.
-		]]
 		-- {Spell ID, Conjured Item Usage Level, Spell Rank}, -- Conjured Item
 		{ 27230, 60, 6 }, -- Master Healthstone
 		{ 11730, 48, 5 }, -- Major Healthstone
@@ -96,13 +50,6 @@ ns.CONJURE_SPELLS = {
 		{ 6201, 1, 1 }, -- Minor Healthstone
 	},
 	WarlockCreateSoulstone = {
-		--[[
-		    The resolver passes ignoreTarget=true, which is why the second
-		    column is the learn level rather than an item usage level.
-
-		    The rank column follows the same split as Healthstones: see the
-		    RECURRING BUG note on WarlockCreateHealthstone above.
-		]]
 		-- {Spell ID, Spell Learn Level, Spell Rank}, -- Conjured Item
 		{ 27238, 70, 6 }, -- Master Soulstone
 		{ 20757, 60, 5 }, -- Major Soulstone
@@ -113,11 +60,6 @@ ns.CONJURE_SPELLS = {
 	},
 }
 
---[[
-    Spell IDs that ConnoisseurTip resolves at print time: one per conjure table
-    in ns.CONJURE_SPELLS above, taken from its rank-1 entry, plus the Rogue's
-    Poisons skill, which is not a conjure.
-]]
 ns.MISSING_SPELL_MESSAGE_IDS = {
 	-- Mage conjures
 	noConjureWater = 5504, -- Conjure Water (rank 1)
@@ -131,3 +73,31 @@ ns.MISSING_SPELL_MESSAGE_IDS = {
 	-- Rogue poisons
 	noPoisonsSkill = 2842, -- Poisons (the rogue poison-crafting skill)
 }
+
+--[[
+How We Got the Data
+
+Last Validated
+	2026-10-16, TBC Anniversary 2.5.6.70006
+
+Notes
+	- The mage and warlock conjure spells the macros cast, one list per conjure, read by Features/Macros/Smart-Spell.lua (GetSmartSpell), the Food and Water macros, the class tools, the Readiness Report and the mini-map tooltip. Smart-Spell sorts each list by its level column, highest first, at load, so row order carries no meaning.
+	- The level column is the level needed to use the conjured item, not the level the spell is learned (Create Healthstone rank 1 is learned at 10, but its stone is usable at level 1). GetSmartSpell compares it against the player's level, or a friendly target's, so the macro downranks to an item the recipient can use. For lists that never downrank by target (Mana Gems, Soulstones) and the rituals (Ritual of Refreshment, Ritual of Souls), it is simply the spell's learn level.
+	- The rank column, where present, is the spell's own rank, not its position in the list: the /cast line becomes "Spell Name(Rank N)" with the client's own rank text, pinning that rank. It is left off where every row already has a unique spell name, as each Mana Gem tier does.
+	- RECURRING BUG (WarlockCreateHealthstone and WarlockCreateSoulstone; it has broken Era three times). On TBC the warlock stones are one spell with numeric ranks, cast as "Create Healthstone(Rank N)", so these rows carry the rank. The Classic Era folders' rows carry none: there each tier is its own distinctly-named spell ("Create Healthstone (Minor)") that must be cast bare, because appending "(Rank N)" builds a spell that does not exist and the /cast silently does nothing. Never copy rows between the two without adding or dropping the rank column. Mage Conjure Water and Food ARE numeric-rank on every client: never "simplify" the two spell families together.
+	- The Soulstone resolver passes ignoreTarget, which is why that list's level column is the learn level. Its rank column follows the same split as the Healthstones.
+	- ns.MISSING_SPELL_MESSAGE_IDS holds the spells ConnoisseurTip names at print time (Features/Macros/Runtime.lua): one per conjure list, taken from its rank-1 entry, plus the rogue's Poisons skill, which is not a conjure.
+
+SQL (CMaNGOS)
+	TODO: Add SQL Query
+
+Wowhead
+	None.
+
+wago.tools
+	https://wago.tools/db2/SpellName?build=2.5.6.70006
+	https://wago.tools/db2/Spell?build=2.5.6.70006
+	https://wago.tools/db2/SpellEffect?build=2.5.6.70006
+	https://wago.tools/db2/SpellLevels?build=2.5.6.70006
+	https://wago.tools/db2/SkillLineAbility?build=2.5.6.70006
+]]

@@ -1,22 +1,5 @@
 local _, ns = ...
 
---------------------------------------------------------------------------------
--- Scroll Data
---------------------------------------------------------------------------------
-
---[[
-    Source: copied from Data/Vanilla/Scrolls-Vanilla.lua until Validate Data
-    passes on this client. The Power Word: Fortitude and Prayer of Fortitude
-    amounts come from WoW Forever's own tables on wago.tools (build
-    1.60.1.70124), pending Validate Data.
-
-    The three Mage familiar scrolls come from Validate Data (build
-    1.60.1.70124). Each one's buff is its use spell, which summons the familiar
-    and puts the Intellect aura on the caster (wago.tools, same build). Whether
-    that aura stacks with Scroll of Intellect or Arcane Intellect is unchecked
-    in game; counting them as one Intellect buff never builds a line that fails.
-]]
--- TODO: Add SQL Query
 -- [scrollType] = { items = { ... }, conflictSpells = { ... } }
 ns.SCROLL_DATA = {
 	Agility = {
@@ -27,7 +10,6 @@ ns.SCROLL_DATA = {
 			{ 1477, 8116, 25, 9 }, -- Scroll of Agility II
 			{ 3012, 8115, 10, 5 }, -- Scroll of Agility
 		},
-		-- Stacks with everything in Classic/TBC
 		-- [spellID] = amount, -- Name
 		conflictSpells = {},
 	},
@@ -60,7 +42,6 @@ ns.SCROLL_DATA = {
 			{ 1478, 8094, 15, 120 }, -- Scroll of Protection II
 			{ 3013, 8091, 1, 60 }, -- Scroll of Protection
 		},
-		-- Stacks with Devotion Aura, Stoneskin, etc. in Classic/TBC
 		-- [spellID] = amount, -- Name
 		conflictSpells = {},
 	},
@@ -109,8 +90,36 @@ ns.SCROLL_DATA = {
 			{ 2289, 8119, 25, 9 }, -- Scroll of Strength II
 			{ 954, 8118, 10, 5 }, -- Scroll of Strength
 		},
-		-- Stacks with everything in Classic/TBC
 		-- [spellID] = amount, -- Name
 		conflictSpells = {},
 	},
 }
+
+--[[
+How We Got the Data
+
+Last Validated
+	2026-10-16, WoW Forever 1.60.1.70425
+
+Notes
+	- The stat scrolls, read by Features/Scanner-Auras.lua (FindBestScroll) to pick a scroll whose buff the player lacks. Each type lists its scrolls as { itemID, buffID, requiredLevel, amount }: the buff is the aura the scroll leaves, requiredLevel the level the tooltip requires, amount the stat it grants.
+	- conflictSpells lists the class buffs a scroll can't stack with, keyed by spell ID, with the amount each grants; a scroll is skipped while the player has a conflicting buff at least as strong. Agility, Protection and Strength list none: Agility stacks with everything on the Classic and TBC clients, and Protection with Devotion Aura, Stoneskin and the like.
+	- The three Mage familiar scrolls carry a fifth column, the class that can use them (MAGE), because they don't bind and another class could carry one. Each one's buff is its use spell, which summons the familiar and puts the Intellect aura on the caster. Whether that aura stacks with Scroll of Intellect or Arcane Intellect is unchecked in game; counting them as one Intellect buff never builds a line that fails.
+	- WoW Forever raised Power Word: Fortitude and Prayer of Fortitude (4/10/26/42/56/70 by rank); the conflict amounts follow.
+
+SQL (CMaNGOS)
+	TODO: Add SQL Query
+
+Wowhead
+	None.
+
+wago.tools
+	https://wago.tools/db2/Item?build=1.60.1.70425
+	https://wago.tools/db2/ItemSparse?build=1.60.1.70425
+	https://wago.tools/db2/ItemEffect?build=1.60.1.70425
+	https://wago.tools/db2/ItemXItemEffect?build=1.60.1.70425
+	https://wago.tools/db2/Spell?build=1.60.1.70425
+	https://wago.tools/db2/SpellEffect?build=1.60.1.70425
+	https://wago.tools/db2/SpellMisc?build=1.60.1.70425
+	https://wago.tools/db2/SpellDuration?build=1.60.1.70425
+]]

@@ -4,65 +4,27 @@ if not ns.IS_DISCOVERY then
 	return
 end
 
---------------------------------------------------------------------------------
--- Flasks and Elixirs
---------------------------------------------------------------------------------
-
---[[
-    What counts as being flasked, for the Readiness Report's Flask or 2x Elixirs
-    check (Features/Readiness-Report-Probes.lua).
-
-    The rule the check applies is: a flask, OR two different elixirs.
-
-    TWO DIFFERENT ELIXIRS IS THE WHOLE TEST, and it is enough because the client
-    enforces the rest: from TBC on, a character may carry one battle elixir and
-    one guardian elixir at a time, so any two elixir auras up together are
-    already one of each. Nothing here has to know which kind an elixir is, which
-    is why neither table carries that column -- it cannot be read off an aura at
-    runtime, and deriving it would mean a spell-category pass no item table can
-    answer.
-
-    Keyed by the BUFF's spell ID, not the item's: the report reads the player's
-    auras, and several items share one buff while a few grant a buff whose id
-    does not match the item at all. That is also why the source query is
-    deduped by spell on the way in.
-
-    THE SOURCE IS spell_elixir, not the item tables. It is the server's own
-    classification, and its mask is the only thing that separates a battle or
-    guardian elixir (1 and 2, both collected here) from a utility one. Water
-    Breathing and Noggenfogger are elixirs by item subclass but appear in no
-    mask, which is exactly right: they occupy no elixir slot, so counting them
-    would call a player with water breathing and Noggenfogger fully flasked.
-
-    Flasks are masks 3, 7 and 11 (plain, Unstable, Shattrath), unioned with the
-    flask items the item_template pass found. The union is deliberate and errs
-    toward silence: an id here that is not really a flask only means the report
-    stays quiet, while a missing one means nagging a player who IS flasked --
-    the failure that gets a switch turned off for good.
-]]
-
---[[
-    Source: the pre-split shared data files, as the Classic Era client loaded
-    them, pruned of the rows Validate Data on the Classic Era client (1.15.9,
-    build 69722) flagged NOT ON CLIENT. The values await Validate Data on a
-    Season of Discovery realm.
-
-    SELECT se.mask, se.entry AS buffSpellId, it.name
-    FROM spell_elixir se
-    LEFT JOIN item_template it ON it.spellid_1 = se.entry
-    ORDER BY se.mask, it.name;
-]]
 -- { [buffSpellID] = true }, -- Flask Name
 ns.FLASK_BUFF_IDS = {
+	[1213892] = true, -- Flask of Ancient Knowledge
 	[17629] = true, -- Flask of Chromatic Resistance
 	[17627] = true, -- Flask of Distilled Wisdom
+	[446228] = true, -- Flask of Everlasting Nightmares
+	[1213897] = true, -- Flask of Madness
+	[17624] = true, -- Flask of Petrification
+	[448084] = true, -- Flask of Restless Dreams
 	[17628] = true, -- Flask of Supreme Power
+	[1213901] = true, -- Flask of the Old Gods
 	[17626] = true, -- Flask of the Titans
+	[1213886] = true, -- Flask of Unyielding Sorrow
 }
 
 -- { [buffSpellID] = true }, -- Elixir Name
 ns.ELIXIR_BUFF_IDS = {
 	[11390] = true, -- Arcane Elixir
+	[446256] = true, -- Atal'ai Mojo of Forbidden Magic
+	[446396] = true, -- Atal'ai Mojo of Life
+	[446336] = true, -- Atal'ai Mojo of War
 	[27653] = true, -- Bloodkelp Elixir of Dodging
 	[27652] = true, -- Bloodkelp Elixir of Resistance
 	[10692] = true, -- Cerebral Cortex Compound
@@ -89,6 +51,9 @@ ns.ELIXIR_BUFF_IDS = {
 	[3164] = true, -- Elixir of Ogre's Strength
 	[11474] = true, -- Elixir of Shadow Power
 	[11348] = true, -- Elixir of Superior Defense
+	[1213904] = true, -- Elixir of the Honey Badger
+	[1213917] = true, -- Elixir of the Ironside
+	[1213914] = true, -- Elixir of the Mage-Lord
 	[17538] = true, -- Elixir of the Mongoose
 	[17535] = true, -- Elixir of the Sages
 	[11319] = true, -- Elixir of Water Walking
@@ -104,12 +69,16 @@ ns.ELIXIR_BUFF_IDS = {
 	[16327] = true, -- Juju Guile
 	[16329] = true, -- Juju Might
 	[16323] = true, -- Juju Power
+	[439959] = true, -- Lesser Arcane Elixir
 	[10668] = true, -- Lung Juice Cocktail
 	[24363] = true, -- Mageblood Elixir
 	[11364] = true, -- Magic Resistance Potion
 	[3223] = true, -- Major Troll's Blood Elixir
 	[24361] = true, -- Mighty Troll's Blood Elixir
 	[2380] = true, -- Minor Magic Resistance Potion
+	[30331] = true, -- Permanent Sheen of Zanza
+	[30336] = true, -- Permanent Spirit of Zanza
+	[30338] = true, -- Permanent Swiftness of Zanza
 	[10667] = true, -- R.O.I.D.S.
 	[24417] = true, -- Sheen of Zanza
 	[24382] = true, -- Spirit of Zanza
@@ -118,3 +87,39 @@ ns.ELIXIR_BUFF_IDS = {
 	[3219] = true, -- Weak Troll's Blood Elixir
 	[17038] = true, -- Winterfall Firewater
 }
+
+--[[
+How We Got the Data
+
+Last Validated
+	2026-10-16, Season of Discovery 1.15.9.70003
+
+Notes
+	- What counts as being flasked, for the Readiness Report's Flask or 2x Elixirs check (Features/Readiness-Report-Probes.lua): a flask, OR two different elixirs. Two different elixirs is the whole test, and it is enough because the client enforces the rest: from TBC on, a character may carry one battle and one guardian elixir at a time, so any two elixir auras up together are already one of each. Nothing here needs to know which kind an elixir is, which is why neither table carries that column; it can't be read off an aura at runtime.
+	- Keyed by the BUFF's spell ID, not the item's: the report reads the player's auras, and several items share one buff while a few grant a buff whose ID doesn't match the item. That is also why the source query is deduped by spell on the way in. Each row's comment names the item that grants the buff.
+	- The source is the server's spell_elixir table, not the item tables: its mask is the only thing that separates a battle or guardian elixir (masks 1 and 2, both collected) from a utility one. Water Breathing and Noggenfogger are elixirs by item subclass but appear in no mask, which is right: they occupy no elixir slot, and counting them would call a player with water breathing and Noggenfogger fully flasked.
+	- Flasks are masks 3, 7 and 11 (plain, Unstable, Shattrath), unioned with the flask items the item pass found. The union errs toward silence on purpose: an ID here that isn't really a flask only keeps the report quiet, while a missing one nags a player who IS flasked, the failure that gets a switch turned off for good.
+	- Season of Discovery's own flasks and elixirs (the Nightmare and Old Gods flasks, the Atal'ai Mojos, the Honey Badger, Mage-Lord and Ironside elixirs, Lesser Arcane Elixir), plus Flask of Petrification and the three Permanent Zanza buffs, came from the Classic Era tables on wago.tools (build 1.15.9.70003): each is the use spell of an item in the elixir spell category (79). They await the next Season of Discovery Validate Data run. The Mojos, like the Zanza buffs, allow one of their kind at a time.
+	- Elixir of Alacrity (1213922, run speed only) and the two Draughts of the Sands (1217084, 1218485, damage against creatures in four zones) share that category but are left out: neither is a stat elixir the Flask or 2x Elixirs check is about.
+
+SQL (CMaNGOS)
+	Database not recorded.
+
+	SELECT se.mask, se.entry AS buffSpellId, it.name
+	FROM spell_elixir se
+	LEFT JOIN item_template it ON it.spellid_1 = se.entry
+	ORDER BY se.mask, it.name;
+
+Wowhead
+	None.
+
+wago.tools
+	https://wago.tools/db2/Item?build=1.15.9.70003
+	https://wago.tools/db2/ItemSparse?build=1.15.9.70003
+	https://wago.tools/db2/ItemEffect?build=1.15.9.70003
+	https://wago.tools/db2/Spell?build=1.15.9.70003
+	https://wago.tools/db2/SpellEffect?build=1.15.9.70003
+	https://wago.tools/db2/SpellMisc?build=1.15.9.70003
+	https://wago.tools/db2/SpellDuration?build=1.15.9.70003
+	https://wago.tools/db2/SpellCategories?build=1.15.9.70003
+]]

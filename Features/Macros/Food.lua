@@ -167,4 +167,15 @@ ns.RegisterMacroType({
 	    (outOfCombatTypeName), and stealths the same way while it does.
 	]]
 	stealthSpell = StealthEatingSpell,
+
+	--[[
+	    Forsaken Cannibalize Eating: tries Cannibalize first on a dead Humanoid
+	    or Undead target, and eats when it cannot cast (Tools-Forsaken.lua). The engine asks
+	    only for a body that eats the scanned pick, so the pet-buff override
+	    never carries it; the Health Potion macro asks for its out-of-combat
+	    food too.
+	]]
+	corpseSpell = function(entry)
+		return ns.CannibalizeCast("enableCannibalizeEating", entry)
+	end,
 })

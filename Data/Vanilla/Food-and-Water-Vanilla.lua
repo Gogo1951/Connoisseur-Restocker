@@ -4,23 +4,6 @@ if ns.IS_DISCOVERY then
 	return
 end
 
--- TODO: Add SQL Query
---[[
-    Source: Validate Data on the Classic Era client (1.15.9, build 69722).
-    Green Garden Tea (17405) and Lapidis Tankard of Tidesippe (4696) came from
-    the wago.tools tables for build 1.15.9.69722, for the next Validate Data
-    run to confirm.
-
-    Buff Food flag and Food/Water % + amounts come from the spell taught
-    by item_template.spellid_1; Allowed Zones from Map/Area restrictions.
-
-    Arena (column 7) marks arena usability, a fixed per-item property:
-      1 = usable ONLY inside a PvP Arena
-      2 = a conjured item, so it ALSO works inside an arena
-    Whether the item is actually offered is gated live on IsInInstance() at
-    scan time -- no arena zone/map IDs are maintained -- see ns.CacheItemData
-    and ns.ScanBags.
-]]
 -- [ID] = {Buff Food, Food %, Food Amount, Water %, Water Amount, {Allowed Zones} or nil, Arena or nil}, -- Name
 ns.FOOD_AND_WATER = {
 	[19301] = { 0, 0, 4410, 0, 4410 }, -- Alterac Manna Biscuit
@@ -277,3 +260,37 @@ ns.FOOD_AND_WATER = {
 	[21236] = { 0, 2, 0, 0, 0 }, -- Winter Veil Loaf
 	[21235] = { 0, 2, 0, 0, 0 }, -- Winter Veil Roast
 }
+
+--[[
+How We Got the Data
+
+Last Validated
+	2026-10-16, Classic Era 1.15.9.70003
+
+Notes
+	- Every food and drink this client knows that restores health or mana while seated, read by the item cache (Features/Item-Cache.lua) for the Food and Water macros and the buff-food choices.
+	- Buff Food is 1 when eating gives a Well Fed buff (the text says "well fed", "also increases" or the like). Food % and Water % are percent of health or mana per second (100% over 20 sec is 5). Food Amount and Water Amount are the whole restore over the meal.
+	- Allowed Zones are uiMapIDs: 1460 Warsong Gulch and 1461 Arathi Basin. Each zone-locked ration's text says where it works.
+	- Arena (column 7) is a fixed per-item property: 1 = offered only inside a PvP Arena. 2 = a conjured item, so it also works inside an arena. Harvest Bread and Winter Veil Loaf say Conjured Item but carry no arena value, as on TBC, whose client doesn't flag them usable in arenas. Whether an item is actually offered is gated live on IsInInstance() at scan time (ns.CacheItemData and ns.ScanBags); no arena zone IDs are kept.
+	- Left out on purpose: Scorpid Surprise (5473) and Green Tea Leaf (1401), oddballs that share the food cooldown, and items that share it but restore nothing (alcohol, Deviate fish, holiday novelties, feasts that place a table).
+	- Blessed Sunfruit Juice (13813) and Bottled Alterac Spring Water (19318) are left out; their Well Fed buffs are still recognized through ns.WELL_FED_BUFF_IDS.
+	- Season of Discovery items are left out even though this client knows their IDs: they live only in Data/Discovery/. Where a table would otherwise pick one up, a deliberately-absent line in the table says so.
+
+SQL (CMaNGOS)
+	TODO: Add SQL Query
+
+Wowhead
+	None.
+
+wago.tools
+	https://wago.tools/db2/Item?build=1.15.9.70003
+	https://wago.tools/db2/ItemSparse?build=1.15.9.70003
+	https://wago.tools/db2/ItemEffect?build=1.15.9.70003
+	https://wago.tools/db2/Spell?build=1.15.9.70003
+	https://wago.tools/db2/SpellEffect?build=1.15.9.70003
+	https://wago.tools/db2/SpellMisc?build=1.15.9.70003
+	https://wago.tools/db2/SpellDuration?build=1.15.9.70003
+	https://wago.tools/db2/SpellCastingRequirements?build=1.15.9.70003
+	https://wago.tools/db2/AreaGroupMember?build=1.15.9.70003
+	https://wago.tools/db2/UiMapAssignment?build=1.15.9.70003
+]]

@@ -2,6 +2,7 @@ local _, ns = ...
 local GetColor = ns.GetColor
 local L = ns.L
 
+local AceConfigRegistry = LibStub("AceConfigRegistry-3.0")
 local LibDataBroker = LibStub("LibDataBroker-1.1")
 local LibDBIcon = LibStub("LibDBIcon-1.0")
 
@@ -84,20 +85,47 @@ local KnowsAny = ns.KnowsAny
 local LIST_MAX_ROWS = 8
 
 --[[
-    A switch's state. One that is on while its when-to-use choice does not hold
-    (When in a Raid, and the player is solo) shows the choice instead of
-    Enabled: the Food macro is not acting on it, and the label says what it is
-    waiting for. ns.MODE_VALUES is read here rather than aliased at load,
-    because Options/Options-Utilities.lua builds it after this file.
+    A block's state from its switches, each { enabled, mode }: Enabled while
+    any switch is on and its when-to-use choice holds, Disabled while all are
+    off. One that is on while its choice does not hold (When in a Raid, and the
+    player is solo) shows the choice instead of Enabled: the Food macro is not
+    acting on it, and the label says what it is waiting for. ns.MODE_VALUES is
+    read here rather than aliased at load, because Options/Options-Utilities.lua
+    builds it after this file.
 ]]
-local function SwitchState(enabled, mode)
-	if not enabled then
-		return GetColor("OFF") .. L["MINIMAP_DISABLED"] .. "|r"
+local function SwitchState(switches)
+	local waitingMode
+	for _, switch in ipairs(switches) do
+		if switch[1] then
+			if ns.IsModeActive(switch[2]) then
+				return GetColor("ON") .. L["MINIMAP_ENABLED"] .. "|r"
+			end
+			waitingMode = waitingMode or switch[2]
+		end
 	end
-	if ns.IsModeActive(mode) then
-		return GetColor("ON") .. L["MINIMAP_ENABLED"] .. "|r"
+	if waitingMode then
+		return GetColor("SEPARATOR") .. ns.MODE_VALUES[waitingMode] .. "|r"
 	end
-	return GetColor("SEPARATOR") .. ns.MODE_VALUES[mode] .. "|r"
+	return GetColor("OFF") .. L["MINIMAP_DISABLED"] .. "|r"
+end
+
+--[[
+    Left-Click: Buff Food and Scroll Buffs as one pair. Either one on turns
+    both off, both off turns both on, so a click always lands them together;
+    each keeps its own when-to-use choice on the Macros page.
+]]
+local function ToggleBuffFoodAndScrolls()
+	local settings = ns.db.profile
+	local value = not (settings.useBuffFood or settings.useScrolls)
+	ns.ToggleMacroSetting("useBuffFood", value)
+	ns.ToggleMacroSetting("useScrolls", value)
+end
+
+-- Shift + Left-Click: the account-wide Readiness Report switch, repainting both panels that show it.
+local function ToggleReadinessReport()
+	ns.db.global.readinessReportEnabled = not ns.db.global.readinessReportEnabled
+	AceConfigRegistry:NotifyChange(ns.OPTIONS_REGISTRY.General)
+	AceConfigRegistry:NotifyChange(ns.OPTIONS_REGISTRY.ReadinessReport)
 end
 
 -- A feature block: name and state, one description, click and action. A block that only opens something has no state.
@@ -377,13 +405,13 @@ local function RogueNotes()
 			title = L["MINIMAP_MAIN_HAND_POISON"],
 			itemID = mainID,
 			itemLink = mainLink,
-			missingLabel = L["LABEL_POISONS"],
+			missingLabel = L["LABEL_POISON"],
 		},
 		{
 			title = L["MINIMAP_OFF_HAND_POISON"],
 			itemID = offID,
 			itemLink = offLink,
-			missingLabel = L["LABEL_POISONS"],
+			missingLabel = L["LABEL_POISON"],
 		},
 		{
 			title = L["NOTE_MACRO_POISONS"],
@@ -459,19 +487,29 @@ UpdateTooltip = function(anchor)
 		)
 	end
 
+	--[[
+	    Buff Food and Scroll Buffs share one block and one click, which pays for
+	    the Readiness Report's block under it, so the tooltip keeps its height.
+	    It stays live while Macros is switched off, the maintainer's choice: these
+	    are settings for when it is back on.
+	]]
 	AddFeatureBlock(
 		tooltip,
-		L["FEATURE_BUFF_FOOD"],
-		SwitchState(settings.useBuffFood, settings.buffFoodMode),
-		string.format(L["MENU_BUFF_FOOD_DESCRIPTION_FORMAT"], ns.GetWellFedName()),
+		L["MINIMAP_BUFF_FOOD_SCROLLS"],
+		SwitchState({
+			{ settings.useBuffFood, settings.buffFoodMode },
+			{ settings.useScrolls, settings.scrollsMode },
+		}),
+		string.format(L["MINIMAP_BUFF_FOOD_SCROLLS_DESCRIPTION_FORMAT"], ns.GetWellFedName()),
 		L["MINIMAP_LEFT_CLICK"],
 		L["MINIMAP_TOGGLE"]
 	)
+	-- Shown while the report is off too, so a player can find it: it ships switched off.
 	AddFeatureBlock(
 		tooltip,
-		L["FEATURE_SCROLL_BUFFS"],
-		SwitchState(settings.useScrolls, settings.scrollsMode),
-		L["MENU_SCROLL_BUFFS_DESCRIPTION"],
+		L["READINESS_TITLE"],
+		SwitchState({ { ns.db.global.readinessReportEnabled, "always" } }),
+		L["MINIMAP_READINESS_DESCRIPTION"],
 		L["MINIMAP_SHIFT_LEFT"],
 		L["MINIMAP_TOGGLE"]
 	)
@@ -481,11 +519,14 @@ UpdateTooltip = function(anchor)
 		nil,
 		L["MENU_RESTOCKER_DESCRIPTION"],
 		L["MENU_RESTOCKER_KEYBIND"],
-		L["MINIMAP_OPEN"]
+		-- While the Restocker is switched off, its click only says so in chat.
+		ns.IsRestockerEnabled() and L["MINIMAP_OPEN"] or L["MINIMAP_DISABLED"]
 	)
 
 	AddClassNotes(tooltip)
-	AddRestockerReport(tooltip)
+	if ns.IsRestockerEnabled() then
+		AddRestockerReport(tooltip)
+	end
 	AddIgnoreList(tooltip)
 
 	-- Options: always the last block, with no hint line below it.
@@ -516,9 +557,9 @@ ns.dataBrokerObject = LibDataBroker:NewDataObject(ns.LOCALE_NAME, {
 		elseif button == "RightButton" and ns.bestFoodID then
 			ns.IgnoreItem(ns.bestFoodID)
 		elseif button == "LeftButton" and IsShiftKeyDown() then
-			ns.ToggleMacroSetting("useScrolls")
+			ToggleReadinessReport()
 		elseif button == "LeftButton" then
-			ns.ToggleMacroSetting("useBuffFood")
+			ToggleBuffFoodAndScrolls()
 		elseif button == "MiddleButton" then
 			ns.ClearIgnoreList()
 		end

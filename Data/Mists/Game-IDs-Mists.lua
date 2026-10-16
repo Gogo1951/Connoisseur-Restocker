@@ -18,6 +18,25 @@ ns.SHADOWMELD_SPELL_ID = 20580
 ns.STEALTH_SPELL_ID = 1784
 
 --------------------------------------------------------------------------------
+-- Cannibalize (Forsaken)
+--------------------------------------------------------------------------------
+
+--[[
+    The Forsaken racial, which channels off a corpse of one of these creature
+    types (6 Undead, 7 Humanoid). It restores copied from TBC: health only there, so
+    CANNIBALIZE_RESTORES_MANA decides whether the Water macro may cast it.
+]]
+ns.CANNIBALIZE_SPELL_ID = 20577
+ns.CANNIBALIZE_CREATURE_TYPE_IDS = { 6, 7 }
+ns.CANNIBALIZE_RESTORES_MANA = false
+
+--------------------------------------------------------------------------------
+-- Races
+--------------------------------------------------------------------------------
+
+ns.NIGHT_ELF_RACE_ID = 4
+
+--------------------------------------------------------------------------------
 -- Druid Forms
 --------------------------------------------------------------------------------
 

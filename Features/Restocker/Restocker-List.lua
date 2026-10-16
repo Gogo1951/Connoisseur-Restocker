@@ -167,8 +167,8 @@ function ns.AddRestockItem(text)
 		    arrive. Input carrying no itemID is dropped rather than parked: no answer
 		    can ever clear its key, and a parked key would hold GET_ITEM_INFO_RECEIVED
 		    registered for the rest of the session. It is answered, though: a typed
-		    name the client cannot place used to do nothing at all, which read as
-		    the box being broken.
+		    name the client cannot place gets a notice, or the box would read as
+		    broken.
 		]]
 		local waitKey = text
 		if type(text) == "string" then

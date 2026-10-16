@@ -129,9 +129,6 @@ end
                                      whose talents are Retail's.
       ns.UnitCharacterPoints(unit)   Unspent talent points; nil on Forever.
       ns.IsSecretValue(value)        Forever's secret values; false elsewhere.
-      ns.GetItemTooltipLines(itemID) A tooltip's lines as { left, right }
-      ns.GetSpellTooltipLines(spellID) text pairs: C_TooltipInfo on Forever,
-                                     a hidden tooltip on Era and TBC.
       ns.GetPlayerFullName()         This character's name: the first name and
                                      surname on Forever, the one name on Era
                                      and TBC.
@@ -171,59 +168,6 @@ else
 end
 
 --[[
-    Only Validate Data reads tooltip text: feature code keeps what a tooltip
-    says about an ID as static data. Forever's C_TooltipInfo returns the lines
-    before any other add-on's tooltip hooks can add to them. Era and TBC ship
-    no C_TooltipInfo getters, so they fill a hidden tooltip, created on first
-    use, and read its lines back.
-]]
-if C_TooltipInfo and C_TooltipInfo.GetItemByID then
-	local function DataLines(data)
-		local lines = {}
-		for _, line in ipairs(data and data.lines or {}) do
-			lines[#lines + 1] = { line.leftText, line.rightText }
-		end
-		return lines
-	end
-
-	function ns.GetItemTooltipLines(itemID)
-		return DataLines(C_TooltipInfo.GetItemByID(itemID))
-	end
-
-	function ns.GetSpellTooltipLines(spellID)
-		return DataLines(C_TooltipInfo.GetSpellByID(spellID))
-	end
-else
-	local SCAN_TOOLTIP_NAME = "ConnoisseurScanTooltip"
-	local scanTooltip
-
-	-- A hidden right-hand string still holds text from an earlier tooltip, so only a shown one counts.
-	local function ScanLines(setter, id)
-		scanTooltip = scanTooltip or CreateFrame("GameTooltip", SCAN_TOOLTIP_NAME, nil, "GameTooltipTemplate")
-		scanTooltip:SetOwner(UIParent, "ANCHOR_NONE")
-		scanTooltip[setter](scanTooltip, id)
-		local lines = {}
-		for index = 1, scanTooltip:NumLines() do
-			local right = _G[SCAN_TOOLTIP_NAME .. "TextRight" .. index]
-			lines[index] = {
-				_G[SCAN_TOOLTIP_NAME .. "TextLeft" .. index]:GetText(),
-				right:IsShown() and right:GetText() or nil,
-			}
-		end
-		scanTooltip:Hide()
-		return lines
-	end
-
-	function ns.GetItemTooltipLines(itemID)
-		return ScanLines("SetItemByID", itemID)
-	end
-
-	function ns.GetSpellTooltipLines(spellID)
-		return ScanLines("SetSpellByID", spellID)
-	end
-end
-
---[[
     A Forever character has a first name and a surname, unique together across
     the region, and the client hands them back as two values. Only a client
     with that system has RegionalUniqueNamesEnabled, and what it writes between
@@ -237,6 +181,10 @@ end
     The surname is added only to a first value that does not already end with
     it. An earlier beta build's UnitName gave the whole name first, and saved
     files from it hold keys in that shape.
+
+    Wherever the add-on saves or names a character -- a Restock List's
+    characters, the Inventory Report, the character's own profile -- a Forever
+    character is this whole name, never its first name alone.
 ]]
 if RegionalUniqueNamesEnabled then
 	local separatorConstants = Constants.CharacterNameSeparatorConsts
@@ -257,6 +205,82 @@ else
 		return (UnitName("player"))
 	end
 end
+
+--------------------------------------------------------------------------------
+-- Item Stats
+--------------------------------------------------------------------------------
+
+--[[
+    An item's stat table from its link. WoW Forever ships C_Item.GetItemStats;
+    Classic Era and TBC Anniversary have only the legacy global GetItemStats,
+    which returns the same table. Resolved once at load, modern first; both are
+    rows in the Diagnostic Tools API report.
+]]
+ns.GetItemStats = C_Item.GetItemStats or GetItemStats
+
+--------------------------------------------------------------------------------
+-- Tooltip Text
+--------------------------------------------------------------------------------
+
+--[[
+    An item's or spell's tooltip as plain lines, a right-hand column kept after
+    " >> ". kind is "item" or "spell". C_TooltipInfo hands the lines over as
+    data where the client ships its GetItemByID and GetSpellByID getters (WoW
+    Forever); elsewhere they are read off a hidden tooltip that is never shown
+    (Classic Era and TBC Anniversary). Color escapes are stripped so each line
+    reads as its words. Resolved once at load. A read can throw on an odd id, so
+    callers protect it.
+]]
+local SCAN_TOOLTIP_NAME = "ConnoisseurScanTooltip"
+local TOOLTIP_DATA_GETTERS = C_TooltipInfo
+	and C_TooltipInfo.GetItemByID
+	and C_TooltipInfo.GetSpellByID
+	and { item = C_TooltipInfo.GetItemByID, spell = C_TooltipInfo.GetSpellByID }
+local scanTooltip
+
+local function PlainText(text)
+	if type(text) ~= "string" then
+		return nil
+	end
+	return (text:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|cn[^:]*:", ""):gsub("|r", ""))
+end
+
+local function JoinTooltipLine(left, right)
+	left = PlainText(left) or ""
+	right = PlainText(right)
+	if right and right ~= "" then
+		return left .. " >> " .. right
+	end
+	return left
+end
+
+local function ReadTooltipData(kind, id)
+	local lines = {}
+	local data = TOOLTIP_DATA_GETTERS[kind](id)
+	for _, line in ipairs(data and data.lines or {}) do
+		lines[#lines + 1] = JoinTooltipLine(line.leftText, line.rightText)
+	end
+	return lines
+end
+
+local function ReadScanTooltip(kind, id)
+	if not scanTooltip then
+		scanTooltip = CreateFrame("GameTooltip", SCAN_TOOLTIP_NAME, nil, "GameTooltipTemplate")
+	end
+	scanTooltip:SetOwner(WorldFrame, "ANCHOR_NONE")
+	scanTooltip:ClearLines()
+	scanTooltip:SetHyperlink(kind .. ":" .. id)
+	local lines = {}
+	for index = 1, scanTooltip:NumLines() do
+		local left = _G[SCAN_TOOLTIP_NAME .. "TextLeft" .. index]
+		local right = _G[SCAN_TOOLTIP_NAME .. "TextRight" .. index]
+		lines[#lines + 1] = JoinTooltipLine(left and left:GetText(), right and right:IsShown() and right:GetText())
+	end
+	scanTooltip:Hide()
+	return lines
+end
+
+ns.GetTooltipLines = TOOLTIP_DATA_GETTERS and ReadTooltipData or ReadScanTooltip
 
 --------------------------------------------------------------------------------
 -- Character Profile Names
@@ -418,8 +442,9 @@ end
     First), which all offer the same six modes. Every group read here must
     stay inside the group signature (ns.GroupSignatureChanged), or a join or
     leave never rescans. The level modes need no signature: PLAYER_LEVEL_UP
-    already refreshes ns.cachedPlayerLevel and rebuilds every macro. An
-    unknown mode counts as active.
+    already refreshes ns.cachedPlayerLevel and rebuilds every macro, and
+    leveling means below the client's own max level (ns.GetMaxPlayerLevel),
+    never a hard-coded one. An unknown mode counts as active.
 ]]
 function ns.IsModeActive(mode)
 	if mode == "always" then

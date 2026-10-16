@@ -4,17 +4,6 @@ if ns.IS_DISCOVERY then
 	return
 end
 
---------------------------------------------------------------------------------
--- Scroll Data
---------------------------------------------------------------------------------
-
---[[
-    Source: Validate Data on the Classic Era client (1.15.9, build 69722).
-    Conflict spells 13326, 364161, 16876, 16875, 13864, 23947 and 23948 came
-    from the wago.tools tables for build 1.15.9.69722, for the next Validate
-    Data run to confirm.
-]]
--- TODO: Add SQL Query
 -- [scrollType] = { items = { ... }, conflictSpells = { ... } }
 ns.SCROLL_DATA = {
 	Agility = {
@@ -25,7 +14,6 @@ ns.SCROLL_DATA = {
 			{ 1477, 8116, 25, 9 }, -- Scroll of Agility II
 			{ 3012, 8115, 10, 5 }, -- Scroll of Agility
 		},
-		-- Stacks with everything in Classic/TBC
 		-- [spellID] = amount, -- Name
 		conflictSpells = {},
 	},
@@ -58,7 +46,6 @@ ns.SCROLL_DATA = {
 			{ 1478, 8094, 15, 120 }, -- Scroll of Protection II
 			{ 3013, 8091, 1, 60 }, -- Scroll of Protection
 		},
-		-- Stacks with Devotion Aura, Stoneskin, etc. in Classic/TBC
 		-- [spellID] = amount, -- Name
 		conflictSpells = {},
 	},
@@ -111,8 +98,33 @@ ns.SCROLL_DATA = {
 			{ 2289, 8119, 25, 9 }, -- Scroll of Strength II
 			{ 954, 8118, 10, 5 }, -- Scroll of Strength
 		},
-		-- Stacks with everything in Classic/TBC
 		-- [spellID] = amount, -- Name
 		conflictSpells = {},
 	},
 }
+
+--[[
+How We Got the Data
+
+Last Validated
+	2026-10-16, Classic Era 1.15.9.70003
+
+Notes
+	- The stat scrolls, read by Features/Scanner-Auras.lua (FindBestScroll) to pick a scroll whose buff the player lacks. Each type lists its scrolls as { itemID, buffID, requiredLevel, amount }: the buff is the aura the scroll leaves, requiredLevel the level the tooltip requires, amount the stat it grants.
+	- conflictSpells lists the class buffs a scroll can't stack with, keyed by spell ID, with the amount each grants; a scroll is skipped while the player has a conflicting buff at least as strong. Agility, Protection and Strength list none: Agility stacks with everything on the Classic and TBC clients, and Protection with Devotion Aura, Stoneskin and the like.
+
+SQL (CMaNGOS)
+	TODO: Add SQL Query
+
+Wowhead
+	None.
+
+wago.tools
+	https://wago.tools/db2/Item?build=1.15.9.70003
+	https://wago.tools/db2/ItemSparse?build=1.15.9.70003
+	https://wago.tools/db2/ItemEffect?build=1.15.9.70003
+	https://wago.tools/db2/Spell?build=1.15.9.70003
+	https://wago.tools/db2/SpellEffect?build=1.15.9.70003
+	https://wago.tools/db2/SpellMisc?build=1.15.9.70003
+	https://wago.tools/db2/SpellDuration?build=1.15.9.70003
+]]

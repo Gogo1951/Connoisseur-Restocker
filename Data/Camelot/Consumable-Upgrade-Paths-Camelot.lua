@@ -1,93 +1,7 @@
 local _, ns = ...
 
---------------------------------------------------------------------------------
--- Consumable Upgrade Paths
---------------------------------------------------------------------------------
-
---[[
-    The staple ladders. Each family goes up in fixed steps, so a Restock List
-    entry can follow the player instead of going stale: at level 45 "Soft
-    Banana Bread" is what you want, at 55 it is not.
-
-    Deliberately a table of its own rather than columns on
-    ns.FOOD_AND_WATER or ns.POTIONS. Those answer "what does this
-    item restore?" for hundreds of items; this one answers "what should replace
-    this on a shopping list?" for a curated few. Bolting the second onto the
-    first would nil-pad most rows, push an already-positional row wider, and
-    leave each tier's rank nowhere to live -- the ranks are the data here, and
-    Restocker-Upgrade.lua sorts every ladder by them at load.
-
-    WHICH FOLDERS HOLD A TIER IS DECIDED BY HAND, and has to be. A Wrath
-    database cannot say when an item was added: the ID blocks interleave (the
-    Northrend food staples are 33443-33454, below TBC's Naaru Ration at 34780),
-    and vendorMaps describes 3.3.5, where Azeroth vendors already stock
-    Northrend food. It only changes an outcome in a few places -- reqLevel
-    55-60, where Classic Era would otherwise reach for Outland goods, and 65,
-    where TBC and Wrath offer equivalents -- but there it is the only thing
-    that is right.
-
-    minLevel is item_template.RequiredLevel, the level the item becomes USABLE,
-    which for food runs ten below the ItemLevel ladder of the same items.
-]]
-
---[[
-    Source: Validate Data on the WoW Forever client (1.60.1, build 69977).
-
-    SOURCE, food and water (CMaNGoS, Wrath). Ammo is the same query with
-    `class = 6 AND subclass IN (2, 3)` (2 arrow, 3 bullet) plus dmg_min1 and
-    dmg_max1 to confirm the ordering.
-
-        SELECT it.entry, it.name, it.ItemLevel, it.RequiredLevel, it.FoodType,
-               it.spellid_1, it.BuyPrice, COUNT(DISTINCT nv.entry) AS vendors,
-               MIN(nv.maxcount) AS minStock, MAX(nv.ExtendedCost) AS extCost,
-               GROUP_CONCAT(DISTINCT c.map ORDER BY c.map) AS vendorMaps
-        FROM item_template it
-        JOIN npc_vendor nv        ON nv.item  = it.entry
-        JOIN creature_template ct ON ct.Entry = nv.entry
-        LEFT JOIN creature c      ON c.id     = ct.Entry
-        WHERE it.class = 0 AND it.subclass = 5
-        GROUP BY it.entry
-        ORDER BY it.FoodType, it.ItemLevel, it.entry;
-
-    Every food, water and ammo tier below is gold-buyable and unlimited stock:
-    extCost = 0, minStock = 0, BuyPrice > 0. That filter is what drops the
-    arena and token foods (Star's Tears, Marsh Lichen) and the limited-stock
-    ones (Blackened Basilisk, Steaming Chicken Soup) -- none of which a restock
-    list can rely on. Where a tier had several candidates the one on the most
-    vendors won.
-
-    POTIONS ARE THE EXCEPTION TO ALL OF THAT. Past the first tier or two they
-    are Alchemy goods off the auction house, not vendor stock, so no
-    npc_vendor query produces them and the "sold by a merchant" rule does not
-    apply. Their ladder is still real -- Greater becomes Superior at 35 the
-    same way bread becomes pie at 45 -- and the Restocker still moves them to
-    and from the bank. It only means their Buy toggle has nothing to buy from.
-]]
-
---[[
-    diet uses ns.PET_DIET_MAP's numbering (Data/Data.lua), NOT
-    item_template.FoodType. The two disagree on four of six values -- the
-    database calls cheese 3 and bread 4, Connoisseur calls bread 3 and cheese
-    4, and it swaps fruit and fungus too -- so a FoodType pasted in raw from
-    SQL would silently mislabel most of this file. Water is 0: drinks have no
-    FoodType at all, which is also why they are absent from Pet-Foods-Camelot.lua.
-]]
 local WATER, MEAT, FISH, BREAD, CHEESE, FRUIT, FUNGUS = 0, 1, 2, 3, 4, 5, 6
 
---[[
-    kind is what the ladder is, for anything that needs to tell them apart;
-    diet is carried on the food chains only, where it ties to ns.PET_DIET_MAP.
-
-    Arrows and bullets are separate ladders on purpose. A hunter's weapon
-    decides which they can fire, so upgrading an arrow into a bullet would
-    leave them holding ammo they cannot use.
-
-    Each tier carries its rank, the third field: the higher rank is the better
-    tier, whatever the row's position, and the tiers are sorted by rank at load
-    (Features/Restocker/Restocker-Upgrade.lua). Ranks follow minLevel, and where
-    two tiers share one (the Wrath folder's level-65 food and water) the Wrath
-    item carries the higher rank.
-]]
 -- { kind, diet / group / reagent, tiers = { { minLevel, itemID, rank }, -- Name } }
 ns.CONSUMABLE_UPGRADE_CHAINS = {
 	{
@@ -127,13 +41,6 @@ ns.CONSUMABLE_UPGRADE_CHAINS = {
 		},
 	},
 	{
-		--[[
-		    Homemade Cherry Pie is BREAD, not fruit. item_template files it
-		    under FoodType 6 and the database is simply wrong -- Pet-Foods-Camelot.lua
-		    already carries the same correction (diet 3) and says so. Taking
-		    the SQL at its word would have left bread with no tier at 45 and
-		    given fruit two.
-		]]
 		kind = "food",
 		diet = BREAD,
 		tiers = {
@@ -158,10 +65,6 @@ ns.CONSUMABLE_UPGRADE_CHAINS = {
 		},
 	},
 	{
-		--[[
-		    Deep Fried Plantains takes 45, not Homemade Cherry Pie: see the bread
-		    chain above for why the database's fruit label on the pie is wrong.
-		]]
 		kind = "food",
 		diet = FRUIT,
 		tiers = {
@@ -186,27 +89,6 @@ ns.CONSUMABLE_UPGRADE_CHAINS = {
 		},
 	},
 
-	--[[
-	    AMMO
-
-	    Rep ammo is excluded, and the intended filter did not work:
-	    npc_vendor's condition_id is empty in the source database, so the Halaa
-	    token ammo and the Sha'tari / Ogri'la / Shattered Sun rep ammo all came
-	    back looking unconditional. Vendor count separates them instead, and
-	    cleanly -- the staples sit on 54 to 120 vendors and every rep, token or
-	    quartermaster line on 1 to 4, with nothing in between. Excluded on that
-	    basis: Scout's Arrow, Halaani Razorshaft, Halaani Grimshot, Warden's
-	    Arrow, Hellfire Shot, Felbane Slugs, Mysterious Arrow, Mysterious
-	    Shell, Timeless Arrow, Timeless Shell.
-
-	    That an item leaves the ladder is the whole behaviour the exclusion
-	    buys: a player who switches to rep ammo holds something with no chain
-	    entry, so its Upgrade button greys out and Connoisseur leaves it alone.
-
-	    The two ladders mirror each other exactly, tier for tier and damage for
-	    damage. Engineering ammo (Thorium Headed Arrow, Mithril Gyro-Shot) beats
-	    both and appears in neither, because none of it is sold by a vendor.
-	]]
 	{
 		kind = "arrow",
 		tiers = {
@@ -226,40 +108,6 @@ ns.CONSUMABLE_UPGRADE_CHAINS = {
 		},
 	},
 
-	--[[
-	    ROGUE POISONS
-
-	    The tier rows mirror ns.POISON_DATA (Poisons-Camelot.lua), which the
-	    Poisons macro already ships -- keep the two in step. group is
-	    ns.POISON_GROUPS' numbering (Data/Data.lua), which is how the Starter
-	    List popup finds each ladder.
-
-	    Poisons are crafted, not bought: on every client a Rogue makes
-	    every rank, no vendor sells one, and the Restocker buys the reagents for
-	    a listed rank instead (Features/Restocker/Restocker-Crafting-Reagents.lua).
-	    Like the potions above, the ladder is real without the "sold by a
-	    merchant" rule. List the ranks with the food query up top, filtered by
-	    name instead of class/subclass (the poison subclass moved between client
-	    generations):
-
-	        SELECT it.entry, it.name, it.ItemLevel, it.RequiredLevel, it.BuyPrice,
-	               COUNT(DISTINCT nv.entry) AS vendors, MIN(nv.maxcount) AS minStock,
-	               MAX(nv.ExtendedCost) AS extCost
-	        FROM item_template it
-	        LEFT JOIN npc_vendor nv ON nv.item = it.entry
-	        WHERE it.name REGEXP '^(Anesthetic|Crippling|Deadly|Instant|Mind-numbing|Wound) Poison'
-	        GROUP BY it.entry
-	        ORDER BY it.name, it.RequiredLevel;
-
-	    LEFT JOIN rather than the header query's inner join, so a rank with
-	    no vendor row still shows up and an exclusion is a decision instead
-	    of an accident.
-
-	    Which folders hold a rank is decided by hand here too, from release
-	    history: Anesthetic is TBC's new poison, so the Classic Era folders hold
-	    its chain empty; the 22xxx ranks came with TBC, and the 43xxx ranks are
-	    Wrath's, carried by the Wrath folder alone, like the Runic potions below.
-	]]
 	{
 		kind = "poison",
 		group = 1,
@@ -316,37 +164,7 @@ ns.CONSUMABLE_UPGRADE_CHAINS = {
 		},
 	},
 
-	--[[
-	    CLASS REAGENTS
-
-	    One chain per Starter List reagent checkbox, keyed by the reagent
-	    string; single-tier chains are deliberate -- a one-rung ladder gives
-	    a reagent the same level gate every real ladder gets, for free. (Their Upgrade toggle in the Restocker window is
-	    active but inert: there is never a later tier to move to.) The
-	    multi-tier groups here -- Seeds, Wilds, Candles -- upgrade exactly
-	    like the food ladders above.
-
-	    EVERY minLevel BELOW IS AN ESTIMATE of the level the reagent's spell
-	    is first trainable, awaiting hand-adjustment -- unlike the rest of
-	    this file these are NOT item_template.RequiredLevel, because reagents
-	    carry no required level of their own; the spell is the gate.
-
-	    Blinding Powder left the game after Classic, so only the Classic Era
-	    folders carry its tier and every later folder holds its chain empty.
-
-	    Soul Shards are the potions of this block: no vendor sells them, so
-	    their Buy toggle has nothing to buy from, while the bank half of the
-	    Restocker still moves them. Corpse Dust is Wrath vendor stock, so only
-	    the Wrath folder carries its tier.
-	]]
 	{
-		--[[
-		    The worked example, offered to every class: nothing sells it and
-		    everyone already owns one, so it demonstrates that the Restock
-		    List tracks anything at all -- the bank half still applies, and
-		    the Buy toggle simply has nothing to buy, like the Alchemy
-		    potions below.
-		]]
 		kind = "reagent",
 		reagent = "hearthstone",
 		tiers = {
@@ -387,10 +205,6 @@ ns.CONSUMABLE_UPGRADE_CHAINS = {
 		},
 	},
 	{
-		--[[
-		    Slow Fall at 12; the priest's Levitate trains at 34. One chain
-		    serves both classes, so the earlier level opens it.
-		]]
 		kind = "reagent",
 		reagent = "light-feather",
 		tiers = {
@@ -426,10 +240,6 @@ ns.CONSUMABLE_UPGRADE_CHAINS = {
 		},
 	},
 	{
-		--[[
-		    Prayer of Fortitude by rank; TBC's prayers reuse the Sacred Candle,
-		    so no TBC tier exists.
-		]]
 		kind = "reagent",
 		reagent = "candles",
 		tiers = {
@@ -452,7 +262,6 @@ ns.CONSUMABLE_UPGRADE_CHAINS = {
 		},
 	},
 	{
-		-- Removed after Classic (Blind lost its reagent), so only the Classic Era folders carry its tier.
 		kind = "reagent",
 		reagent = "blinding-powder",
 		tiers = {
@@ -530,35 +339,6 @@ ns.CONSUMABLE_UPGRADE_CHAINS = {
 		},
 	},
 
-	--[[
-	    POTIONS -- HAND-CURATED
-
-	    The standard Alchemy ladders, taken from ns.POTIONS (the
-	    restore amounts there confirm the ordering: 70/140/280/455/700/1050/
-	    1500 healing, 140/280/455/700/900/1350/1800 mana). Every non-standard
-	    potion in that table is deliberately absent -- the Combat, Auchenai,
-	    Crystal, Ogre Brew, Nethergon, Salve, Draught and Injector variants are
-	    zone-locked, quest-locked or reward items, and none belongs on a
-	    ladder a shopping list follows automatically.
-
-	    minLevel is item_template.RequiredLevel like every other ladder here,
-	    but it had to be asked for directly -- potions never appear in an
-	    npc_vendor query, so the source query above does not reach them:
-
-	        SELECT entry, name, ItemLevel, RequiredLevel
-	        FROM item_template
-	        WHERE entry IN (118,858,929,1710,3928,13446,22829,33447,
-	                        2455,3385,3827,6149,13443,13444,22832,33448)
-	        ORDER BY entry;
-
-	    Note the two ladders do NOT step together -- healing goes
-	    1/3/12/21/35/45/55/70 and mana 5/14/22/31/41/49/55/70 -- so a character
-	    carrying both will often upgrade one and not the other on the same
-	    level. That is correct, not a rounding error in this table.
-
-	    Runic Healing and Runic Mana are Wrath items: only the Wrath folder's
-	    ladders carry them, and ns.POTIONS has no row for either yet.
-	]]
 	{
 		kind = "healing-potion",
 		tiers = {
@@ -582,3 +362,73 @@ ns.CONSUMABLE_UPGRADE_CHAINS = {
 		},
 	},
 }
+
+--[[
+How We Got the Data
+
+Last Validated
+	2026-10-16, WoW Forever 1.60.1.70425
+
+Notes
+	- The staple ladders, read by Features/Restocker/Restocker-Upgrade.lua and the Starter List (Restocker-Starter-List.lua). Each family goes up in fixed steps, so a Restock List entry can follow the player instead of going stale: at level 45 "Soft Banana Bread" is what you want, at 55 it is not.
+	- A table of its own on purpose, not columns on ns.FOOD_AND_WATER or ns.POTIONS: those answer "what does this item restore?" for hundreds of items, while this answers "what should replace this on a shopping list?" for a curated few. Bolting one onto the other would nil-pad most rows, widen an already-positional row, and leave each tier's rank nowhere to live.
+	- Each tier is { minLevel, itemID, rank }. minLevel is the level the item becomes usable (its required level), which for food runs ten below the item level of the same items. rank is the third field: the higher rank is the better tier whatever the row's position, and Restocker-Upgrade.lua sorts every ladder by rank at load. Ranks follow minLevel; where two tiers share one (the Wrath folder's level-65 food and water) the Wrath item carries the higher rank.
+	- kind says what the ladder is. diet is carried on the food chains only and uses ns.PET_DIET_MAP's numbering (Data/Data.lua), NOT the database's FoodType: the two disagree on four of six values (the database calls cheese 3 and bread 4 and swaps fruit and fungus), so a FoodType pasted in raw would mislabel most of this file. Water is 0: drinks have no FoodType, which is also why they are absent from the pet-food table.
+	- Which folders hold a tier is decided by hand, and has to be. A Wrath database can't say when an item was added: the ID blocks interleave (the Northrend food staples are 33443-33454, below TBC's Naaru Ration at 34780), and vendor maps describe 3.3.5, where Azeroth vendors already stock Northrend food. It changes an outcome only at required levels 55-60, where Classic Era would otherwise reach for Outland goods, and at 65, where TBC and Wrath offer equivalents.
+	- Every food, water and ammo tier is gold-buyable and unlimited stock (no extended cost, no stock limit, a buy price). That drops the arena and token foods (Star's Tears, Marsh Lichen) and the limited-stock ones (Blackened Basilisk, Steaming Chicken Soup), none of which a restock list can rely on. Where a tier had several candidates the one on the most vendors won.
+	- Homemade Cherry Pie is bread, not fruit: the database files it under FoodType 6 and is simply wrong, and the pet-food table carries the same correction. Taking the SQL at its word would leave bread with no tier at 45 and give fruit two, so Deep Fried Plantains takes fruit's 45.
+	- Arrows and bullets are separate ladders on purpose: a hunter's weapon decides which they can fire, so upgrading an arrow into a bullet would leave them holding ammo they can't use. The two mirror each other tier for tier and damage for damage. Engineering ammo (Thorium Headed Arrow, Mithril Gyro-Shot) beats both and appears in neither, since no vendor sells it.
+	- Reputation and token ammo is left out. The intended filter, npc_vendor's condition_id, is empty in the source database, so vendor count separates them instead, and cleanly: the staples sit on 54 to 120 vendors and every rep, token or quartermaster line on 1 to 4. Left out on that basis: Scout's Arrow, Halaani Razorshaft, Halaani Grimshot, Warden's Arrow, Hellfire Shot, Felbane Slugs, Mysterious Arrow, Mysterious Shell, Timeless Arrow, Timeless Shell. A player who switches to rep ammo holds something with no chain entry, so its Upgrade button greys out and Connoisseur leaves it alone.
+	- The poison ladders mirror ns.POISON_DATA (Poisons-Camelot.lua), which the Poisons macro ships: keep the two in step. group is ns.POISON_GROUPS' numbering (Data/Data.lua), which is how the Starter List finds each ladder. Poisons are crafted, never sold, so the Restocker buys the reagents for a listed rank instead (Restocker-Crafting-Reagents.lua). Which folders hold a rank is decided by hand from release history: Anesthetic is TBC's new poison, so the Classic Era folders hold its chain empty; the 22xxx ranks came with TBC, and the 43xxx ranks are Wrath's, carried by the Wrath folder alone.
+	- The class reagent chains are one per Starter List reagent checkbox, keyed by the reagent string. Single-tier chains are deliberate: a one-rung ladder gives a reagent the same level gate every real ladder gets (its Upgrade toggle is active but inert). Seeds (Rebirth by rank), Wilds (Gift of the Wild by rank) and Candles (Prayer of Fortitude by rank) upgrade like the food ladders. TBC's prayers reuse the Sacred Candle, so no TBC candle tier exists.
+	- Every reagent minLevel is an estimate of the level the reagent's spell is first trainable, awaiting hand-adjustment, and is NOT the item's required level: reagents carry none of their own, the spell is the gate. Light Feather opens at 12 for Slow Fall (the priest's Levitate trains at 34; one chain serves both). Blinding Powder left the game after Classic (Blind lost its reagent), so only the Classic Era folders carry its tier. Corpse Dust is Wrath vendor stock, so only the Wrath folder carries its tier.
+	- The Hearthstone chain is the worked example offered to every class: nothing sells it and everyone owns one, so it shows that the Restock List tracks anything at all. Like it, Soul Shards and the Alchemy potions have no vendor, so their Buy toggle has nothing to buy while the bank half of the Restocker still moves them.
+	- The potion ladders are hand-curated from ns.POTIONS, whose amounts confirm the order (healing 70/140/280/455/700/1050/1500, mana 140/280/455/700/900/1350/1800). Every non-standard potion there is left out: the Combat, Auchenai, Crystal, Ogre Brew, Nethergon, Salve, Draught and Injector variants are zone-locked, quest-locked or reward items. The two ladders don't step together (healing at 1/3/12/21/35/45/55/70, mana at 5/14/22/31/41/49/55/70), so a character carrying both often upgrades one and not the other at the same level; that is correct. Runic Healing and Runic Mana are Wrath items, carried only by the Wrath folder's ladders.
+	- WoW Forever's level-1 copies of Roasted Quail, Morning Glory Dew and the low potions (IDs 287963-287977) are not tiers; the ladders are curated by hand.
+
+SQL (CMaNGOS)
+	Food and water, wotlk-db (CMaNGOS). Ammo is the same query with
+	`class = 6 AND subclass IN (2, 3)` (2 arrow, 3 bullet) plus dmg_min1 and
+	dmg_max1 to confirm the ordering.
+
+	    SELECT it.entry, it.name, it.ItemLevel, it.RequiredLevel, it.FoodType,
+	           it.spellid_1, it.BuyPrice, COUNT(DISTINCT nv.entry) AS vendors,
+	           MIN(nv.maxcount) AS minStock, MAX(nv.ExtendedCost) AS extCost,
+	           GROUP_CONCAT(DISTINCT c.map ORDER BY c.map) AS vendorMaps
+	    FROM item_template it
+	    JOIN npc_vendor nv        ON nv.item  = it.entry
+	    JOIN creature_template ct ON ct.Entry = nv.entry
+	    LEFT JOIN creature c      ON c.id     = ct.Entry
+	    WHERE it.class = 0 AND it.subclass = 5
+	    GROUP BY it.entry
+	    ORDER BY it.FoodType, it.ItemLevel, it.entry;
+
+	Poisons, the same database, filtered by name instead of class and subclass
+	(the poison subclass moved between client generations). A LEFT JOIN rather
+	than the food query's inner join, so a rank with no vendor row still shows
+	up and an exclusion is a decision instead of an accident:
+
+	    SELECT it.entry, it.name, it.ItemLevel, it.RequiredLevel, it.BuyPrice,
+	           COUNT(DISTINCT nv.entry) AS vendors, MIN(nv.maxcount) AS minStock,
+	           MAX(nv.ExtendedCost) AS extCost
+	    FROM item_template it
+	    LEFT JOIN npc_vendor nv ON nv.item = it.entry
+	    WHERE it.name REGEXP '^(Anesthetic|Crippling|Deadly|Instant|Mind-numbing|Wound) Poison'
+	    GROUP BY it.entry
+	    ORDER BY it.name, it.RequiredLevel;
+
+	Potions, the same database, asked for directly because potions never appear
+	in an npc_vendor query:
+
+	    SELECT entry, name, ItemLevel, RequiredLevel
+	    FROM item_template
+	    WHERE entry IN (118,858,929,1710,3928,13446,22829,33447,
+	                    2455,3385,3827,6149,13443,13444,22832,33448)
+	    ORDER BY entry;
+
+Wowhead
+	None.
+
+wago.tools
+	https://wago.tools/db2/ItemSparse?build=1.60.1.70425
+]]

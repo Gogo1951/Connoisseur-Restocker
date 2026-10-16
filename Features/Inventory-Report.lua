@@ -38,9 +38,10 @@ local GetColor = ns.GetColor
     item. Items cannot be mailed across realms, so a count there answers nothing
     the player can act on from here.
 
-    Switched off from the Restocker panel (ns.db.global.inventoryReport): most
-    auction add-ons put their own counts on the same tooltips, and two sets of
-    numbers under one item is noise.
+    Switched off from the Restocker panel or the General page's Features
+    section (ns.db.global.inventoryReport): most auction add-ons put their own
+    counts on the same tooltips, and two sets of numbers under one item is
+    noise.
 ]]
 
 -- Bank bag ids follow the player's own: 5..10 on Classic Era (six slots), 5..11 on TBC, as in Restocker-Bags.lua.
@@ -226,7 +227,9 @@ end
 ]]
 ns.inventoryEventHandlers = {
 	-- Login and every loading screen after it: the first read, for a session in which the bags never change.
-	PLAYER_ENTERING_WORLD = ScanBags,
+	PLAYER_ENTERING_WORLD = function()
+		ScanBags()
+	end,
 	BANKFRAME_OPENED = function()
 		bankIsOpen = true
 		ScanBank()
@@ -327,6 +330,30 @@ local function KeepAmount(itemID)
 	end
 end
 
+local TEXT_COLOR = GetColor("TEXT")
+
+--[[
+    The header line, built once: it says the same thing on every tooltip. It is
+    the chat prints' branded shape (ns.PrintMessage), with the add-on's full
+    name: both halves are proper nouns that stay as written in every locale,
+    so the name is composed from their keys, joined the way each locale's
+    INVENTORY_REPORT_BRAND joins them.
+]]
+local REPORT_HEADER = GetColor("INFO")
+	.. string.format(L["INVENTORY_REPORT_BRAND"], L["ADDON_TITLE"], L["TAB_RESTOCKER"])
+	.. "|r "
+	.. GetColor("SEPARATOR")
+	.. "//"
+	.. "|r "
+	.. TEXT_COLOR
+	.. L["INVENTORY_REPORT_TITLE"]
+	.. "|r"
+
+-- A row of the block: its label one space in, its count at the right edge.
+local function Pair(label, value)
+	return { ROW_INDENT .. TEXT_COLOR .. label .. "|r", TEXT_COLOR .. value .. "|r" }
+end
+
 --[[
     The report's lines, ready to add, or nil when there is nothing to say: the
     report is off, or nobody on the realm holds the item and it is not on the
@@ -366,30 +393,8 @@ function ns.GetInventoryReportLines(itemID)
 		return nil
 	end
 
-	local text = GetColor("TEXT")
-	local function Pair(label, value)
-		return { ROW_INDENT .. text .. label .. "|r", text .. value .. "|r" }
-	end
-
-	--[[
-	    The chat prints' branded shape (ns.PrintMessage), with the add-on's full
-	    name: both halves are proper nouns that stay as written in every locale,
-	    so the name is composed from their keys, joined the way each locale's
-	    INVENTORY_REPORT_BRAND joins them.
-	]]
-	local lines = {
-		{
-			GetColor("INFO")
-				.. string.format(L["INVENTORY_REPORT_BRAND"], L["ADDON_TITLE"], L["TAB_RESTOCKER"])
-				.. "|r "
-				.. GetColor("SEPARATOR")
-				.. "//"
-				.. "|r "
-				.. text
-				.. L["INVENTORY_REPORT_TITLE"]
-				.. "|r",
-		},
-	}
+	local text = TEXT_COLOR
+	local lines = { { REPORT_HEADER } }
 
 	-- Against the Keep amount for a list item, the ratio the Restocker Report prints.
 	lines[#lines + 1] =

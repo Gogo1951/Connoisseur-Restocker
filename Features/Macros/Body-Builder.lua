@@ -36,13 +36,36 @@ end
     eating or drinking (its definition's stealthSpell: Stealth Eating or
     Stealth Drinking), cast right after it the way that macro does, and only
     out of combat, so a press in combat never stealths.
+
+    corpseName is that macro's Cannibalize (its definition's corpseSpell),
+    tried first while the target is dead. A press that cannot cast it, on a
+    corpse out of reach or one it does not work on, falls through to the
+    eating or drinking below it.
 ]]
-function ns.OutOfCombatBlock(outOfCombatID, stealthName)
-	local block = "/use [nocombat] item:" .. outOfCombatID .. "\n"
+function ns.OutOfCombatBlock(outOfCombatID, stealthName, corpseName)
+	local block = ""
+	if corpseName then
+		block = "/cast [nocombat,dead] " .. corpseName .. "\n"
+	end
+	block = block .. "/use [nocombat] item:" .. outOfCombatID .. "\n"
 	if stealthName then
 		block = block .. "/cast [nocombat,nostealth] " .. stealthName .. "\n"
 	end
 	return block .. "/stopmacro [nocombat]\n"
+end
+
+--[[
+    The Food and Water macros' Cannibalize (their definitions' corpseSpell),
+    tried first on a dead target. A press that cannot cast it falls through to
+    the eating or drinking below, as every press on a living target does.
+]]
+local function CorpseBlock(corpseName)
+	return "/cast [dead] " .. corpseName .. "\n"
+end
+
+-- A press on a corpse with nothing in the bags cast the corpse spell, so it skips the no-item message.
+local function NoItemStop(corpseName)
+	return corpseName and "/stopmacro [dead]\n" or ""
 end
 
 -- The tooltip line of a body with an out-of-combat item: the potion in combat, the food or water out of it.
@@ -151,10 +174,14 @@ end
 
     Every other line is contributed by a definition hook:
 
-      #showtooltip item:<id>  -- always first; ns.MACRO_DEFAULT_ITEM_IDS when no item
+      #showtooltip item:<id>  -- always first; ns.MACRO_DEFAULT_ITEM_IDS when no item;
+                                 [dead] <spell>; item:<id> with a corpse cast
       <conjure block>         -- definition.conjure, via BuildConjureBlock: /run ConnoisseurTipIf
                                  miss tips with their /stopmacro guard, then the
                                  /cast [btn:3]/[btn:2] line and its /stopmacro
+      /cast [dead] <spell>    -- definition.corpseSpell (Forsaken Cannibalize), below the
+                                 conjure clicks so they still work; a press that
+                                 cannot cast it falls through to the action
       /run ConnoisseurFire(<id>)     -- StateWriteLine (macro-fire context for the
                                  zone-error handler); only when an item exists
       /use item:<id>          -- the action: definition.buildUseLine's custom line(s)
@@ -163,9 +190,10 @@ end
                                  types, else this plain single /use
       /use item:<stackID>     -- definition.getStackIDs ids appended below the main
                                  block (Health Potion's healthstone stacking)
-      /use [nocombat] item:<id>  -- definition.outOfCombatTypeName's best item with
-      /cast [nocombat,nostealth] <spell>  its macro's stealth when that is on,
-      /stopmacro [nocombat]      and its stop, above the action (the potion macros'
+      /cast [nocombat,dead] <spell>  -- definition.outOfCombatTypeName's best item,
+      /use [nocombat] item:<id>  after its macro's Cannibalize and before its
+      /cast [nocombat,nostealth] <spell>  stealth when those are on, then its
+      /stopmacro [nocombat]      stop, above the action (the potion macros'
                                  food or water, behind potionsUseFoodAndWater);
                                  the tooltip line then shows it out of combat
                                  and ConnoisseurFire takes it as a second id
@@ -176,7 +204,9 @@ end
     an out-of-combat item still goes above it, so that line is only reached in
     combat.
     Ends with the macro-length trim, which sheds stacked healthstone lines and
-    then ranked fallback /use lines from the bottom up.
+    then ranked fallback /use lines from the bottom up, and then the
+    Cannibalize lines, the one extra that is a convenience rather than a
+    consumable.
 ]]
 function ns.BuildStandardBody(
 	definition,
@@ -186,7 +216,9 @@ function ns.BuildStandardBody(
 	conjureInfo,
 	appendText,
 	outOfCombatID,
-	outOfCombatStealth
+	outOfCombatStealth,
+	corpseCast,
+	outOfCombatCorpse
 )
 	local tooltipLine, actionBlock
 
@@ -198,7 +230,7 @@ function ns.BuildStandardBody(
 		actionHead = StateWriteLine(outOfCombatID)
 	end
 	if outOfCombatID then
-		actionHead = actionHead .. ns.OutOfCombatBlock(outOfCombatID, outOfCombatStealth)
+		actionHead = actionHead .. ns.OutOfCombatBlock(outOfCombatID, outOfCombatStealth, outOfCombatCorpse)
 	end
 
 	if itemID then
@@ -226,20 +258,30 @@ function ns.BuildStandardBody(
 		    level.
 		]]
 		tooltipLine = "#showtooltip item:" .. ns.MACRO_DEFAULT_ITEM_IDS[definition.typeName] .. "\n"
-		actionBlock = actionHead .. '/run ConnoisseurTip("' .. conjureInfo.noItemMiss .. '")'
+		actionBlock = actionHead .. NoItemStop(corpseCast) .. '/run ConnoisseurTip("' .. conjureInfo.noItemMiss .. '")'
 	else
 		tooltipLine = "#showtooltip item:" .. ns.MACRO_DEFAULT_ITEM_IDS[definition.typeName] .. "\n"
-		actionBlock = actionHead .. '/run ConnoisseurNoItem("' .. definition.typeName .. '")'
+		actionBlock = actionHead .. NoItemStop(corpseCast) .. '/run ConnoisseurNoItem("' .. definition.typeName .. '")'
 	end
 
 	if outOfCombatID then
 		tooltipLine = ns.OutOfCombatTooltipLine(itemID or ns.MACRO_DEFAULT_ITEM_IDS[definition.typeName], outOfCombatID)
+			.. "\n"
+	elseif corpseCast then
+		-- The spell's icon while the target is dead, so the button shows what a press will do.
+		tooltipLine = "#showtooltip [dead] "
+			.. corpseCast
+			.. "; item:"
+			.. (itemID or ns.MACRO_DEFAULT_ITEM_IDS[definition.typeName])
 			.. "\n"
 	end
 
 	local conjureBlock = ""
 	if conjureInfo then
 		conjureBlock = BuildConjureBlock(conjureInfo)
+	end
+	if corpseCast then
+		conjureBlock = conjureBlock .. CorpseBlock(corpseCast)
 	end
 
 	local appendedBlock = appendText or ""
@@ -282,6 +324,24 @@ function ns.BuildStandardBody(
 		end
 	end
 
+	--[[
+	    Still too long with every fallback shed: drop the Cannibalize lines and
+	    build again. A Mage's Food macro, whose conjure clicks never shed, can
+	    reach this in a long-named locale.
+	]]
+	if #body > ns.MACRO_BODY_MAX_LENGTH and (corpseCast or outOfCombatCorpse) then
+		return ns.BuildStandardBody(
+			definition,
+			itemID,
+			useIDs,
+			stackIDs,
+			conjureInfo,
+			appendText,
+			outOfCombatID,
+			outOfCombatStealth
+		)
+	end
+
 	return body
 end
 
@@ -292,7 +352,7 @@ end
 --[[
     State encoding — captures every input that affects the written body.
     Format:
-      ITEMIDS(+HS:stackIDs)?(_C(_M:mid)?(_R:rid)?(_MR:key)?(_MM:key)?(_NI:key)?)?(_EX:mode)?(_SM|_SE)?(_OOC:id(:S)?)?
+      ITEMIDS(+HS:stackIDs)?(_C(_M:mid)?(_R:rid)?(_MR:key)?(_MM:key)?(_NI:key)?)?(_EX:mode)?(_SM|_SE)?(_OOC:id(:S)?(:CN)?)?(_CN)?
     where ITEMIDS is the single itemID, or a comma-joined ranked list for
     multi-use types so a change in any fallback rank also triggers a
     rewrite. +HS: carries the stacked Healthstone ids (Health Potion's
@@ -300,7 +360,9 @@ end
     click layout), so flipping the dropdown rewrites the macro; _SM and _SE
     are the append-block flags (Water's Shadowmeld line and Food's Stealth
     Eating line). _OOC:id is the food or water a potion macro uses out of
-    combat, with :S added while it stealths as it does. Mode overrides use their own prefix
+    combat, with :S added while it stealths as it does and :CN while it
+    cannibalizes on a dead target. _CN marks the Food or Water macro's own
+    Cannibalize lines. Mode overrides use their own prefix
     ("SCROLLS:...") instead, so the key spaces never collide and a
     transition between modes always triggers a rewrite. Every input that
     affects the body MUST appear in the key — a lossy key causes stale
@@ -314,7 +376,9 @@ function ns.BuildStateKey(
 	conjureInfo,
 	appendFlag,
 	outOfCombatID,
-	outOfCombatStealth
+	outOfCombatStealth,
+	corpseCast,
+	outOfCombatCorpse
 )
 	local itemKey = itemID and tostring(itemID) or "none"
 	if useIDs then
@@ -358,7 +422,13 @@ function ns.BuildStateKey(
 		stateParts[#stateParts + 1] = appendFlag
 	end
 	if outOfCombatID then
-		stateParts[#stateParts + 1] = "OOC:" .. outOfCombatID .. (outOfCombatStealth and ":S" or "")
+		stateParts[#stateParts + 1] = "OOC:"
+			.. outOfCombatID
+			.. (outOfCombatStealth and ":S" or "")
+			.. (outOfCombatCorpse and ":CN" or "")
+	end
+	if corpseCast then
+		stateParts[#stateParts + 1] = "CN"
 	end
 	return table.concat(stateParts, "_")
 end

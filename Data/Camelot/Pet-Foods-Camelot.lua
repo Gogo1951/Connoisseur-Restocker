@@ -1,37 +1,5 @@
 local _, ns = ...
 
---------------------------------------------------------------------------------
--- Pet Foods
---------------------------------------------------------------------------------
-
---[[
-    Pet food data for Hunter Feed Pet support. Diet IDs follow ns.PET_DIET_MAP
-    in Data/Data.lua: 1 = Meat, 2 = Fish, 3 = Bread, 4 = Cheese, 5 = Fruit,
-    6 = Fungus.
-]]
-
---[[
-    Source: Validate Data on the WoW Forever client (1.60.1, build 70124).
-    Tough Condor Meat and Crawler Meat were added from WoW Forever's own tables
-    on wago.tools (build 1.60.1.70124, ItemPetFoodID), and those tables carry
-    no quest objectives, so their questIDs are unchecked. Grilled King Crawler
-    Legs' and Tender Crab Meat's diets also come from those tables, as do 45
-    more foods, pending Validate Data, with their questIDs likewise unchecked.
-    Whipper Root Tuber, Essence Mango, the holiday foods and the battleground
-    and Darkspear Islands rations are left out on purpose: Feed Pet feeds the
-    cheapest food first, and those sell for nothing or are kept for their zone.
-
-    SELECT entry, name, ItemLevel, FoodType, SellPrice
-    FROM item_template
-    WHERE class = 0 AND subclass = 5 AND FoodType > 0
-    ORDER BY FoodType, ItemLevel, entry;
-
-    Quest objective IDs come from quest_template (RequiredItemId1-6).
-
-    sellPrice is in copper (vendor sell value per unit).
-    questIDs is a table of quest IDs that use this item as an objective,
-    or nil when the item is not a quest objective.
-]]
 -- [itemID] = { itemLevel, dietID, sellPrice, questIDs or nil }, -- Name
 ns.PET_FOOD_DATA = {
 	-- Meat
@@ -45,7 +13,6 @@ ns.PET_FOOD_DATA = {
 	[5465] = { 5, 1, 3, { 4161 } }, -- Small Spider Leg
 	[7097] = { 5, 1, 1, nil }, -- Leg Meat
 	[19223] = { 5, 1, 1, nil }, -- Darkmoon Dog
-	[2681] = { 10, 1, 6, nil }, -- Roasted Boar Meat
 	[729] = { 10, 1, 17, { 38 } }, -- Stringy Vulture Meat
 	[2673] = { 10, 1, 10, nil }, -- Coyote Meat
 	[5467] = { 10, 1, 7, nil }, -- Kodo Meat
@@ -54,10 +21,8 @@ ns.PET_FOOD_DATA = {
 	[723] = { 12, 1, 15, { 22 } }, -- Goretusk Liver
 	[2677] = { 14, 1, 15, nil }, -- Boar Ribs
 	[2924] = { 14, 1, 16, { 385 } }, -- Crocolisk Meat
-	[733] = { 15, 1, 100, nil }, -- Westfall Stew
 	[1081] = { 15, 1, 50, { 92 } }, -- Crisp Spider Meat
 	[2287] = { 15, 1, 6, nil }, -- Haunch of Meat
-	[6890] = { 10, 1, 6, nil }, -- Smoked Bear Meat
 	[17119] = { 15, 1, 6, nil }, -- Deeprun Rat Kabob
 	[19304] = { 15, 1, 6, nil }, -- Spiced Beef Jerky
 	[1080] = { 15, 1, 78, nil }, -- Tough Condor Meat
@@ -65,7 +30,6 @@ ns.PET_FOOD_DATA = {
 	[252029] = { 15, 1, 30, nil }, -- Hippogryph Flank
 	[278117] = { 15, 1, 6, nil }, -- Hard Boiled Eggs
 	[1015] = { 19, 1, 24, { 90 } }, -- Lean Wolf Flank
-	[2685] = { 25, 1, 75, nil }, -- Succulent Pork Ribs
 	[5478] = { 25, 1, 70, nil }, -- Dig Rat Stew
 	[3730] = { 21, 1, 45, nil }, -- Big Bear Meat
 	[5470] = { 22, 1, 28, nil }, -- Thunder Lizard Tail
@@ -94,13 +58,12 @@ ns.PET_FOOD_DATA = {
 	[17408] = { 45, 1, 100, nil }, -- Spicy Beefstick
 	[18635] = { 45, 1, 100, nil }, -- Bellara's Nutterbar
 	[8952] = { 55, 1, 200, nil }, -- Roasted Quail
+	[287963] = { 55, 1, 200, nil }, -- Roasted Quail
 	[11444] = { 55, 1, 200, nil }, -- Grim Guzzler Boar
 	[20424] = { 55, 1, 175, nil }, -- Sandworm Meat
 	[262433] = { 60, 1, 200, nil }, -- Ketharas' Hyjal Stew
 	-- Fish
 	[6299] = { 5, 2, 1, nil }, -- Sickly Looking Fish
-	[787] = { 10, 2, 1, nil }, -- Slitherskin Mackerel
-	[6290] = { 10, 2, 1, nil }, -- Brilliant Smallfish
 	[6291] = { 5, 2, 1, nil }, -- Raw Brilliant Smallfish
 	[6303] = { 5, 2, 1, nil }, -- Raw Slitherskin Mackerel
 	[5525] = { 10, 2, 20, nil }, -- Boiled Clams
@@ -109,12 +72,8 @@ ns.PET_FOOD_DATA = {
 	[2674] = { 13, 2, 12, nil }, -- Crawler Meat
 	[5503] = { 14, 2, 16, nil }, -- Clam Meat
 	[1326] = { 15, 2, 10, nil }, -- Sauteed Sunfish
-	[2682] = { 10, 2, 25, nil }, -- Cooked Crab Claw
-	[4592] = { 15, 2, 1, nil }, -- Longjaw Mud Snapper
-	[5095] = { 15, 2, 3, { 8524, 8525 } }, -- Rainbow Fin Albacore
 	[5468] = { 15, 2, 12, nil }, -- Soft Frenzy Flesh
 	[6289] = { 15, 2, 1, nil }, -- Raw Longjaw Mud Snapper
-	[6316] = { 15, 2, 3, nil }, -- Loch Frenzy Delight
 	[6317] = { 15, 2, 2, nil }, -- Raw Loch Frenzy
 	[6361] = { 15, 2, 2, nil }, -- Raw Rainbow Fin Albacore
 	[6458] = { 15, 2, 1, nil }, -- Oil Covered Fish
@@ -122,17 +81,13 @@ ns.PET_FOOD_DATA = {
 	[5526] = { 15, 2, 75, nil }, -- Clam Chowder
 	[21071] = { 20, 2, 25, nil }, -- Raw Sagefish
 	[5504] = { 23, 2, 22, nil }, -- Tangy Clam Meat
-	[4593] = { 25, 2, 4, nil }, -- Bristle Whisker Catfish
 	[6308] = { 25, 2, 2, nil }, -- Raw Bristle Whisker Catfish
-	[4594] = { 35, 2, 6, nil }, -- Rockscale Cod
 	[4655] = { 35, 2, 71, nil }, -- Giant Clam Meat
 	[6362] = { 35, 2, 4, nil }, -- Raw Rockscale Cod
-	[8364] = { 35, 2, 6, nil }, -- Mithril Head Trout
 	[8365] = { 35, 2, 4, nil }, -- Raw Mithril Head Trout
 	[13546] = { 35, 2, 62, { 5386 } }, -- Bloodbelly Fish
 	[21153] = { 40, 2, 125, nil }, -- Raw Greater Sagefish
 	[4603] = { 45, 2, 4, nil }, -- Raw Spotted Yellowtail
-	[6887] = { 45, 2, 5, { 8614, 8529, 8613, 8528 } }, -- Spotted Yellowtail
 	[7974] = { 45, 2, 50, { 6610 } }, -- Zesty Clam Meat
 	[13754] = { 45, 2, 6, nil }, -- Raw Glossy Mightfish
 	[13755] = { 45, 2, 7, nil }, -- Raw Winter Squid
@@ -140,17 +95,13 @@ ns.PET_FOOD_DATA = {
 	[13758] = { 45, 2, 4, nil }, -- Raw Redgill
 	[13759] = { 45, 2, 10, nil }, -- Raw Nightfin Snapper
 	[13760] = { 45, 2, 10, nil }, -- Raw Sunscale Salmon
-	[13930] = { 45, 2, 5, nil }, -- Filet of Redgill
 	[16766] = { 45, 2, 100, nil }, -- Undermine Clam Chowder
 	[21552] = { 45, 2, 5, nil }, -- Striped Yellowtail
 	[9681] = { 45, 2, 50, nil }, -- Grilled King Crawler Legs
-	[8957] = { 55, 2, 200, nil }, -- Spinefin Halibut
 	[8959] = { 55, 2, 160, nil }, -- Raw Spinefin Halibut
 	[13888] = { 55, 2, 12, nil }, -- Darkclaw Lobster
 	[13889] = { 55, 2, 5, nil }, -- Raw Whitescale Salmon
 	[13893] = { 55, 2, 15, nil }, -- Large Raw Mightfish
-	[13933] = { 55, 2, 14, nil }, -- Lobster Stew
-	[13935] = { 55, 2, 10, { 8615, 8616 } }, -- Baked Salmon
 	[18255] = { 55, 2, 15, nil }, -- Runn Tum Tuber
 	[250081] = { 55, 2, 10, nil }, -- Clam Linguine
 	-- Bread
@@ -229,3 +180,42 @@ ns.PET_FOOD_DATA = {
 	[8948] = { 55, 6, 200, nil }, -- Dried King Bolete
 	-- Goretusk Snout (731), Senggin Root (3448), Plainstrider Meat (4739), Meaty Bat Wing (12223) and Soft-shelled Clam Meat (15924) are deliberately absent; WoW Forever gives them no pet diet (ItemPetFoodID, wago.tools build 1.60.1.70124).
 }
+
+--[[
+How We Got the Data
+
+Last Validated
+	2026-10-16, WoW Forever 1.60.1.70425
+
+Notes
+	- The foods a hunter's pet eats, for Feed Pet support (Features/Macros/Tools-Hunters-Pet-Food.lua). Diet IDs follow ns.PET_DIET_MAP in Data/Data.lua: 1 Meat, 2 Fish, 3 Bread, 4 Cheese, 5 Fruit, 6 Fungus.
+	- itemLevel is the item level, which decides how happy the food keeps a pet of a given level: Feed Pet takes the lowest-level food that still gives full happiness, then the cheapest, then the one with the fewest in the bags. sellPrice is the vendor sell value per unit in copper. questIDs lists the quests that take the item as an objective, or nil.
+	- Left out on purpose: foods Feed Pet would waste, even where the client gives them a pet diet. That is special foods that sell for nothing (Whipper Root Tuber, Essence Mango, holiday foods) and battleground or zone rations (including the Darkspear Islands rations). Feed Pet feeds the cheapest food first, so it would spend those before ordinary food.
+	- Foods that give the player a Well Fed buff are left out on purpose, on every client: they are cooked or bought for the player, and Feed Pet must never eat them. Raw meat and fish and plain food feed the pet. Pet buff foods (Sporeling Snack, Kibler's Bits) are a separate list, ns.PET_BUFF_FOODS in Game-IDs-Camelot.lua; no client capped at level 60 has any. WoW Forever's rework turned these into Well Fed foods, so they left this table on 2026-10-16: Roasted Boar Meat (2681), Westfall Stew (733), Smoked Bear Meat (6890), Succulent Pork Ribs (2685), Slitherskin Mackerel (787), Brilliant Smallfish (6290), Cooked Crab Claw (2682), Longjaw Mud Snapper (4592), Rainbow Fin Albacore (5095), Loch Frenzy Delight (6316), Bristle Whisker Catfish (4593), Rockscale Cod (4594), Mithril Head Trout (8364), Spotted Yellowtail (6887), Filet of Redgill (13930), Spinefin Halibut (8957), Lobster Stew (13933), Baked Salmon (13935).
+	- Diets on this client come from ItemPetFoodID in its own tables, numbered 1 Meat, 2 Fish, 3 Cheese, 4 Bread, 5 Fungus, 6 Fruit, so 3 and 4 and 5 and 6 swap on the way in. Foods added from those tables carry no quest objectives there, so their questIDs are unchecked.
+	- Roasted Quail's level-1 copy (287963) carries the original's row (wago.tools, build 1.60.1.70425), pending Validate Data.
+	- Season of Discovery items are left out even though this client knows many of their IDs (any ID of 200000 or more that the Classic Era tables also hold): they live only in Data/Discovery/. Where a table would otherwise pick one up, a deliberately-absent line in the table says so.
+
+SQL (CMaNGOS)
+	Database not recorded.
+
+	SELECT entry, name, ItemLevel, FoodType, SellPrice
+	FROM item_template
+	WHERE class = 0 AND subclass = 5 AND FoodType > 0
+	ORDER BY FoodType, ItemLevel, entry;
+
+	Quest objective IDs come from quest_template (RequiredItemId1-6).
+
+Wowhead
+	None.
+
+wago.tools
+	https://wago.tools/db2/Item?build=1.60.1.70425
+	https://wago.tools/db2/ItemSparse?build=1.60.1.70425
+	https://wago.tools/db2/ItemEffect?build=1.60.1.70425
+	https://wago.tools/db2/ItemXItemEffect?build=1.60.1.70425
+	https://wago.tools/db2/Spell?build=1.60.1.70425
+	https://wago.tools/db2/SpellEffect?build=1.60.1.70425
+	https://wago.tools/db2/SpellMisc?build=1.60.1.70425
+	https://wago.tools/db2/SpellDuration?build=1.60.1.70425
+]]

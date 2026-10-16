@@ -1,17 +1,5 @@
 local _, ns = ...
 
---------------------------------------------------------------------------------
--- Additional "Well Fed" Buffs
---------------------------------------------------------------------------------
-
---[[
-    Source: Validate Data on the TBC Anniversary client (2.5.6, build 69795).
-    Increased Stamina (25661), Fizzy Energy Drink (29040), the nine Brewfest
-    "Well Fed" buffs (44097-44102, 44104-44106) and Hot Apple Cider's Well Fed
-    (45245) came from the wago.tools tables for build 2.5.6.69795, for the next
-    Validate Data run to confirm.
-]]
-
 -- { buffID = true }
 ns.WELL_FED_BUFF_IDS = {
 	[18125] = true, -- Blessed Sunfruit
@@ -43,3 +31,28 @@ ns.WELL_FED_ICON_IDS = {
 	[136000] = true, -- Well Fed
 	[133943] = true, -- Well Fed
 }
+
+--[[
+How We Got the Data
+
+Last Validated
+	2026-10-16, TBC Anniversary 2.5.6.70006
+
+Notes
+	- ns.WELL_FED_BUFF_IDS lists food buffs Features/Scanner-Auras.lua must count as Well Fed although they aren't named "Well Fed" or show another icon, so the buff-food check doesn't nag a player who already has one.
+	- ns.WELL_FED_ICON_IDS lists the icons Well Fed buffs show (136000, and 133943 for the reworked foods), matched on the aura's icon when its spell ID is in no table.
+	- Fizzy Energy Drink's buff (29040) shows icon 132489, which no icon entry matches, so it is listed by ID.
+	- The Brewfest drinks apply a separate buff named "Well Fed" (with quotes) on icon 133696, which "Completely Hammered" also uses, so they are listed by ID rather than matched by icon.
+
+SQL (CMaNGOS)
+	TODO: Add SQL Query
+
+Wowhead
+	None.
+
+wago.tools
+	https://wago.tools/db2/SpellName?build=2.5.6.70006
+	https://wago.tools/db2/SpellMisc?build=2.5.6.70006
+	https://wago.tools/db2/SpellEffect?build=2.5.6.70006
+	https://wago.tools/db2/ItemEffect?build=2.5.6.70006
+]]

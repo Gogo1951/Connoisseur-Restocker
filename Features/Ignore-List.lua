@@ -90,6 +90,7 @@ function ns.IgnoreItem(itemID)
 	AceConfigRegistry:NotifyChange(ns.OPTIONS_REGISTRY.IgnoreList)
 end
 
+-- At once and with no confirmation: the mini-map's Middle-Click is a deliberate quick-clear, and the panel has no clear-all.
 function ns.ClearIgnoreList()
 	local ignoreList = ns.GetIgnoreList()
 	if ignoreList then

@@ -65,13 +65,19 @@ end
     level-dependent pieces fresh afterward. Called once at login, after ns.db
     exists.
 ]]
-function ns.InitCharacterConstants()
+function ns.InitializeCharacterConstants()
 	local _, raceToken = UnitRace("player")
 	ns.isNightElf = (raceToken == "NightElf")
 
 	-- Resolve the Shadowmeld spell name once for macro building
 	if ns.isNightElf then
 		ns.shadowmeldSpellName = C_Spell.GetSpellName(ns.SHADOWMELD_SPELL_ID)
+	end
+
+	-- The Forsaken race token is "Scourge"; resolve Cannibalize the same way.
+	ns.isForsaken = (raceToken == "Scourge")
+	if ns.isForsaken then
+		ns.cannibalizeSpellName = C_Spell.GetSpellName(ns.CANNIBALIZE_SPELL_ID)
 	end
 
 	--[[

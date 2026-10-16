@@ -440,8 +440,8 @@ function ns.RestockFromMerchant()
 
 	--[[
 	    The Gold Reserve comes off the top, so the run can spend only what sits
-	    above it. A purse already at or below the reserve leaves nothing, which
-	    pauses buying at every vendor until the player is richer, while the bank
+	    above it, at every level. A purse already at or below the reserve leaves
+	    nothing, which pauses buying at every vendor until the player is richer, while the bank
 	    restock, which costs nothing, carries on. Either way the shortfall reads
 	    as running out of gold, so one chat line covers the reserve and the
 	    empty purse alike.

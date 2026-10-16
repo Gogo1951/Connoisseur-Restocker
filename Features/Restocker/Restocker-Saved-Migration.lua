@@ -8,7 +8,7 @@ local _, ns = ...
 --[[
     One-time rename shim. This and the Blinding Powder repair below, on the same
     date, are the file's only sections: delete on the first code pass after that
-    date, all seven pieces together:
+    date, all eight pieces together:
       1. this file
       2. its line in all three flavor TOCs (Consumable-Connoisseur_Vanilla.toc,
          _TBC.toc and _Camelot.toc)
@@ -17,8 +17,9 @@ local _, ns = ...
       5. the ns.NameBlindingPowderRows() line in Features/Restocker/Restocker-List.lua
       6. the ns.NameBlindingPowderRows stubs in Restocker-Cold-Item-Test.lua,
          Restocker-Starter-List-Test.lua and Restocker-Window-Test.lua
-         (Features/Restocker/Tests/)
-      7. Features/Restocker/Tests/Restocker-Saved-Migration-Test.lua
+         (Tests/Restocker/)
+      7. Tests/Restocker/Restocker-Saved-Migration-Test.lua
+      8. this file's tagged line in Tests/Character-Profile-Test.lua's load list
 ]]
 
 --[[

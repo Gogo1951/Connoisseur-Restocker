@@ -2,7 +2,7 @@
 --[[
     Headless test for the item memo's remembered misses (no WoW client needed).
 
-    Run it with:   lua Tests/Restocker-Cold-Item-Test.lua        (from Features/Restocker/)
+    Run it with:   lua Tests/Restocker/Restocker-Cold-Item-Test.lua        (from the add-on root)
 
     Like the Starter List test, this does NOT model the feature. Every scenario loads the REAL
     item memo (Features/Item-Cache.lua), the GET_ITEM_INFO_RECEIVED handler and the add box
@@ -34,7 +34,7 @@
     box is not: the add box says what it takes.
 ]]
 
-local ROOT = arg[1] or "../.."
+local ROOT = arg[1] or "."
 
 -- The items these scenarios name: { name, item type }. Anything else answers as "Item <id>".
 local ITEMS = {

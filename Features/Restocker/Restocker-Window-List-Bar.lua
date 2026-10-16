@@ -236,9 +236,9 @@ StaticPopupDialogs["CONNOISSEUR_RESTOCKER_DELETE_LIST"] = {
     What the confirm says, a paragraph to a fact: the question, the list's name
     in gold, what happens next, and that it is final.
 
-    "What happens next" is the part a delete used to keep to itself. Every other
+    "What happens next" must be said before the player agrees. Every other
     character pointed at the list starts its next login on an empty list of the
-    same name (ns.InitCharacterRestockList recreates a missing one), so they are
+    same name (ns.InitializeCharacterRestockList recreates a missing one), so they are
     named here while the player can still say no. This character's own landing
     place is named with them: the top list, which may be one another character
     uses and so is worth seeing before agreeing, or -- when this is the last
@@ -292,7 +292,7 @@ local MANAGE_ENTRIES = {
 		end,
 	},
 	{
-		label = "RESTOCKER_COPY_PROFILE_TOOLTIP",
+		label = "RESTOCKER_MANAGE_COPY",
 		run = function()
 			ns.CloneCurrentRestockList()
 		end,
@@ -304,7 +304,7 @@ local MANAGE_ENTRIES = {
 		end,
 	},
 	{ isRule = true },
-	{ label = "RESTOCKER_DELETE_PROFILE_TOOLTIP", run = ConfirmDeleteCurrentList },
+	{ label = "RESTOCKER_MANAGE_DELETE", run = ConfirmDeleteCurrentList },
 }
 
 local function OpenManagePullout(anchor)
@@ -350,9 +350,7 @@ end
     Renaming swaps the selector for a field holding the list's name, selected
     and ready to type over, with Rename and Cancel beside it. The field exists
     only while a rename is under way, so text sitting in it can never be
-    mistaken for the name the list actually has -- which is what the old
-    always-present rename box, showing the same name as the selector beside it,
-    kept inviting.
+    mistaken for the name the list actually has.
 
     Enter and the Rename button commit. Escape, Cancel and clicking away
     discard, and so does any list event, since ns.RefreshRestockListBar ends
@@ -404,7 +402,7 @@ end
 
 --[[
     The closed selector: the window's menu field (ns.CreateRestockMenuField in
-    Restocker-Window.lua), showing the active list as its text.
+    Restocker-Window-Widgets.lua), showing the active list as its text.
 ]]
 local function CreateListSelector(bar)
 	local label = bar:CreateFontString(nil, "OVERLAY")

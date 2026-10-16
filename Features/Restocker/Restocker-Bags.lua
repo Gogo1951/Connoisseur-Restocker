@@ -90,7 +90,7 @@ function ns.LoadRestockBankBags()
 	}
 end
 
-function ns.InitRestockBagDefinitions()
+function ns.InitializeRestockBagDefinitions()
 	ns.LoadRestockBankBags()
 
 	ns.restockPlayerBags = { CreateBackpack(), CreateBag(1), CreateBag(2), CreateBag(3), CreateBag(4) }
@@ -395,9 +395,10 @@ local function PartialStackRoom(space, itemID, stackSize)
 	local room = 0
 	for _, bag in ipairs(space.bags) do
 		for slot = 1, C_Container.GetContainerNumSlots(bag.bagID) do
-			local containerItemInfo = GetRestockContainerItemInfo(bag.bagID, slot)
-			if containerItemInfo and containerItemInfo.itemID == itemID and containerItemInfo.count < stackSize then
-				room = room + stackSize - containerItemInfo.count
+			-- The client's own slot record: this only counts, so it builds no row of its own.
+			local itemInfo = C_Container.GetContainerItemInfo(bag.bagID, slot)
+			if itemInfo and itemInfo.hyperlink and itemInfo.itemID == itemID and itemInfo.stackCount < stackSize then
+				room = room + stackSize - itemInfo.stackCount
 			end
 		end
 	end
@@ -449,39 +450,51 @@ function ns.ClaimBagSpace(space, itemInfo, count)
 	return true
 end
 
--- From bags list, retrieve the items matching predicate, or none while any of them is locked
-local function ScanBagsFor(bags, predicate)
-	local itemCandidates = {}
-
-	for _, bag in ipairs(bags) do
-		for slot = 1, C_Container.GetContainerNumSlots(bag.bagID), 1 do
+--[[
+    Adds one bag's slots holding itemID to candidates, false while any of them is
+    locked. Matched by itemID, which is locale-proof and never confuses two items
+    that share a localized name, and read off the client's own slot record first,
+    so only a match builds a row.
+]]
+local function AddSlotsHolding(bag, itemID, candidates)
+	for slot = 1, C_Container.GetContainerNumSlots(bag.bagID), 1 do
+		local itemInfo = C_Container.GetContainerItemInfo(bag.bagID, slot)
+		if itemInfo and itemInfo.itemID == itemID then
 			local containerItemInfo = GetRestockContainerItemInfo(bag.bagID, slot)
-			if containerItemInfo and predicate(containerItemInfo) then
+			if containerItemInfo then
 				if containerItemInfo.locked then
-					return {}
+					return false
 				end
-
-				table.insert(itemCandidates, containerItemInfo)
+				candidates[#candidates + 1] = containerItemInfo
 			end
 		end
 	end
+	return true
+end
 
+-- Every slot in bags holding itemID, or none while any of them is locked.
+local function ScanBagsFor(bags, itemID)
+	local itemCandidates = {}
+	for _, bag in ipairs(bags) do
+		if not AddSlotsHolding(bag, itemID, itemCandidates) then
+			return {}
+		end
+	end
+	return itemCandidates
+end
+
+-- One bag's slots holding itemID, or none while any of them is locked.
+local function ScanBagFor(bag, itemID)
+	local itemCandidates = {}
+	if not AddSlotsHolding(bag, itemID, itemCandidates) then
+		return {}
+	end
 	return itemCandidates
 end
 
 --------------------------------------------------------------------------------
 -- Moving Items
 --------------------------------------------------------------------------------
-
---[[
-    Filter function for ScanBagsFor, matching a specific itemID (locale-proof, and never
-    confuses two different items that share a localized name).
-]]
-local function ContainerItemInfoMatchID(id)
-	return function(itemInfo)
-		return itemInfo.itemID == id
-	end
-end
 
 --[[
     Issue at most one bank->bag move from the given candidates. No plan bookkeeping is
@@ -536,7 +549,7 @@ function ns.MoveRestockItemFromBank(playerInventory, moveItemID, moveAmount, ove
 	]]
 	for _, bag in ipairs(bankBagsReversed) do
 		-- Build list of move candidates (matched by itemID), smallest stacks first
-		local moveCandidates = ScanBagsFor({ bag }, ContainerItemInfoMatchID(moveItemID))
+		local moveCandidates = ScanBagFor(bag, moveItemID)
 		table.sort(moveCandidates, ns.CompareByStackSizeAscending)
 
 		if MoveOneStackBankToPlayer(playerInventory, moveCandidates, moveAmount, overshoot) then
@@ -580,7 +593,7 @@ function ns.MoveRestockItemToBank(bankInventory, moveItemID, moveAmount)
 	    even when a later bag held a loose stack of exactly the excess that a whole-stack
 	    UseContainerItem -- the reliable, server-side deposit -- could have moved instead.
 	]]
-	local moveCandidates = ScanBagsFor(ns.restockPlayerBags, ContainerItemInfoMatchID(moveItemID))
+	local moveCandidates = ScanBagsFor(ns.restockPlayerBags, moveItemID)
 
 	table.sort(moveCandidates, ns.CompareByStackSizeAscending)
 

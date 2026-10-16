@@ -17,9 +17,8 @@ local L = ns.L
       the table           591, which holds the item name at its readable floor
       window chrome       the inset (2 + 4), its padding (8), the scroll bar (26)
 
-    which is where MIN_WIDTH comes from. (The name now has 14 pixels over that
-    floor: the Keep box narrowed when its heading shortened from "Amount", and
-    the window's floor was left where players' saved sizes already respect it.) The pane sizes itself to the longest type
+    which is where MIN_WIDTH comes from. (The name has 14 pixels over that floor,
+    which stays where players' saved sizes already respect it.) The pane sizes itself to the longest type
     name it actually has to draw (see ns.ResolveRestockGroupPaneWidth) and is capped so this
     number stays honest: MIN_WIDTH is set against the CAP rather than the usual
     width, so the item name keeps its floor even on a client whose type names run
@@ -33,8 +32,7 @@ local L = ns.L
     a long consumable name rather than at the edge of truncation. MAX_* is a
     sanity ceiling for a corrupt saved value, not a real limit.
 
-    Both height numbers went up by the list bar's own span when it moved to the
-    top of the window, so the list shows as many rows at each as it did before.
+    Both height numbers include the list bar's own span at the top of the window.
 ]]
 local DEFAULT_WIDTH = 870
 local DEFAULT_HEIGHT = 430
@@ -147,7 +145,7 @@ local function CreateAddonFrame()
 	    box is one target rather than the only one. Every control takes the mouse
 	    before the window does, and each makes this same call: the rows' own
 	    (Restocker-Window-Rows.lua), and the rest through ns.SetRestockControlClick
-	    below.
+	    (Restocker-Window-Widgets.lua).
 	]]
 	local function TakeCursorItem()
 		ns.AddRestockItemFromCursor()
@@ -158,56 +156,10 @@ local function CreateAddonFrame()
 end
 
 --[[
-    Every menu in the window is an AceGUI pullout we opened by hand, and none of
-    them closes on a click elsewhere, so each closes the others as it opens and
-    the window closes them all as it hides.
-]]
-function ns.CloseRestockMenus()
-	ns.CloseReputationMenu()
-	ns.CloseRestockColumnMenu()
-	ns.CloseRestockListMenus()
-	ns.CloseRestockBagMenu()
-end
-
---[[
-    Add the item on the cursor to the list, and say whether there was one.
-    Shared by the add box, the window and every control on a row, so a drop
-    lands the same way wherever it falls. The cursor is cleared either way the
-    add goes: a duplicate is already on the list, and leaving it on the cursor
-    would read as the drop having missed.
-]]
-function ns.AddRestockItemFromCursor()
-	local infoType, _, itemLink = GetCursorInfo()
-	if infoType ~= "item" then
-		return false
-	end
-	ns.AddRestockItem(itemLink)
-	ClearCursor()
-	return true
-end
-
---[[
-    A control's click, or the script standing in for one, set so that an item
-    carried onto the control is dropped on the list instead, as it would be on
-    any bare part of the window; a drag let go over the control is taken the
-    same way. onClick runs only for a click that brought no item, and a control
-    that only explains itself on hover passes none.
-]]
-function ns.SetRestockControlClick(control, onClick, script)
-	control:SetScript(script or "OnClick", function(...)
-		if not ns.AddRestockItemFromCursor() and onClick then
-			onClick(...)
-		end
-	end)
-	control:SetScript("OnReceiveDrag", function()
-		ns.AddRestockItemFromCursor()
-	end)
-end
-
---[[
-    The same for a text box, which reports no click: the mouse-up of the click
-    that brought the item, or a drag let go over it. That click also focused the
-    box, so once the drop is taken the keyboard goes back to the game.
+    A text box takes a dropped item too, though it reports no click: on the
+    mouse-up of the click that brought the item, or a drag let go over it. That
+    click also focused the box, so once the drop is taken the keyboard goes back
+    to the game.
 ]]
 local function SetBoxTakesDrops(box)
 	local function TakeDroppedItem(self)
@@ -615,6 +567,12 @@ local function CreateEditBox(addonFrame, controlRow)
 	editBox:SetWidth(ADD_BOX_WIDTH)
 	editBox:SetAutoFocus(false)
 	editBox:SetHeight(EDIT_BOX_HEIGHT)
+	--[[
+	    A typed item ID, or an item dragged onto the box or anywhere else on
+	    the window. Never a Shift + Click: both clients route it through
+	    ChatFrameUtil.InsertLink, which an add-on cannot claim without
+	    overwriting a Blizzard function.
+	]]
 	editBox:SetScript("OnEnterPressed", function(self)
 		local text = self:GetText()
 		ns.AddRestockItem(text)
@@ -714,8 +672,8 @@ end
 
     It opens OVER this window, which stays open: each staple checked lands in
     the New group behind it, and closing it leaves the player where they were.
-    That is why the button no longer hides the list first -- a list hidden for
-    the staples never came back by itself.
+    So the button never hides the list first: a list hidden for the staples
+    would not come back by itself.
 
     Sized to its caption like the list bar's buttons rather than to a number, so
     a longer word in another locale widens the button instead of clipping it;
@@ -727,7 +685,7 @@ local function CreateStaplesButton(addonFrame, controlRow)
 	-- The row's right end; the add pair chains leftward off it.
 	button:SetPoint("RIGHT", controlRow, "RIGHT", 0, 0)
 	button:SetSize(STAPLES_BUTTON_WIDTH, CONTROL_ROW_HEIGHT)
-	button:SetText(L["RESTOCKER_LIST_BUILDER_BUTTON"])
+	button:SetText(L["RESTOCKER_PICK_STAPLES_BUTTON"])
 	button:SetNormalFontObject("GameFontNormal")
 	button:SetHighlightFontObject("GameFontHighlight")
 	ns.FitRestockButton(button)
@@ -737,7 +695,7 @@ local function CreateStaplesButton(addonFrame, controlRow)
 		ns.ShowStarterListPopup()
 	end)
 
-	ns.SetupRestockerTooltip(button, L["RESTOCKER_LIST_BUILDER_BUTTON"], L["RESTOCKER_LIST_BUILDER_TOOLTIP"])
+	ns.SetupRestockerTooltip(button, L["RESTOCKER_PICK_STAPLES_BUTTON"], L["RESTOCKER_PICK_STAPLES_TOOLTIP"])
 
 	addonFrame.staplesButton = button
 	return button
@@ -787,7 +745,7 @@ local function CreateEmptyState(addonFrame, listInset)
 	local button = CreateFrame("Button", nil, panel, "GameMenuButtonTemplate")
 	button:SetPoint("TOP", body, "BOTTOM", 0, -EMPTY_GAP - 4)
 	button:SetSize(EMPTY_BUTTON_WIDTH, EMPTY_BUTTON_HEIGHT)
-	button:SetText(L["RESTOCKER_LIST_BUILDER_BUTTON"])
+	button:SetText(L["RESTOCKER_PICK_STAPLES_BUTTON"])
 	button:SetNormalFontObject("GameFontNormal")
 	button:SetHighlightFontObject("GameFontHighlight")
 	ns.FitRestockButton(button)
@@ -903,7 +861,24 @@ function ns.CreateRestockWindow()
 	return ns.restockWindow
 end
 
+--[[
+    The player's ways to open the window end here or in ns.ToggleRestockWindow,
+    so both answer the master switch. Restocker-Saved-Lists.lua shows it
+    directly after adding or copying a list, which only a switched-on
+    Restocker can reach.
+]]
+local function RestockerSwitchedOff()
+	if ns.IsRestockerEnabled() then
+		return false
+	end
+	ns.PrintMessage(L["RESTOCKER_DISABLED"])
+	return true
+end
+
 function ns.ShowRestockWindow()
+	if RestockerSwitchedOff() then
+		return
+	end
 	if ns.restockerLoaded then
 		local menu = ns.restockWindow or ns.CreateRestockWindow()
 		-- Opening redraws by itself (OnShow); a window already open is redrawn here.
@@ -943,107 +918,11 @@ function ns.HideRestockWindowAfterVisit()
 end
 
 function ns.ToggleRestockWindow()
+	if RestockerSwitchedOff() then
+		return false
+	end
 	if ns.restockerLoaded then
 		local menu = ns.restockWindow or ns.CreateRestockWindow()
 		return menu:SetShown(not menu:IsShown()) or false
 	end
-end
-
---------------------------------------------------------------------------------
--- Menu Fields
---------------------------------------------------------------------------------
-
---[[
-    A closed menu, as the list selector and the bag menu both draw one: an
-    InputBoxTemplate field with a menu arrow inside its right edge, calling
-    onToggle with the field when either is clicked with nothing in hand; with
-    an item in hand the click is a drop. The caller places it, sizes it, and
-    says what it shows.
-
-    Read-only -- keyboard is off and focus bounces straight back out, so it
-    renders as a field but behaves as a button. Why a field and not an AceGUI
-    Dropdown is in Restocker-Window-List-Bar.lua.
-
-    The arrow is the same three textures Blizzard's own UIDropDownMenuTemplate
-    puts on its button, so the control opens with the chevron players already
-    read as "this is a menu" rather than a generic arrow painted into a text
-    field. A real Button rather than a texture, so it presses and highlights
-    like one.
-]]
-function ns.CreateRestockMenuField(parent, arrowSize, onToggle)
-	local field = CreateFrame("EditBox", nil, parent, "InputBoxTemplate")
-	field:SetAutoFocus(false)
-	field:EnableKeyboard(false)
-	field:SetScript("OnEditFocusGained", function(self)
-		self:ClearFocus()
-	end)
-	ns.SetRestockControlClick(field, onToggle, "OnMouseDown")
-
-	local arrow = CreateFrame("Button", nil, field)
-	arrow:SetSize(arrowSize, arrowSize)
-	arrow:SetPoint("RIGHT", field, "RIGHT", -4, 0)
-	arrow:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIcon-ScrollDown-Up")
-	arrow:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIcon-ScrollDown-Down")
-	arrow:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
-	ns.SetRestockControlClick(arrow, function()
-		onToggle(field)
-	end)
-	field.arrow = arrow
-	return field
-end
-
---------------------------------------------------------------------------------
--- Tooltips
---------------------------------------------------------------------------------
-
---[[
-    Every explanatory tooltip in the Restocker window routes through here, so the
-    colors, the spacing, and the wrap all live in one place.
-
-    Shape: a gold title, then white body lines with a blank line before each, so
-    a multi-line tooltip reads as paragraphs instead of one wall. Same spacing
-    idiom as AddSpacedLines in Minimap-Button.lua. Single-body tooltips are
-    unaffected -- they get the one spacer under the title either way.
-
-    Colors are passed explicitly rather than left to default: the two defaults
-    disagree, SetText falling back to gold and AddLine to white, so a tooltip that
-    leaves them out gets its title and body the wrong way round. Both come from the
-    shared numeric palette. Callers pass plain strings; no |cff escapes.
-
-    The trailing `true` on each line is the textWrap argument. Without it a
-    tooltip is exactly as wide as its longest line, and the longer strings here
-    (the reputation control's discount line especially) rendered a tooltip wider
-    than the game window. With it the client breaks each line at its standard
-    tooltip width -- which is also why we do not hand-measure a pixel budget: the
-    client's own break points are correct in locales that don't put spaces
-    between words.
-
-    A one-argument call is a whole tooltip in one line, and renders as the title.
-
-    Two entry points. ns.SetupRestockerTooltip wires a control whose tooltip
-    never changes. ns.ShowRestockerTooltip draws one on the spot, for the
-    controls whose text depends on their state when hovered -- a cell that
-    cannot be set on its row says why instead.
-]]
-local TOOLTIP_TITLE = ns.COLORS_RGB.TITLE
-local TOOLTIP_BODY = ns.COLORS_RGB.TEXT
-
-function ns.ShowRestockerTooltip(owner, title, ...)
-	GameTooltip:SetOwner(owner, "ANCHOR_TOP")
-	GameTooltip:SetText(title, TOOLTIP_TITLE.r, TOOLTIP_TITLE.g, TOOLTIP_TITLE.b, 1, true)
-	for i = 1, select("#", ...) do
-		GameTooltip:AddLine(" ") -- blank line under the title, then between each pair
-		GameTooltip:AddLine((select(i, ...)), TOOLTIP_BODY.r, TOOLTIP_BODY.g, TOOLTIP_BODY.b, true)
-	end
-	GameTooltip:Show()
-end
-
-function ns.SetupRestockerTooltip(control, title, ...)
-	local body = { ... }
-	control:SetScript("OnEnter", function(self)
-		ns.ShowRestockerTooltip(self, title, unpack(body))
-	end)
-	control:SetScript("OnLeave", function()
-		GameTooltip:Hide()
-	end)
 end

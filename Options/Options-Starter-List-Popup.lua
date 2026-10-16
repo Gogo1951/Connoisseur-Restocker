@@ -91,7 +91,7 @@ local COLUMN_GUTTER_WIDTH = 0.15
     and the row's own label already says what is being counted.
 
     A category carrying a choices list offers exactly those counts rather than
-    every number to a cap -- Restocker-Starter-List.lua owns which, and why. Same
+    every number to a cap -- the staples rows in Data/Data.lua own which, and why. Same
     machinery either way, so the cache keys on the style and on the run of
     counts, and two categories offering the same run share one list.
 ]]
@@ -460,7 +460,7 @@ function ns.BuildStarterListPopupOptions()
 			GetColor("BODY")
 				.. string.format(
 					L["STARTER_POPUP_POISONS_NOTE"],
-					"|cff" .. ns.CLASS_COLORS.ROGUE .. UnitClass("player") .. "|r" .. GetColor("BODY")
+					ns.GetClassColor("ROGUE") .. UnitClass("player") .. "|r" .. GetColor("BODY")
 				)
 				.. "|r",
 			order
@@ -750,4 +750,10 @@ function ns.ShowStarterListPopup(fromLogin)
 			FitPopupHeight(stillOpen)
 		end
 	end)
+end
+
+function ns.CloseStarterListPopup()
+	if starterPopupOpen then
+		AceConfigDialog:Close(ns.OPTIONS_REGISTRY.StarterListPopup)
+	end
 end

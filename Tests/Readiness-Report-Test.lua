@@ -2,7 +2,7 @@
 --[[
     Headless test for the Readiness Report (no WoW client needed).
 
-    Run it with:   lua Features/Tests/Readiness-Report-Test.lua        (from the add-on root)
+    Run it with:   lua Tests/Readiness-Report-Test.lua        (from the add-on root)
 
     Like Restocker-Upgrade-Level-Test, this does NOT model the logic: it loads
     the REAL Data/TBC/Soulstones-TBC.lua, Features/Readiness-Report-Probes.lua and
@@ -55,7 +55,7 @@ setmetatable(ns.L, {
 			return "%s|%dm"
 		elseif key == "READINESS_TIME_EXPIRING" then
 			return "%s|<1m"
-		elseif key == "READINESS_SPEC_FORMAT" then
+		elseif key == "READINESS_SPECIALIZATION_FORMAT" then
 			return "%s(%s)"
 		elseif key == "READINESS_UNSPENT_TALENTS_MANY" then
 			return "%dunspent"
@@ -183,20 +183,9 @@ C_Container = {
 	end,
 }
 
---[[
-    Only the soulstone ranks these scenarios name. An id absent from here models
-    a rank the client has not got, which is what sends SoulstoneBuffName on to
-    the next id in the list.
-]]
-local SPELL_NAMES = { [20707] = "Soulstone Resurrection" }
 -- The client's slot labels, named like the locale keys above so assertions read back which one printed.
 MAINHANDSLOT = "MAINHANDSLOT"
 SECONDARYHANDSLOT = "SECONDARYHANDSLOT"
-C_Spell = {
-	GetSpellName = function(spellID)
-		return SPELL_NAMES[spellID]
-	end,
-}
 
 ns.bestSelection = setmetatable({}, {
 	__index = function(_, typeName)
@@ -242,7 +231,7 @@ function ns.IsModeActive()
 end
 
 --[[
-    The talent surface the real ns.GetCurrentSpecLabel reads. Each tree answers
+    The talent surface the real ns.GetCurrentSpecializationLabel reads. Each tree answers
     with the ten values C_SpecializationInfo.GetSpecializationInfo returns, in
     their real order, so a probe reading the wrong position gets a string where
     it wants its points.
@@ -265,7 +254,7 @@ C_SpecializationInfo = {
     what the report does WITH their answers is the thing under test.
     ns.GetExpiringBuffs is the exception -- it is the real one, loaded below,
     because the sorting and the sub-minute split are report behaviour. The real
-    ns.GetCurrentSpecLabel is kept aside for its own scenarios while the report
+    ns.GetCurrentSpecializationLabel is kept aside for its own scenarios while the report
     scenarios use this stub.
 ]]
 function ns.HasFlaskOrElixirs()
@@ -280,7 +269,7 @@ end
 function ns.GetQuestionableEquipment()
 	return world.questionable
 end
-function ns.GetCurrentSpecLabel()
+function ns.GetCurrentSpecializationLabel()
 	return world.spec
 end
 function ns.GetUnspentTalentPoints()
@@ -329,7 +318,7 @@ do
 	setmetatable(probes, { __index = ns, __newindex = rawset })
 	loadfile(ROOT .. "/Features/Readiness-Report-Probes.lua")("Consumable-Connoisseur", probes)
 	ns.GetExpiringBuffs = probes.GetExpiringBuffs
-	RealGetCurrentSpecLabel = probes.GetCurrentSpecLabel
+	RealGetCurrentSpecLabel = probes.GetCurrentSpecializationLabel
 	RealGetUnspentTalentPoints = probes.GetUnspentTalentPoints
 end
 
@@ -513,13 +502,13 @@ settings({ readinessSoulstone = true })
 ns.OnReadyCheck()
 check("soulstone named", report(), "READINESS_TITLE ~ READINESS_MISSING_BUFFS READINESS_SOULSTONE")
 
-say("7. Aura id NOT in the table, matched on the shared name instead")
+say("7. A soulstone is known by its spell ID alone, never by a buff that shares its name")
 ResetWorld()
 world.classes = WARLOCK_PLAYER
 world.auras = { raid3 = { { name = "Soulstone Resurrection", spellID = 999999 } } }
 settings({ readinessSoulstone = true })
 ns.OnReadyCheck()
-check("name pass covers it", #printed, 0)
+check("an unlisted ID is not a soulstone", report(), "READINESS_TITLE ~ READINESS_MISSING_BUFFS READINESS_SOULSTONE")
 
 say("8. A Hunter with a Warlock in the raid: only the Warlock can put one up, so silent")
 ResetWorld()

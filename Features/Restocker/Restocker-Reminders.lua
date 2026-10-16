@@ -202,13 +202,18 @@ end
     branches wait out the same settle before touching the resting flag, so a
     /reload cannot be reminded on by a resting event that beat the seeding.
 ]]
+-- Arms the reminders without reporting where the character already is, as a /reload does.
+function ns.ArmRestockerReminders()
+	wasResting = IsResting() and true or false
+	remindersArmed = true
+end
+
 function ns.OnRestockerEnteringWorld(isInitialLogin, isReloadingUi)
 	local delay = isInitialLogin and LOGIN_SETTLE_DELAY or ARRIVAL_SETTLE_DELAY
 
 	C_Timer.After(delay, function()
 		if isReloadingUi then
-			wasResting = IsResting() and true or false
-			remindersArmed = true
+			ns.ArmRestockerReminders()
 			return
 		end
 

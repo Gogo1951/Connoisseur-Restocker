@@ -4,44 +4,6 @@ if not ns.IS_DISCOVERY then
 	return
 end
 
---[[
-    Source: the pre-split shared data files, as the Classic Era client loaded
-    them, pruned of the rows Validate Data on the Classic Era client (1.15.9,
-    build 69722) flagged NOT ON CLIENT. The values await Validate Data on a
-    Season of Discovery realm.
-
-    SELECT CONCAT(
-        '[', entry, '] = {',
-        MinDamage, ', ', MaxDamage, ', ', RequiredSkillRank,
-        CASE WHEN requiredspell <> 0 THEN CONCAT(', ', requiredspell) ELSE '' END,
-        '}, -- ', name
-    ) AS LuaLine
-    FROM (
-        SELECT
-          i.entry, i.name, i.RequiredSkillRank, i.requiredspell,
-          CASE
-            WHEN s.Effect1 = 2 THEN s.EffectBasePoints1 + 1
-            WHEN s.Effect2 = 2 THEN s.EffectBasePoints2 + 1
-            WHEN s.Effect3 = 2 THEN s.EffectBasePoints3 + 1
-          END AS MinDamage,
-          CASE
-            WHEN s.Effect1 = 2 THEN s.EffectBasePoints1 + s.EffectDieSides1
-            WHEN s.Effect2 = 2 THEN s.EffectBasePoints2 + s.EffectDieSides2
-            WHEN s.Effect3 = 2 THEN s.EffectBasePoints3 + s.EffectDieSides3
-          END AS MaxDamage
-        FROM item_template i
-        JOIN spell_template s ON s.Id = i.spellid_1
-        JOIN (
-            SELECT spellcategory_1 AS cat, class AS cls, subclass AS sub
-            FROM item_template WHERE entry = 4365
-        ) ref
-          ON i.spellcategory_1 = ref.cat AND i.class = ref.cls AND i.subclass = ref.sub
-        WHERE i.name NOT LIKE '%Test%'
-          AND i.name NOT LIKE '%[PH]%'
-          AND (s.Effect1 = 2 OR s.Effect2 = 2 OR s.Effect3 = 2)
-    ) t
-    ORDER BY name;
-]]
 -- [ID] = {Min Damage, Max Damage, Engineering Skill, Required Spell ID}, -- Name
 ns.EXPLOSIVES = {
 	[4380] = { 85, 115, 140 }, -- Big Bronze Bomb
@@ -57,10 +19,72 @@ ns.EXPLOSIVES = {
 	[4390] = { 132, 218, 175 }, -- Iron Grenade
 	[4370] = { 43, 57, 105 }, -- Large Copper Bomb
 	[10514] = { 149, 201, 205 }, -- Mithril Frag Bomb
+	[233986] = { 530, 670, 0 }, -- Obsidian Bomb
 	[4360] = { 22, 28, 30 }, -- Rough Copper Bomb
 	[4358] = { 26, 34, 1 }, -- Rough Dynamite
 	[4374] = { 73, 97, 120 }, -- Small Bronze Bomb
 	[10507] = { 213, 287, 175 }, -- Solid Dynamite
 	[10586] = { 340, 460, 225 }, -- The Big One
+	[233985] = { 650, 950, 0 }, -- The Fumigator
 	[15993] = { 300, 500, 260 }, -- Thorium Grenade
 }
+
+--[[
+How We Got the Data
+
+Last Validated
+	2026-10-16, Season of Discovery 1.15.9.70003
+
+Notes
+	- Every Engineering explosive this client knows that deals damage, read by the item cache (Features/Item-Cache.lua) for the Explosive macro. The family is the items sharing Coarse Dynamite's (4365) use category and its class and subclass (Trade Goods, Explosives).
+	- Min Damage and Max Damage are the use spell's damage range. Engineering Skill is the rank the tooltip requires (0 for none). Required Spell ID, where present, is the Goblin or Gnomish specialization the item needs; no row on this client carries one.
+	- Items that share the explosive cooldown but aren't crafted explosives are left out: the Portable Bronze Mortar (a reusable device), Goblin Fishing Pole, Flash Bundle, Explosive Rocket, Magic Candle, Brimstone, Fertile Bulb, M73 Frag Grenade, and the quest items (Crystal Charge, the Holy Waters).
+	- The Fumigator (233985) and Obsidian Bomb (233986) came from the Classic Era tables on wago.tools (build 1.15.9.70003), pending a Season of Discovery Validate Data run. The Fumigator also hurts its user and deals extra damage to Silithid in Silithus; neither requires Engineering.
+
+SQL (CMaNGOS)
+	Database not recorded.
+
+	SELECT CONCAT(
+	    '[', entry, '] = {',
+	    MinDamage, ', ', MaxDamage, ', ', RequiredSkillRank,
+	    CASE WHEN requiredspell <> 0 THEN CONCAT(', ', requiredspell) ELSE '' END,
+	    '}, -- ', name
+	) AS LuaLine
+	FROM (
+	    SELECT
+	      i.entry, i.name, i.RequiredSkillRank, i.requiredspell,
+	      CASE
+	        WHEN s.Effect1 = 2 THEN s.EffectBasePoints1 + 1
+	        WHEN s.Effect2 = 2 THEN s.EffectBasePoints2 + 1
+	        WHEN s.Effect3 = 2 THEN s.EffectBasePoints3 + 1
+	      END AS MinDamage,
+	      CASE
+	        WHEN s.Effect1 = 2 THEN s.EffectBasePoints1 + s.EffectDieSides1
+	        WHEN s.Effect2 = 2 THEN s.EffectBasePoints2 + s.EffectDieSides2
+	        WHEN s.Effect3 = 2 THEN s.EffectBasePoints3 + s.EffectDieSides3
+	      END AS MaxDamage
+	    FROM item_template i
+	    JOIN spell_template s ON s.Id = i.spellid_1
+	    JOIN (
+	        SELECT spellcategory_1 AS cat, class AS cls, subclass AS sub
+	        FROM item_template WHERE entry = 4365
+	    ) ref
+	      ON i.spellcategory_1 = ref.cat AND i.class = ref.cls AND i.subclass = ref.sub
+	    WHERE i.name NOT LIKE '%Test%'
+	      AND i.name NOT LIKE '%[PH]%'
+	      AND (s.Effect1 = 2 OR s.Effect2 = 2 OR s.Effect3 = 2)
+	) t
+	ORDER BY name;
+
+Wowhead
+	None.
+
+wago.tools
+	https://wago.tools/db2/Item?build=1.15.9.70003
+	https://wago.tools/db2/ItemSparse?build=1.15.9.70003
+	https://wago.tools/db2/ItemEffect?build=1.15.9.70003
+	https://wago.tools/db2/Spell?build=1.15.9.70003
+	https://wago.tools/db2/SpellEffect?build=1.15.9.70003
+	https://wago.tools/db2/SpellMisc?build=1.15.9.70003
+	https://wago.tools/db2/SpellDuration?build=1.15.9.70003
+]]

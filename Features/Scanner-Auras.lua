@@ -365,7 +365,7 @@ local HAS_PET_BUFF_FOODS = next(ns.PET_BUFF_FOODS) ~= nil
     high enough level for the food to exist, and there is a live pet to feed.
 
     Single source of truth on purpose. Both ns.FindPetBuffOverride
-    (Macros/Tools-Hunters.lua), which decides whether to splice the feed line
+    (Macros/Tools-Hunters-Pet-Food.lua), which decides whether to splice the feed line
     into the Food macro, and the readiness report (Features/Readiness-Report.lua)
     have to agree -- when they drifted, the report asked a level-30 Hunter for a
     buff its own macro would never apply, with no way to satisfy it.
@@ -394,7 +394,7 @@ end
     The pet is a separate unit and so a separate walk from the player snapshot
     above, but it follows the same expiration convention: nil when the buff is
     absent, 0 when the aura carries no duration. Consumed by
-    ns.FindPetBuffOverride (Macros/Tools-Hunters.lua) and by the readiness
+    ns.FindPetBuffOverride (Macros/Tools-Hunters-Pet-Food.lua) and by the readiness
     report; the probe lives here because BuffCountsAsActive is private to this
     file. Like the player snapshot, it answers with its last reading while the
     client restricts aura data.
@@ -562,8 +562,8 @@ function ns.OnUnitAura(unit)
 	    What made this firing worth acting on. UNIT_AURA is a firehose, so the
 	    diagnostics capture tap can only count it -- it runs before this handler
 	    and cannot yet know. This is the end that does know, so the signal
-	    firings are logged from here (see ns.LogEventNow in
-	    Features/Diagnostics.lua), which keeps the event log from disagreeing
+	    firings are logged from here (see ns:LogEventNow in
+	    Diagnostics/Event-Log.lua), which keeps the event log from disagreeing
 	    with what the add-on actually reacted to.
 	]]
 	local reason
@@ -600,7 +600,7 @@ function ns.OnUnitAura(unit)
 	end
 
 	if needsUpdate then
-		ns.LogEventNow("UNIT_AURA", unit, reason)
+		ns:LogEventNow("UNIT_AURA", unit, reason)
 		ns.RequestUpdate()
 	end
 end

@@ -3,7 +3,7 @@
 --[[
     Headless test for the Restocker's saved-variable bridges (no WoW client needed).
 
-    Run it with:   lua Tests/Restocker-Saved-Migration-Test.lua        (from Features/Restocker/)
+    Run it with:   lua Tests/Restocker/Restocker-Saved-Migration-Test.lua        (from the add-on root)
 
     Like Restocker-Upgrade-Level-Test, this does NOT model the logic: it loads
     the REAL Restocker-Saved-Migration.lua and logs in the way Features/Core.lua
@@ -29,7 +29,7 @@
     share a date.
 ]]
 
-local ROOT = arg[1] or "../.."
+local ROOT = arg[1] or "."
 
 local ns = { db = { global = {} }, FLAVOR = "Vanilla" }
 

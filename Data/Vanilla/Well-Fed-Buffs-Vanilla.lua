@@ -4,17 +4,6 @@ if ns.IS_DISCOVERY then
 	return
 end
 
---------------------------------------------------------------------------------
--- Additional "Well Fed" Buffs
---------------------------------------------------------------------------------
-
---[[
-    Source: Validate Data on the Classic Era client (1.15.9, build 69722).
-    Increased Stamina (25661) and Fizzy Energy Drink (29040) came from the
-    wago.tools tables for build 1.15.9.69722, for the next Validate Data run
-    to confirm.
-]]
-
 -- { buffID = true }
 ns.WELL_FED_BUFF_IDS = {
 	[18125] = true, -- Blessed Sunfruit
@@ -36,3 +25,27 @@ ns.WELL_FED_ICON_IDS = {
 	[136000] = true, -- Well Fed
 	[133943] = true, -- Well Fed
 }
+
+--[[
+How We Got the Data
+
+Last Validated
+	2026-10-16, Classic Era 1.15.9.70003
+
+Notes
+	- ns.WELL_FED_BUFF_IDS lists food buffs Features/Scanner-Auras.lua must count as Well Fed although they aren't named "Well Fed" or show another icon, so the buff-food check doesn't nag a player who already has one.
+	- ns.WELL_FED_ICON_IDS lists the icons Well Fed buffs show (136000, and 133943 for the reworked foods), matched on the aura's icon when its spell ID is in no table.
+	- Fizzy Energy Drink's buff (29040) shows icon 132489, which no icon entry matches, so it is listed by ID.
+
+SQL (CMaNGOS)
+	TODO: Add SQL Query
+
+Wowhead
+	None.
+
+wago.tools
+	https://wago.tools/db2/SpellName?build=1.15.9.70003
+	https://wago.tools/db2/SpellMisc?build=1.15.9.70003
+	https://wago.tools/db2/SpellEffect?build=1.15.9.70003
+	https://wago.tools/db2/ItemEffect?build=1.15.9.70003
+]]

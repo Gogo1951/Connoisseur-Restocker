@@ -202,8 +202,8 @@ local function ReminderModeSelect(settingKey, enabledKey, order)
 end
 
 --[[
-    Page order: the staples pop-up's toggle and the Gold Reserve straight under
-    the description, then the Reminders section, then the window's auto-open
+    Page order: the Restocker's master switch, then the staples pop-up's toggle
+    and the Gold Reserve straight under the description, then the Reminders section, then the window's auto-open
     behavior, then the Inventory Report's switch, then Praise.
 
     The three reminders are peers under their header, each a toggle with the
@@ -224,6 +224,8 @@ function ns.BuildRestockerOptions()
 					.. "|r",
 				1
 			),
+			spaceEnabled = Spacer(1.1),
+			toggleRestockerEnabled = ns.OptionsFeatureSwitch("Restocker", 1.2),
 
 			--[[
 			    The staples pop-up. Reads the same per-character flag the
@@ -420,7 +422,8 @@ function ns.BuildRestockerOptions()
 
 			--[[
 			    Inventory Report: the counts Features/Inventory-Report.lua adds to
-			    item tooltips. It sits on this panel because the block carries
+			    item tooltips. It sits on this panel, as well as in the General panel's
+			    Features section, because the block carries
 			    the Restocker's name and its Bags line is the Restock List's own
 			    have/keep count. The header is the block's title, so the panel
 			    and the tooltip cannot name it two ways.
@@ -435,21 +438,7 @@ function ns.BuildRestockerOptions()
 			spaceInventory1 = Spacer(32),
 			descInventory = Desc(GetColor("BODY") .. L["OPTIONS_INVENTORY_REPORT_SECTION_DESCRIPTION"] .. "|r", 33),
 			spaceInventory2 = Spacer(34),
-			toggleInventoryReport = {
-				type = "toggle",
-				name = L["OPTIONS_INVENTORY_REPORT"],
-				desc = L["OPTIONS_INVENTORY_REPORT_DESCRIPTION"],
-				order = 35,
-				width = "full",
-				get = function()
-					return ns.db and ns.db.global.inventoryReport
-				end,
-				set = function(_, value)
-					if ns.db then
-						ns.db.global.inventoryReport = value
-					end
-				end,
-			},
+			toggleInventoryReport = ns.OptionsFeatureSwitch("InventoryReport", 35),
 
 			--[[
 			    Praise. Restocker is not original work -- the feature is adopted

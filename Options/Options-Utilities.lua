@@ -25,10 +25,9 @@ function ns.OptionsHeader(text, order, hidden)
 end
 
 --[[
-    Only the header takes `hidden`, which collapses a gated section. A gated
-    spacer, description or row label is written inline as its own description
-    widget with a `hidden` function, so it hides with the section instead of
-    leaving a stray gap behind.
+    The header and the spacer take `hidden`, so a gated section collapses whole
+    instead of leaving a stray gap behind. A gated description or row label is
+    written inline as its own widget with a `hidden` function.
 ]]
 function ns.OptionsDesc(text, order)
 	return {
@@ -39,11 +38,12 @@ function ns.OptionsDesc(text, order)
 	}
 end
 
-function ns.OptionsSpacer(order)
+function ns.OptionsSpacer(order, hidden)
 	return {
 		type = "description",
 		name = " ",
 		order = order,
+		hidden = hidden,
 	}
 end
 
@@ -63,13 +63,82 @@ function ns.OptionsRowLabel(text, order, width)
 end
 
 --------------------------------------------------------------------------------
+-- Feature Switches
+--------------------------------------------------------------------------------
+
+--[[
+    Each feature's master switch, drawn twice: in the General panel's Features
+    section and atop the feature's own panel. Both copies come from here and
+    share one setter, and a change repaints both panels, so neither shows a
+    stale box.
+]]
+local FEATURE_SWITCHES = {
+	Macros = {
+		key = "macrosEnabled",
+		name = "OPTIONS_MACROS_ENABLE",
+		desc = "OPTIONS_MACROS_ENABLE_DESCRIPTION",
+		registry = "Macros",
+		set = function(value)
+			ns.SetMacrosEnabled(value)
+		end,
+	},
+	Restocker = {
+		key = "restockerEnabled",
+		name = "OPTIONS_RESTOCKER_ENABLE",
+		desc = "OPTIONS_RESTOCKER_ENABLE_DESCRIPTION",
+		registry = "Restocker",
+		set = function(value)
+			ns.SetRestockerEnabled(value)
+			ns.UpdateMinimapIcon()
+		end,
+	},
+	ReadinessReport = {
+		key = "readinessReportEnabled",
+		name = "OPTIONS_READINESS_ENABLE",
+		desc = "OPTIONS_READINESS_ENABLE_DESCRIPTION",
+		registry = "ReadinessReport",
+	},
+	InventoryReport = {
+		key = "inventoryReport",
+		name = "OPTIONS_INVENTORY_REPORT",
+		desc = "OPTIONS_INVENTORY_REPORT_DESCRIPTION",
+		registry = "Restocker",
+	},
+}
+
+function ns.OptionsFeatureSwitch(feature, order, width)
+	local switch = FEATURE_SWITCHES[feature]
+	return {
+		type = "toggle",
+		name = L[switch.name],
+		desc = L[switch.desc],
+		order = order,
+		width = width or "full",
+		get = function()
+			return ns.db and ns.db.global[switch.key]
+		end,
+		set = function(_, value)
+			if switch.set then
+				switch.set(value)
+			else
+				ns.db.global[switch.key] = value
+			end
+			AceConfigRegistry:NotifyChange(ns.OPTIONS_REGISTRY.General)
+			AceConfigRegistry:NotifyChange(ns.OPTIONS_REGISTRY[switch.registry])
+		end,
+	}
+end
+
+--------------------------------------------------------------------------------
 -- Shared Values
 --------------------------------------------------------------------------------
 
 --[[
     When-to-use mode labels, by group or by level, shared by every mode
     dropdown: Buff Food, Scroll Buffs, Pet Food Buffs, and Use Conjured Food &
-    Water First.
+    Water First. Every dropdown offers all six in this order, none trimmed per
+    feature even where one reads oddly, and one choice is one condition:
+    group and level never combine.
 ]]
 ns.MODE_VALUES = {
 	always = L["MODE_ALWAYS"],
