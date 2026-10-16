@@ -134,14 +134,14 @@ L["READINESS_MANA_GEM"] = "마나 보석"
 L["READINESS_HEALING_POTION"] = "치유 물약"
 L["READINESS_MANA_POTION"] = "마나 물약"
 L["READINESS_BANDAGES"] = "붕대"
-L["READINESS_PVP_ON"] = "PvP 활성!"
+L["READINESS_PVP_ON"] = "PvP 활성"
 
 -- { buff name, whole minutes left }
 L["READINESS_TIME_MINUTES"] = "%s %d분"
 -- %s is the buff name; used when under a minute is left.
 L["READINESS_TIME_EXPIRING"] = "%s 1분 미만"
 -- { dominant talent tree, slash-joined point spread }
-L["READINESS_SPEC_FORMAT"] = "%s (%s)"
+L["READINESS_SPECIALIZATION_FORMAT"] = "%s (%s)"
 -- Talent points the character has not spent: exactly one, or %d for two or more.
 L["READINESS_UNSPENT_TALENTS_ONE"] = "미사용 특성 포인트 1점"
 L["READINESS_UNSPENT_TALENTS_MANY"] = "미사용 특성 포인트 %d점"
@@ -166,17 +166,23 @@ L["TIP_DONT_KNOW_SPELL"] = "현재 %s 기술을 배우지 않았습니다."
 --------------------------------------------------------------------------------
 
 --[[
-    Feature toggles shown in the mini-map tooltip, each with a description
-    line. Both names also fill OPTIONS_MODE_DESCRIPTION's %s, and Scroll Buffs
-    labels the Readiness Report's switch. In every *_FORMAT key that quotes the
-    buff, here and below, %s is the client's name for "Well Fed".
+    The two Food macro features. Both names fill OPTIONS_MODE_DESCRIPTION's %s,
+    and Scroll Buffs labels the Readiness Report's switch. In every *_FORMAT key
+    that names the buff, here and below, %s is the client's name for "Well Fed".
 ]]
 L["FEATURE_BUFF_FOOD"] = "버프 음식"
-L["MENU_BUFF_FOOD_DESCRIPTION_FORMAT"] =
-	'"%s" 버프가 없을 때 해당 버프를 주는 음식을 우선 사용합니다.'
 L["FEATURE_SCROLL_BUFFS"] = "두루마리 버프"
-L["MENU_SCROLL_BUFFS_DESCRIPTION"] =
-	"음식을 먹기 전에 음식 매크로로 빠진 두루마리 버프를 적용합니다."
+
+--[[
+    The mini-map tooltip's two switches, each a block with a description line.
+    Buff Food and Scroll Buffs share one block and one click, which turns both
+    on or off together. The Readiness Report's block takes its title from
+    READINESS_TITLE.
+]]
+L["MINIMAP_BUFF_FOOD_SCROLLS"] = "버프 음식 및 두루마리"
+L["MINIMAP_BUFF_FOOD_SCROLLS_DESCRIPTION_FORMAT"] =
+	'"%s" 음식을 사용하고, 음식을 먹기 전에 빠진 두루마리 버프를 적용합니다.'
+L["MINIMAP_READINESS_DESCRIPTION"] = "전투 준비 확인 때마다 해결할 항목을 알려 줍니다."
 
 --[[
     Item titles in the mini-map tooltip. A title sits alone on its row and its
@@ -311,7 +317,7 @@ L["LABEL_HEALTHSTONE"] = "생명석"
 L["LABEL_MANA_GEM"] = "마나 보석"
 L["LABEL_MANA_POTION"] = "마나 물약"
 L["LABEL_PET_FOOD"] = "소환수 음식"
-L["LABEL_POISONS"] = "독"
+L["LABEL_POISON"] = "독"
 L["LABEL_SOULSTONE"] = "영혼석"
 L["LABEL_WATER"] = "물"
 
@@ -343,8 +349,8 @@ L["MINIMAP_SHIFT_LEFT"] = "Shift + 좌클릭"
     caption, so each value carries its own "when". Leveling means below the
     client's max level.
 
-    In the mini-map tooltip, a Buff Food or Scroll Buffs switch that is on
-    while its choice does not apply shows the choice's label in place of
+    In the mini-map tooltip, the Buff Food & Scrolls block, while a switch is
+    on but no choice applies, shows that choice's label in place of
     MINIMAP_ENABLED, so every label has to read as a state too.
 ]]
 L["OPTIONS_MODE_DESCRIPTION"] =
@@ -396,6 +402,15 @@ L["OPTIONS_WELCOME_MESSAGE_DESCRIPTION"] = "로그인 시 대화창에 환영 �
 -- Minimap Button
 L["OPTIONS_MINIMAP_BUTTON"] = "미니맵 버튼 활성화"
 L["OPTIONS_MINIMAP_BUTTON_DESCRIPTION"] = "미니맵 버튼을 표시합니다."
+
+-- Features: each feature's master switch, also atop its own panel.
+L["OPTIONS_FEATURES_HEADER"] = "기능"
+L["OPTIONS_MACROS_ENABLE"] = "매크로 업데이트 활성화"
+L["OPTIONS_MACROS_ENABLE_DESCRIPTION"] =
+	"가방이 바뀔 때마다 Connoisseur 매크로가 가장 좋은 아이템을 사용하도록 유지합니다. 끄면 모든 매크로가 마지막 상태 그대로 남습니다."
+L["OPTIONS_RESTOCKER_ENABLE"] = "Restocker 활성화"
+L["OPTIONS_RESTOCKER_ENABLE_DESCRIPTION"] =
+	"보충 목록에 따라 구매하고 은행에 보관하며, 물품이 부족해지면 알려 줍니다. 끄면 보충 목록 창을 포함해 모든 기능이 꺼집니다."
 
 --[[
     /Commands. Both halves of each line are locale keys: the literal, which
@@ -458,9 +473,9 @@ L["OPTIONS_FOOD_WATER_DESCRIPTION"] =
 	"음식 및 물 매크로는 가방에 있는 가장 좋은 음식과 음료를 사용합니다. 이 옵션들로 버프 음식, 두루마리, 창조된 음식과 물을 먼저 사용하고, 보충 목록의 음식과 물은 나중에 사용하게 할 수 있습니다."
 
 --[[
-    Buff Food, the first option under Food & Water. Its hover text is a key of
-    its own because it carries the arena exception, which the mini-map
-    tooltip's MENU_BUFF_FOOD_DESCRIPTION_FORMAT has no room for.
+    Buff Food, the first option under Food & Water. Its hover text carries the
+    arena exception, which the mini-map tooltip's shared Buff Food & Scrolls
+    line has no room for.
 ]]
 L["OPTIONS_BUFF_FOOD"] = "버프 음식 우선"
 L["OPTIONS_BUFF_FOOD_DESCRIPTION_FORMAT"] =
@@ -544,7 +559,13 @@ L["OPTIONS_EXPLOSIVES_CLICK_LAYOUT_DESCRIPTION"] =
 L["EXPLOSIVES_MODE_ATPLAYER"] = "좌클릭 @player"
 L["EXPLOSIVES_MODE_TOSS"] = "좌클릭 던지기"
 
--- Druids. This section and the Rogue one are headed with the client's name for the player's class, so neither header has a key.
+-- The class and race sections' headers; %s is the client's name for the class or race, or OPTIONS_FORSAKEN_HEADER.
+L["OPTIONS_CLASS_HEADER_FORMAT"] = "직업 옵션: %s"
+L["OPTIONS_RACE_HEADER_FORMAT"] = "종족 옵션: %s"
+
+-- Druids
+L["OPTIONS_DRUID_DESCRIPTION"] =
+	"DruidMacroHelper 애드온이 필요합니다. 켜면 치유 물약, 마나 물약, 생명석 매크로가 변신을 풀고 아이템을 사용한 뒤, 확인란 옆에서 고른 곰 변신 또는 표범 변신으로 다시 변신시킵니다."
 L["OPTIONS_DRUID_MACRO_HELPER"] = "DruidMacroHelper 연동 활성화"
 L["OPTIONS_DRUID_MACRO_HELPER_DESCRIPTION"] =
 	"DruidMacroHelper(/dmh)를 사용하여 치유 물약, 마나 물약, 생명석에 대한 변신 매크로를 생성합니다."
@@ -568,20 +589,35 @@ L["OPTIONS_POISON_MAIN_HAND_DESCRIPTION"] =
 L["OPTIONS_POISON_OFF_HAND_DESCRIPTION"] =
 	"독 매크로를 좌클릭할 때 보조장비에 바를 독을 선택합니다."
 --[[
-    Shared by the Rogue (Stealth) and Night Elf (Shadowmeld) toggles; a
-    character sees one at most. In both hover texts %s is the client's name for
-    the spell the macro appends.
+    Shared by the Rogue (Stealth) and Night Elf (Shadowmeld) eating toggles.
+    In both hover texts %s is the client's name for the spell the macro
+    appends.
 ]]
 L["OPTIONS_STEALTH_EATING"] = "먹을 때 은신 사용"
 L["OPTIONS_STEALTH_EATING_SPELL_DESCRIPTION"] =
 	"음식 매크로에 %s 주문을 추가하여 음식을 먹는 동안 은신합니다."
 
--- Night Elves. The section is headed with the client's name for the player's race, so its header has no key.
+-- Night Elves
 L["OPTIONS_STEALTH_DRINKING"] = "마실 때 은신 사용"
 L["OPTIONS_STEALTH_DRINKING_SPELL_DESCRIPTION"] =
 	"물 매크로에 %s 주문을 추가하여 물을 마시는 동안 은신합니다."
 L["OPTIONS_STEALTH_PICK_ONE"] =
 	"프로 팁: 하나만 선택하세요. 먹기와 마시기는 동시에 할 수 있지만, 은신한 뒤에 먹거나 마시면 은신이 풀립니다."
+
+--[[
+    Forsaken. Headed with our own word, the race's lore name, since the client
+    names it Undead; in the five texts after the header, %s is the client's
+    name for Cannibalize. Drinking shows only where Cannibalize restores mana.
+]]
+L["OPTIONS_FORSAKEN_HEADER"] = "포세이큰"
+L["OPTIONS_CANNIBALIZE_DESCRIPTION"] =
+	"처치한 인간형 또는 언데드를 대상으로 지정하면, 재사용 대기 중이 아닐 때 매크로가 %s 주문을 시전하여 음식과 음료를 아낍니다. 시전할 수 없으면(시체가 너무 멀거나 주문이 재사용 대기 중이면) 평소처럼 먹거나 마십니다."
+L["OPTIONS_CANNIBALIZE_EATING"] = "음식 대신 %s 사용"
+L["OPTIONS_CANNIBALIZE_EATING_DESCRIPTION"] =
+	"대상이 %s 주문을 사용할 수 있는 시체이고 주문이 재사용 대기 중이 아니면, 음식 매크로가 음식을 먹는 대신 이 주문을 시전합니다. 그 외에는 평소처럼 음식을 먹습니다. 두루마리와 버프 음식이 여전히 먼저입니다."
+L["OPTIONS_CANNIBALIZE_DRINKING"] = "물 대신 %s 사용"
+L["OPTIONS_CANNIBALIZE_DRINKING_DESCRIPTION"] =
+	"대상이 %s 주문을 사용할 수 있는 시체이고 주문이 재사용 대기 중이 아니면, 물 매크로가 물을 마시는 대신 이 주문을 시전합니다. 그 외에는 평소처럼 물을 마십니다. 버프 음료가 여전히 먼저입니다."
 
 --[[
     Ignore List panel (Options-Ignore-List.lua). One tree scope per list: the
@@ -636,12 +672,13 @@ L["OPTIONS_RESTOCKER_BANK_REMIND_DESCRIPTION"] =
 --[[
     The Gold Reserve: the floor the merchant restock never spends below. The
     dropdown beside it writes each amount as a number and the gold coin, so
-    it has no strings of its own.
+    its values have no strings; AMOUNT_DESCRIPTION is its hover text.
 ]]
 L["OPTIONS_RESTOCKER_GOLD_RESERVE"] = "예비 골드 사용"
 L["OPTIONS_RESTOCKER_GOLD_RESERVE_DESCRIPTION"] =
 	"여기서 따로 남겨 둔 골드는 보충에 절대 사용하지 않습니다."
-L["OPTIONS_RESTOCKER_GOLD_RESERVE_AMOUNT_DESCRIPTION"] = "보충 후에도 항상 남겨 둘 골드 양입니다."
+L["OPTIONS_RESTOCKER_GOLD_RESERVE_AMOUNT_DESCRIPTION"] =
+	"보충 후에도 항상 남겨 둘 골드 양을 설정합니다."
 
 --[[
     The staples pop-up (STARTER_POPUP_TITLE below). This toggle and the
@@ -791,8 +828,9 @@ L["OPTIONS_READINESS_DURABILITY_THRESHOLD_DESCRIPTION"] =
 	"장비의 내구도가 얼마나 떨어지면 보고서에 링크할지 설정합니다."
 
 -- Character
-L["OPTIONS_READINESS_SPEC"] = "현재 특성"
-L["OPTIONS_READINESS_SPEC_DESCRIPTION"] = "특성 분배와 아직 사용하지 않은 포인트를 출력합니다."
+L["OPTIONS_READINESS_SPECIALIZATION"] = "현재 특성"
+L["OPTIONS_READINESS_SPECIALIZATION_DESCRIPTION"] =
+	"특성 분배와 아직 사용하지 않은 포인트를 출력합니다."
 L["OPTIONS_READINESS_PVP"] = "PvP 상태 켜짐"
 L["OPTIONS_READINESS_PVP_DESCRIPTION"] = "PvP 상태가 켜져 있으면 경고합니다."
 L["OPTIONS_READINESS_QUESTIONABLE_GEAR"] = "비전투용 장비 착용"
@@ -813,6 +851,7 @@ L["RESTOCKER_PROFILE_EXISTS"] = '"%s" 이름의 목록이 이미 있습니다.'
 ]]
 L["RESTOCKER_UNKNOWN_ITEM"] = "ID %d인 아이템 없음"
 L["RESTOCKER_BANK_NOT_OPEN"] = "은행이 열려 있지 않습니다."
+L["RESTOCKER_DISABLED"] = "Restocker가 꺼져 있습니다. 설정 > 애드온 > Connoisseur에서 켜세요."
 --[[
     %s is the /crs slash command, colored at the call site. Only the bank flow
     prints this, so the Shift hint names the bank; Shift is read as the window
@@ -826,7 +865,7 @@ L["RESTOCKER_STOPPED_BANK_FULL"] =
 L["RESTOCKER_STOPPED_BAG_FULL"] =
 	"보충이 중단되었습니다. 가방이 가득 찼습니다. 칸을 비우고 은행을 다시 여세요."
 L["RESTOCKER_STOPPED_NO_PROGRESS"] = "보충이 중단되었습니다. 더 이상 진행할 수 없습니다."
-L["RESTOCKER_STOPPED_COULD_NOT_MOVE"] = "보충이 중단되었습니다. 옮기지 못함: %s"
+L["RESTOCKER_STOPPED_COULD_NOT_MOVE"] = "보충이 중단되었습니다. 옮기지 못함: %s."
 -- { count, item name }
 L["RESTOCKER_STUCK_ITEM_FORMAT"] = "%dx %s"
 L["RESTOCKER_STUCK_ITEM_EXTRA_FORMAT"] = "%dx %s (초과분)"
@@ -918,7 +957,7 @@ L["RESTOCKER_BAGS_FULL_PARTIAL"] = "모든 아이템을 구매하기 전에 가�
 L["RESTOCKER_OUT_OF_GOLD"] = "보충을 마치기에 골드가 부족합니다."
 -- RESTOCKER_OUT_OF_GOLD's line while the Gold Reserve is on, whole so each locale joins its sentences its own way. %s is the reserve with the gold coin.
 L["RESTOCKER_OUT_OF_GOLD_RESERVE"] =
-	"보충 일시 중지: 골드가 부족합니다. 예비 골드(%s)를 건드리지 않고 구매 주문을 완료할 수 있게 되면 다시 시작합니다."
+	"보충 일시 중지: 골드가 부족합니다. 예비 골드(%s)를 건드리지 않고 보충 주문을 완료할 수 있게 되면 다시 시작합니다."
 
 -- /crs help lines. The command literals stay in code; these are the descriptions, and the show line reuses RESTOCKER_COMMAND_DESCRIPTION.
 -- Stands for the list name the player types after a /crs profile subcommand.
@@ -973,8 +1012,8 @@ L["STARTER_POPUP_ARROWS"] = "화살"
     spell reagents. Rogues additionally get a Poisons section of their own,
     whose note under the header opens with the client's name for the class
     (rogue-colored at the call site) to say the ingredients take care of
-    themselves. Both sections name
-    their rows with the client's own item names, so neither has row labels here.
+    themselves. Both sections name their rows with the client's own item
+    names, so neither has row labels here.
 ]]
 L["STARTER_POPUP_REAGENTS_HEADER"] = "재료 및 도구"
 L["STARTER_POPUP_POISONS_HEADER"] = "독"
@@ -1014,12 +1053,11 @@ L["RESTOCKER_FILTER_CLEAR_TOOLTIP"] = "지우기"
 L["RESTOCKER_ADD_BUTTON"] = "추가"
 --[[
     The button that opens the staples pop-up over the window, on the control
-    row and on an empty list, and its tooltip. The keys keep the pop-up's
-    earlier name, the List Builder. "Check" is the pop-up's own word
-    (STARTER_POPUP_INTRO_HOW).
+    row and on an empty list, and its tooltip. "Check" is the pop-up's own
+    word (STARTER_POPUP_INTRO_HOW).
 ]]
-L["RESTOCKER_LIST_BUILDER_BUTTON"] = "기본 물품 고르기"
-L["RESTOCKER_LIST_BUILDER_TOOLTIP"] =
+L["RESTOCKER_PICK_STAPLES_BUTTON"] = "기본 물품 고르기"
+L["RESTOCKER_PICK_STAPLES_TOOLTIP"] =
 	"음식, 물, 탄약, 독, 재료 중에서 직업과 레벨에 맞는 기본 물품을 고르세요. 체크하면 이 목록에 추가되고, 체크를 해제하면 제거됩니다."
 L["RESTOCKER_ADD_TOOLTIP_TITLE"] = "아이템 추가"
 L["RESTOCKER_ADD_TOOLTIP_BODY"] =
@@ -1070,14 +1108,12 @@ L["RESTOCKER_MANAGE_TOOLTIP"] =
 --[[
     The Manage Lists menu, top to bottom. Menu entries take title case and no
     terminal punctuation, like every title in the window. New List is also the
-    last entry on the selector's own menu. The Copy and Delete keys end in
-    _TOOLTIP because they began as the tooltips of two buttons this menu
-    replaced.
+    last entry on the selector's own menu.
 ]]
 L["RESTOCKER_NEW_PROFILE"] = "새 목록"
-L["RESTOCKER_COPY_PROFILE_TOOLTIP"] = "이 목록을 새 목록으로 복사"
+L["RESTOCKER_MANAGE_COPY"] = "이 목록을 새 목록으로 복사"
 L["RESTOCKER_RENAME_PROFILE"] = "이 목록 이름 바꾸기"
-L["RESTOCKER_DELETE_PROFILE_TOOLTIP"] = "이 목록 삭제"
+L["RESTOCKER_MANAGE_DELETE"] = "이 목록 삭제"
 -- %s becomes "<list name> Copy"; numbered if that name is taken.
 L["RESTOCKER_PROFILE_COPY_NAME"] = "%s 복사본"
 -- The button that commits a rename, beside the field Rename This List opens, and that button's tooltip.
@@ -1182,13 +1218,13 @@ L["RESTOCKER_GROUP_ALL"] = "모든 아이템"
     What the list area shows in place of rows. EMPTY_ is a list with nothing on
     it: a heading (title case), a body of two sentences (the two ways to add,
     then what the list does with what is on it), the Pick Staples button
-    (RESTOCKER_LIST_BUILDER_BUTTON), and a hint under it. NO_MATCH_ is one line
+    (RESTOCKER_PICK_STAPLES_BUTTON), and a hint under it. NO_MATCH_ is one line
     for a list that has items and is showing none: the filter matches nothing,
     or the selected category just lost its last item.
 ]]
 L["RESTOCKER_EMPTY_TITLE"] = "아직 이 목록에 아무것도 없습니다"
 L["RESTOCKER_EMPTY_BODY"] =
-	"음식, 물, 직업 재료 같은 기본 물품을 선택하거나, 위 메뉴에서 가방에 있는 아이템을 무엇이든 추가하세요. 선택한 아이템은 자동으로 계속 채워지거나 은행에 보관되므로 가방이 깔끔하게 유지됩니다."
+	"음식, 물, 직업 재료 같은 기본 물품을 고르거나, 위 메뉴에서 가방에 있는 아이템을 무엇이든 추가하세요. 이 목록에 있는 아이템은 자동으로 계속 채워지거나 은행에 보관되므로 가방이 깔끔하게 유지됩니다."
 L["RESTOCKER_EMPTY_DROP_HINT"] = "이 창의 아무 곳에나 아이템을 끌어다 놓아도 추가됩니다."
 L["RESTOCKER_NO_MATCH_FILTER"] = "이 목록에 필터와 일치하는 항목이 없습니다."
 L["RESTOCKER_NO_MATCH_GROUP"] = "이 분류에 남은 항목이 없습니다."

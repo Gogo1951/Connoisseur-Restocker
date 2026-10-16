@@ -134,14 +134,14 @@ L["READINESS_MANA_GEM"] = "Manastein"
 L["READINESS_HEALING_POTION"] = "Heiltrank"
 L["READINESS_MANA_POTION"] = "Manatrank"
 L["READINESS_BANDAGES"] = "Verbände"
-L["READINESS_PVP_ON"] = "PvP aktiv!"
+L["READINESS_PVP_ON"] = "PvP aktiv"
 
 -- { buff name, whole minutes left }
 L["READINESS_TIME_MINUTES"] = "%s %d Min."
 -- %s is the buff name; used when under a minute is left.
 L["READINESS_TIME_EXPIRING"] = "%s unter 1 Min."
 -- { dominant talent tree, slash-joined point spread }
-L["READINESS_SPEC_FORMAT"] = "%s (%s)"
+L["READINESS_SPECIALIZATION_FORMAT"] = "%s (%s)"
 -- Talent points the character has not spent: exactly one, or %d for two or more.
 L["READINESS_UNSPENT_TALENTS_ONE"] = "1 nicht verteilter Talentpunkt"
 L["READINESS_UNSPENT_TALENTS_MANY"] = "%d nicht verteilte Talentpunkte"
@@ -166,15 +166,23 @@ L["TIP_DONT_KNOW_SPELL"] = "Du kennst %s derzeit nicht."
 --------------------------------------------------------------------------------
 
 --[[
-    Feature toggles shown in the mini-map tooltip, each with a description
-    line. Both names also fill OPTIONS_MODE_DESCRIPTION's %s, and Scroll Buffs
-    labels the Readiness Report's switch. In every *_FORMAT key that quotes the
-    buff, here and below, %s is the client's name for "Well Fed".
+    The two Food macro features. Both names fill OPTIONS_MODE_DESCRIPTION's %s,
+    and Scroll Buffs labels the Readiness Report's switch. In every *_FORMAT key
+    that names the buff, here and below, %s is the client's name for "Well Fed".
 ]]
 L["FEATURE_BUFF_FOOD"] = "Buff-Essen"
-L["MENU_BUFF_FOOD_DESCRIPTION_FORMAT"] = 'Bevorzugt Essen, das den "%s"-Buff gewährt, wenn der Buff fehlt.'
 L["FEATURE_SCROLL_BUFFS"] = "Schriftrollen-Buffs"
-L["MENU_SCROLL_BUFFS_DESCRIPTION"] = "Wendet mit deinem Essen-Makro fehlende Schriftrollen-Buffs an, bevor du isst."
+
+--[[
+    The mini-map tooltip's two switches, each a block with a description line.
+    Buff Food and Scroll Buffs share one block and one click, which turns both
+    on or off together. The Readiness Report's block takes its title from
+    READINESS_TITLE.
+]]
+L["MINIMAP_BUFF_FOOD_SCROLLS"] = "Buff-Essen und Schriftrollen"
+L["MINIMAP_BUFF_FOOD_SCROLLS_DESCRIPTION_FORMAT"] =
+	'Verwendet Essen mit "%s" und wendet fehlende Schriftrollen-Buffs an, bevor du isst.'
+L["MINIMAP_READINESS_DESCRIPTION"] = "Listet bei jedem Bereitschaftscheck auf, was zu beheben ist."
 
 --[[
     Item titles in the mini-map tooltip. A title sits alone on its row and its
@@ -309,7 +317,7 @@ L["LABEL_HEALTHSTONE"] = "Gesundheitsstein"
 L["LABEL_MANA_GEM"] = "Manastein"
 L["LABEL_MANA_POTION"] = "Manatrank"
 L["LABEL_PET_FOOD"] = "Tierfutter"
-L["LABEL_POISONS"] = "Gift"
+L["LABEL_POISON"] = "Gift"
 L["LABEL_SOULSTONE"] = "Seelenstein"
 L["LABEL_WATER"] = "Wasser"
 
@@ -341,8 +349,8 @@ L["MINIMAP_SHIFT_LEFT"] = "Shift + Linksklick"
     caption, so each value carries its own "when". Leveling means below the
     client's max level.
 
-    In the mini-map tooltip, a Buff Food or Scroll Buffs switch that is on
-    while its choice does not apply shows the choice's label in place of
+    In the mini-map tooltip, the Buff Food & Scrolls block, while a switch is
+    on but no choice applies, shows that choice's label in place of
     MINIMAP_ENABLED, so every label has to read as a state too.
 ]]
 L["OPTIONS_MODE_DESCRIPTION"] =
@@ -394,6 +402,15 @@ L["OPTIONS_WELCOME_MESSAGE_DESCRIPTION"] = "Gibt beim Anmelden eine Willkommensn
 -- Minimap Button
 L["OPTIONS_MINIMAP_BUTTON"] = "Minikarten-Button aktivieren"
 L["OPTIONS_MINIMAP_BUTTON_DESCRIPTION"] = "Zeigt den Minikarten-Button an."
+
+-- Features: each feature's master switch, also atop its own panel.
+L["OPTIONS_FEATURES_HEADER"] = "Funktionen"
+L["OPTIONS_MACROS_ENABLE"] = "Makro-Aktualisierungen aktivieren"
+L["OPTIONS_MACROS_ENABLE_DESCRIPTION"] =
+	"Hält deine Connoisseur-Makros auf deine besten Gegenstände ausgerichtet, während sich deine Taschen ändern. Aus lässt jedes Makro so, wie es zuletzt war."
+L["OPTIONS_RESTOCKER_ENABLE"] = "Restocker aktivieren"
+L["OPTIONS_RESTOCKER_ENABLE_DESCRIPTION"] =
+	"Kauft und lagert nach deiner Nachschubliste ein und erinnert dich, wenn dir etwas ausgeht. Aus schaltet all das ab, auch das Fenster der Nachschubliste."
 
 --[[
     /Commands. Both halves of each line are locale keys: the literal, which
@@ -456,9 +473,9 @@ L["OPTIONS_FOOD_WATER_DESCRIPTION"] =
 	"Deine Essen- und Wasser-Makros verwenden das beste Essen und die besten Getränke in deinen Taschen. Diese Optionen können Buff-Essen, Schriftrollen oder herbeigezaubertes Essen und Wasser an die erste Stelle und Essen und Wasser der Nachschubliste an die letzte Stelle setzen."
 
 --[[
-    Buff Food, the first option under Food & Water. Its hover text is a key of
-    its own because it carries the arena exception, which the mini-map
-    tooltip's MENU_BUFF_FOOD_DESCRIPTION_FORMAT has no room for.
+    Buff Food, the first option under Food & Water. Its hover text carries the
+    arena exception, which the mini-map tooltip's shared Buff Food & Scrolls
+    line has no room for.
 ]]
 L["OPTIONS_BUFF_FOOD"] = "Buff-Essen bevorzugen"
 L["OPTIONS_BUFF_FOOD_DESCRIPTION_FORMAT"] =
@@ -542,7 +559,13 @@ L["OPTIONS_EXPLOSIVES_CLICK_LAYOUT_DESCRIPTION"] =
 L["EXPLOSIVES_MODE_ATPLAYER"] = "Linksklick @player"
 L["EXPLOSIVES_MODE_TOSS"] = "Linksklick Werfen"
 
--- Druids. This section and the Rogue one are headed with the client's name for the player's class, so neither header has a key.
+-- The class and race sections' headers; %s is the client's name for the class or race, or OPTIONS_FORSAKEN_HEADER.
+L["OPTIONS_CLASS_HEADER_FORMAT"] = "Klassenoptionen: %s"
+L["OPTIONS_RACE_HEADER_FORMAT"] = "Volksoptionen: %s"
+
+-- Druids
+L["OPTIONS_DRUID_DESCRIPTION"] =
+	"Benötigt das Add-on DruidMacroHelper. Eingeschaltet holen dich deine Heiltrank-, Manatrank- und Gesundheitsstein-Makros per Powershifting aus der Gestalt, verwenden den Gegenstand und versetzen dich zurück in Bärengestalt oder Katzengestalt, je nachdem, was du neben dem Kontrollkästchen wählst."
 L["OPTIONS_DRUID_MACRO_HELPER"] = "DruidMacroHelper-Integration aktivieren"
 L["OPTIONS_DRUID_MACRO_HELPER_DESCRIPTION"] =
 	"Erstellt Powershifting-Makros für Heiltränke, Manatränke und Gesundheitssteine mithilfe von DruidMacroHelper (/dmh)."
@@ -566,20 +589,35 @@ L["OPTIONS_POISON_MAIN_HAND_DESCRIPTION"] =
 L["OPTIONS_POISON_OFF_HAND_DESCRIPTION"] =
 	"Legt fest, welches Gift dein Gifte-Makro per Linksklick auf deine Schildhand aufträgt."
 --[[
-    Shared by the Rogue (Stealth) and Night Elf (Shadowmeld) toggles; a
-    character sees one at most. In both hover texts %s is the client's name for
-    the spell the macro appends.
+    Shared by the Rogue (Stealth) and Night Elf (Shadowmeld) eating toggles.
+    In both hover texts %s is the client's name for the spell the macro
+    appends.
 ]]
 L["OPTIONS_STEALTH_EATING"] = "Verstohlenes Essen aktivieren"
 L["OPTIONS_STEALTH_EATING_SPELL_DESCRIPTION"] =
 	"Fügt %s zu deinem Essen-Makro hinzu, damit du beim Essen verborgen bist."
 
--- Night Elves. The section is headed with the client's name for the player's race, so its header has no key.
+-- Night Elves
 L["OPTIONS_STEALTH_DRINKING"] = "Verstohlenes Trinken aktivieren"
 L["OPTIONS_STEALTH_DRINKING_SPELL_DESCRIPTION"] =
 	"Fügt %s zu deinem Wasser-Makro hinzu, damit du beim Trinken verborgen bist."
 L["OPTIONS_STEALTH_PICK_ONE"] =
 	"Profi-Tipp: Wähle eines. Du kannst gleichzeitig essen und trinken, aber Essen oder Trinken nach dem Verstecken beendet deine Tarnung."
+
+--[[
+    Forsaken. Headed with our own word, the race's lore name, since the client
+    names it Undead; in the five texts after the header, %s is the client's
+    name for Cannibalize. Drinking shows only where Cannibalize restores mana.
+]]
+L["OPTIONS_FORSAKEN_HEADER"] = "Verlassene"
+L["OPTIONS_CANNIBALIZE_DESCRIPTION"] =
+	"Nimm einen getöteten Humanoiden oder Untoten ins Ziel, und dein Makro wirkt %s, solange der Zauber bereit ist, und spart so dein Essen und Trinken. Geht das nicht (die Leiche ist außer Reichweite oder der Zauber hat Abklingzeit), isst oder trinkt es wie gewohnt."
+L["OPTIONS_CANNIBALIZE_EATING"] = "%s statt Essen verwenden"
+L["OPTIONS_CANNIBALIZE_EATING_DESCRIPTION"] =
+	"Solange dein Ziel eine Leiche ist, an der %s wirkt, und der Zauber bereit ist, wirkt dein Essen-Makro ihn, statt zu essen. Sonst isst es wie gewohnt. Schriftrollen und Buff-Essen haben weiterhin Vorrang."
+L["OPTIONS_CANNIBALIZE_DRINKING"] = "%s statt Trinken verwenden"
+L["OPTIONS_CANNIBALIZE_DRINKING_DESCRIPTION"] =
+	"Solange dein Ziel eine Leiche ist, an der %s wirkt, und der Zauber bereit ist, wirkt dein Wasser-Makro ihn, statt zu trinken. Sonst trinkt es wie gewohnt. Buff-Getränke haben weiterhin Vorrang."
 
 --[[
     Ignore List panel (Options-Ignore-List.lua). One tree scope per list: the
@@ -633,11 +671,12 @@ L["OPTIONS_RESTOCKER_BANK_REMIND_DESCRIPTION"] = "Meldet alle offenen Nachschubp
 --[[
     The Gold Reserve: the floor the merchant restock never spends below. The
     dropdown beside it writes each amount as a number and the gold coin, so
-    it has no strings of its own.
+    its values have no strings; AMOUNT_DESCRIPTION is its hover text.
 ]]
 L["OPTIONS_RESTOCKER_GOLD_RESERVE"] = "Goldreserve aktivieren"
 L["OPTIONS_RESTOCKER_GOLD_RESERVE_DESCRIPTION"] = "Der Nachschub gibt das Gold, das du hier zurücklegst, nie aus."
-L["OPTIONS_RESTOCKER_GOLD_RESERVE_AMOUNT_DESCRIPTION"] = "Wie viel Gold dir der Nachschub immer übrig lässt."
+L["OPTIONS_RESTOCKER_GOLD_RESERVE_AMOUNT_DESCRIPTION"] =
+	"Legt fest, wie viel Gold dir der Nachschub immer übrig lässt."
 
 --[[
     The staples pop-up (STARTER_POPUP_TITLE below). This toggle and the
@@ -787,8 +826,8 @@ L["OPTIONS_READINESS_DURABILITY_THRESHOLD_DESCRIPTION"] =
 	"Legt fest, wie tief die Haltbarkeit eines Gegenstands sinken muss, damit der Bericht ihn verlinkt."
 
 -- Character
-L["OPTIONS_READINESS_SPEC"] = "Aktuelle Skillung"
-L["OPTIONS_READINESS_SPEC_DESCRIPTION"] =
+L["OPTIONS_READINESS_SPECIALIZATION"] = "Aktuelle Skillung"
+L["OPTIONS_READINESS_SPECIALIZATION_DESCRIPTION"] =
 	"Gibt deine Talentverteilung aus sowie alle Punkte, die du noch nicht verteilt hast."
 L["OPTIONS_READINESS_PVP"] = "PvP-Status aktiv"
 L["OPTIONS_READINESS_PVP_DESCRIPTION"] = "Warnt, wenn dein PvP-Status aktiv ist."
@@ -810,6 +849,7 @@ L["RESTOCKER_PROFILE_EXISTS"] = 'Eine Liste namens "%s" existiert bereits.'
 ]]
 L["RESTOCKER_UNKNOWN_ITEM"] = "Es gibt keine ID %d."
 L["RESTOCKER_BANK_NOT_OPEN"] = "Die Bank ist nicht geöffnet."
+L["RESTOCKER_DISABLED"] = "Der Restocker ist aus. Schalte ihn unter Optionen > Addons > Connoisseur ein."
 --[[
     %s is the /crs slash command, colored at the call site. Only the bank flow
     prints this, so the Shift hint names the bank; Shift is read as the window
@@ -823,7 +863,7 @@ L["RESTOCKER_STOPPED_BANK_FULL"] =
 L["RESTOCKER_STOPPED_BAG_FULL"] =
 	"Auffüllen gestoppt. Deine Taschen sind voll; mache einen Platz frei und öffne die Bank erneut."
 L["RESTOCKER_STOPPED_NO_PROGRESS"] = "Auffüllen gestoppt. Es konnte kein Fortschritt erzielt werden."
-L["RESTOCKER_STOPPED_COULD_NOT_MOVE"] = "Auffüllen gestoppt. Konnte nicht verschieben: %s"
+L["RESTOCKER_STOPPED_COULD_NOT_MOVE"] = "Auffüllen gestoppt. Konnte nicht verschieben: %s."
 -- { count, item name }
 L["RESTOCKER_STUCK_ITEM_FORMAT"] = "%dx %s"
 L["RESTOCKER_STUCK_ITEM_EXTRA_FORMAT"] = "%dx %s (überschüssig)"
@@ -915,7 +955,7 @@ L["RESTOCKER_BAGS_FULL_PARTIAL"] = "Deine Taschen waren voll, bevor alles gekauf
 L["RESTOCKER_OUT_OF_GOLD"] = "Nicht genug Gold, um den Nachschub abzuschließen."
 -- RESTOCKER_OUT_OF_GOLD's line while the Gold Reserve is on, whole so each locale joins its sentences its own way. %s is the reserve with the gold coin.
 L["RESTOCKER_OUT_OF_GOLD_RESERVE"] =
-	"Nachschub pausiert; nicht genug Gold. Er geht weiter, sobald er deine Einkaufsaufträge abschließen kann, ohne deine Reserve (%s) anzugreifen."
+	"Nachschub pausiert; nicht genug Gold. Er geht weiter, sobald er deine Nachschubaufträge abschließen kann, ohne deine Reserve (%s) anzugreifen."
 
 -- /crs help lines. The command literals stay in code; these are the descriptions, and the show line reuses RESTOCKER_COMMAND_DESCRIPTION.
 -- Stands for the list name the player types after a /crs profile subcommand.
@@ -970,8 +1010,8 @@ L["STARTER_POPUP_ARROWS"] = "Pfeile"
     spell reagents. Rogues additionally get a Poisons section of their own,
     whose note under the header opens with the client's name for the class
     (rogue-colored at the call site) to say the ingredients take care of
-    themselves. Both sections name
-    their rows with the client's own item names, so neither has row labels here.
+    themselves. Both sections name their rows with the client's own item
+    names, so neither has row labels here.
 ]]
 L["STARTER_POPUP_REAGENTS_HEADER"] = "Reagenzien und Werkzeuge"
 L["STARTER_POPUP_POISONS_HEADER"] = "Gifte"
@@ -1011,12 +1051,11 @@ L["RESTOCKER_FILTER_CLEAR_TOOLTIP"] = "Leeren"
 L["RESTOCKER_ADD_BUTTON"] = "Hinzufügen"
 --[[
     The button that opens the staples pop-up over the window, on the control
-    row and on an empty list, and its tooltip. The keys keep the pop-up's
-    earlier name, the List Builder. "Check" is the pop-up's own word
-    (STARTER_POPUP_INTRO_HOW).
+    row and on an empty list, and its tooltip. "Check" is the pop-up's own
+    word (STARTER_POPUP_INTRO_HOW).
 ]]
-L["RESTOCKER_LIST_BUILDER_BUTTON"] = "Grundvorräte wählen"
-L["RESTOCKER_LIST_BUILDER_TOOLTIP"] =
+L["RESTOCKER_PICK_STAPLES_BUTTON"] = "Grundvorräte wählen"
+L["RESTOCKER_PICK_STAPLES_TOOLTIP"] =
 	"Wähle aus den Grundvorräten für deine Klasse und Stufe: Essen, Wasser, Munition, Gifte und Reagenzien. Was du anhakst, wird dieser Liste hinzugefügt, und was du abwählst, wird entfernt."
 L["RESTOCKER_ADD_TOOLTIP_TITLE"] = "Gegenstand hinzufügen"
 L["RESTOCKER_ADD_TOOLTIP_BODY"] =
@@ -1066,14 +1105,12 @@ L["RESTOCKER_MANAGE_TOOLTIP"] = "Lege eine neue Liste an oder kopiere diese, ben
 --[[
     The Manage Lists menu, top to bottom. Menu entries take title case and no
     terminal punctuation, like every title in the window. New List is also the
-    last entry on the selector's own menu. The Copy and Delete keys end in
-    _TOOLTIP because they began as the tooltips of two buttons this menu
-    replaced.
+    last entry on the selector's own menu.
 ]]
 L["RESTOCKER_NEW_PROFILE"] = "Neue Liste"
-L["RESTOCKER_COPY_PROFILE_TOOLTIP"] = "Diese Liste in eine neue kopieren"
+L["RESTOCKER_MANAGE_COPY"] = "Diese Liste in eine neue kopieren"
 L["RESTOCKER_RENAME_PROFILE"] = "Diese Liste umbenennen"
-L["RESTOCKER_DELETE_PROFILE_TOOLTIP"] = "Diese Liste löschen"
+L["RESTOCKER_MANAGE_DELETE"] = "Diese Liste löschen"
 -- %s becomes "<list name> Copy"; numbered if that name is taken.
 L["RESTOCKER_PROFILE_COPY_NAME"] = "%s - Kopie"
 -- The button that commits a rename, beside the field Rename This List opens, and that button's tooltip.
@@ -1175,13 +1212,13 @@ L["RESTOCKER_GROUP_ALL"] = "Alle Gegenstände"
     What the list area shows in place of rows. EMPTY_ is a list with nothing on
     it: a heading (title case), a body of two sentences (the two ways to add,
     then what the list does with what is on it), the Pick Staples button
-    (RESTOCKER_LIST_BUILDER_BUTTON), and a hint under it. NO_MATCH_ is one line
+    (RESTOCKER_PICK_STAPLES_BUTTON), and a hint under it. NO_MATCH_ is one line
     for a list that has items and is showing none: the filter matches nothing,
     or the selected category just lost its last item.
 ]]
 L["RESTOCKER_EMPTY_TITLE"] = "Noch nichts auf dieser Liste"
 L["RESTOCKER_EMPTY_BODY"] =
-	"Wähle Grundvorräte wie Essen, Wasser oder Klassenreagenzien aus, oder füge über das Menü oben beliebige Gegenstände aus deinen Taschen hinzu. Ausgewählte Gegenstände werden automatisch aufgefüllt oder in deiner Bank eingelagert, damit deine Taschen aufgeräumt bleiben."
+	"Wähle Grundvorräte wie Essen, Wasser oder Klassenreagenzien, oder füge über das Menü oben beliebige Gegenstände aus deinen Taschen hinzu. Gegenstände auf dieser Liste werden automatisch aufgefüllt oder in deiner Bank eingelagert, damit deine Taschen aufgeräumt bleiben."
 L["RESTOCKER_EMPTY_DROP_HINT"] = "Gegenstände, die du irgendwo auf dieses Fenster ziehst, werden auch hinzugefügt."
 L["RESTOCKER_NO_MATCH_FILTER"] = "Nichts auf dieser Liste passt zu deinem Filter."
 L["RESTOCKER_NO_MATCH_GROUP"] = "In dieser Kategorie ist nichts mehr übrig."
