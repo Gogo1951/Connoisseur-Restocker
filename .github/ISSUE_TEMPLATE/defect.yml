@@ -88,8 +88,8 @@ body:
         3. Open each tab (Settings, Code, Data, Localization), copy its report, and paste it in the matching box below.
         4. Turn Diagnostic Tools back off when you're done.
 
-        > [!WARNING]
-        > This issue is public. Reports may include character or realm names; edit them out first if you'd rather not share them. If all four together are very long, attach the biggest one as a .txt file in Screenshots instead.
+        > [!NOTE]
+        > **Diagnostic reports are the single best way to get your issue fixed fast.** They show exactly what the add-on sees on your end, so the problem can be tracked down without a lot of back-and-forth. Paste in as many as you can! If all four together are very long, attach the biggest one as a .txt file in Screenshots instead.
 
   - type: textarea
     id: settings-report
