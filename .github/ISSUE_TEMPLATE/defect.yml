@@ -74,14 +74,13 @@ body:
       value: |
         ## Diagnostic Reports (optional, but they help the most)
 
+        > [!NOTE]
+        > **Diagnostic reports are the single best way to get your issue fixed fast.** They show exactly what the add-on sees on your end, so the problem can be tracked down without a lot of back-and-forth. Paste in as many as you can! If all four together are very long, attach the biggest one as a .txt file in Screenshots instead.
+
         **How to grab them**
         1. Open the add-on's settings and find **Diagnostic Tools**.
         2. Check **Enable Diagnostic Tools**.
-        3. Open each tab (Settings, Code, Data, Localization), copy its report, and paste it in the matching box below.
-        4. Turn Diagnostic Tools back off when you're done.
-
-        > [!NOTE]
-        > **Diagnostic reports are the single best way to get your issue fixed fast.** They show exactly what the add-on sees on your end, so the problem can be tracked down without a lot of back-and-forth. Paste in as many as you can! If all four together are very long, attach the biggest one as a .txt file in Screenshots instead.
+        3. Open each tab (Settings, Code, Data, Localization), run the report, copy the report, and paste it in the matching box below.
 
   - type: textarea
     id: settings-report
