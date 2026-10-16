@@ -211,6 +211,15 @@ local function session(opts)
 			AddMaskTexture = function(self, mask)
 				self.mask = mask
 			end,
+			SetSize = function(self, width)
+				self.size = width
+			end,
+			ClearAllPoints = function(self)
+				self.point = nil
+			end,
+			SetPoint = function(self, point, x, y)
+				self.point = point .. " " .. x .. " " .. y
+			end,
 		},
 		CreateMaskTexture = function()
 			return {
@@ -286,9 +295,6 @@ local function session(opts)
 			end,
 			Refresh = function()
 				calls[#calls + 1] = "Refresh"
-			end,
-			SetButtonIcon = function(_, objectName, _, size)
-				calls[#calls + 1] = "SetButtonIcon " .. objectName .. " " .. size
 			end,
 		}
 	end
@@ -960,11 +966,9 @@ check("and LibDBIcon is told each time", s.lastCall(), "Refresh")
 check("on Classic Era the icon is left as LibDBIcon draws it", s.button.icon.mask, nil)
 s = session({ flavor = "Camelot" })
 s.ns.RegisterMinimapIcon()
-check(
-	"on WoW Forever the icon is fitted to its ring",
-	table.concat(s.calls, ", "),
-	"Register Connoisseur, SetButtonIcon Connoisseur 20"
-)
+check("on WoW Forever only Register goes through LibDBIcon", table.concat(s.calls, ", "), "Register Connoisseur")
+check("the icon is fitted to its ring", s.button.icon.size, 20)
+check("and nudged onto the hole", s.button.icon.point, "CENTER 1 -0.35")
 check("and masked round", s.button.icon.mask and s.button.icon.mask.file, 130924)
 check("over the icon itself", s.button.icon.mask.region == s.button.icon, true)
 
