@@ -335,7 +335,7 @@ ns.FOOD_AND_WATER = {
 How We Got the Data
 
 Last Validated
-	2026-10-16, WoW Forever 1.60.1.70425
+	2026-10-16, WoW Forever 1.60.1.70450
 
 Notes
 	- Every food and drink this client knows that restores health or mana while seated, read by the item cache (Features/Item-Cache.lua) for the Food and Water macros and the buff-food choices.
@@ -344,10 +344,11 @@ Notes
 	- Arena (column 7) is a fixed per-item property: 1 = offered only inside a PvP Arena. 2 = a conjured item, so it also works inside an arena. Harvest Bread and Winter Veil Loaf say Conjured Item but carry no arena value, as on TBC, whose client doesn't flag them usable in arenas. Whether an item is actually offered is gated live on IsInInstance() at scan time (ns.CacheItemData and ns.ScanBags); no arena zone IDs are kept.
 	- Left out on purpose: Scorpid Surprise (5473) and Green Tea Leaf (1401), oddballs that share the food cooldown, and items that share it but restore nothing (alcohol, Deviate fish, holiday novelties, feasts that place a table).
 	- WoW Forever reworked much of the cooked food into Well Fed foods (a Well Fed aura on icon 133943) and changed many amounts. An over-time amount is the per-5-second value times the duration in seconds, divided by 5.2 and rounded down for foods; drinks follow their own text, some divided by 5 and some by 5.2, so a drink's figure comes from the client's text, or from a row sharing its spell.
-	- Roasted Quail (287963), Morning Glory Dew (287964), Tender Wolf Steak (287973) and Grilled Squid (287974) are WoW Forever's level-1 copies of the originals, with the same use spells; their values are the originals' (wago.tools, build 1.60.1.70425), pending Validate Data.
+	- Roasted Quail (287963), Morning Glory Dew (287964), Tender Wolf Steak (287973) and Grilled Squid (287974) are WoW Forever's level-1 copies of the originals, with the same use spells and the originals' values, which Validate Data confirmed on build 1.60.1.70450.
 	- Tasty Summer Treat's text says only "It's so good, you'll glow."; its 2123 is the use spell's restore in this client's tables. Lightning in a Bottle restores health only; its spell gives no Well Fed buff.
 	- Blessed Sunfruit Juice (13813) and Bottled Alterac Spring Water (19318) are left out; their Well Fed buffs are still recognized through ns.WELL_FED_BUFF_IDS.
 	- Skullfish Soup (33825) is left out, an oddity of a buff drink.
+	- Deprecated Creeper Cakes (4418) and Scooby Snack (8243) are left out: this client's tables give them a restore, but nothing drops, sells or rewards either one (QuestieDB). Thistle Tea (7676) is left out too; it restores energy, not health or mana.
 	- Season of Discovery items are left out even though this client knows many of their IDs (any ID of 200000 or more that the Classic Era tables also hold): they live only in Data/Discovery/. Where a table would otherwise pick one up, a deliberately-absent line in the table says so.
 
 SQL (CMaNGOS)
@@ -357,15 +358,18 @@ Wowhead
 	None.
 
 wago.tools
-	https://wago.tools/db2/Item?build=1.60.1.70425
-	https://wago.tools/db2/ItemSparse?build=1.60.1.70425
-	https://wago.tools/db2/ItemEffect?build=1.60.1.70425
-	https://wago.tools/db2/ItemXItemEffect?build=1.60.1.70425
-	https://wago.tools/db2/Spell?build=1.60.1.70425
-	https://wago.tools/db2/SpellEffect?build=1.60.1.70425
-	https://wago.tools/db2/SpellMisc?build=1.60.1.70425
-	https://wago.tools/db2/SpellDuration?build=1.60.1.70425
-	https://wago.tools/db2/SpellCastingRequirements?build=1.60.1.70425
-	https://wago.tools/db2/AreaGroupMember?build=1.60.1.70425
-	https://wago.tools/db2/UiMapAssignment?build=1.60.1.70425
+	https://wago.tools/db2/Item?build=1.60.1.70450
+	https://wago.tools/db2/ItemSparse?build=1.60.1.70450
+	https://wago.tools/db2/ItemEffect?build=1.60.1.70450
+	https://wago.tools/db2/ItemXItemEffect?build=1.60.1.70450
+	https://wago.tools/db2/Spell?build=1.60.1.70450
+	https://wago.tools/db2/SpellEffect?build=1.60.1.70450
+	https://wago.tools/db2/SpellMisc?build=1.60.1.70450
+	https://wago.tools/db2/SpellDuration?build=1.60.1.70450
+	https://wago.tools/db2/SpellCastingRequirements?build=1.60.1.70450
+	https://wago.tools/db2/AreaGroupMember?build=1.60.1.70450
+	https://wago.tools/db2/UiMapAssignment?build=1.60.1.70450
+
+QuestieDB
+	https://raw.githubusercontent.com/Questie/QuestieDB/master/data/Forever/foreverItemDB.lua
 ]]

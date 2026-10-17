@@ -177,8 +177,8 @@ local function CreateAmountEditBox(frame)
 	editBox:SetNumeric(true)
 	--[[
 	    Both handlers read self.item, rebound by ns.UpdateRestockListRow like every
-	    other row control -- never GetParent().item, which is the trap that once
-	    broke removal silently.
+	    other row control -- never GetParent().item, which can point at another
+	    item once the row is reused, and removal then fails silently.
 	]]
 	editBox:SetScript("OnEnterPressed", function(self)
 		local amount = tonumber(self:GetText()) or 0

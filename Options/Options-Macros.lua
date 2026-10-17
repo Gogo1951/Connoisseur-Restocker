@@ -59,16 +59,6 @@ local function ReapplyActive()
 	return settings and settings.earlyReapply
 end
 
-local function DruidMacroHelperActive()
-	local settings = GetSettings()
-	return settings and settings.enableDruidMacroHelper
-end
-
--- Cannibalize restores health only on Classic Era and TBC Anniversary, so drinking is offered where it restores mana.
-local function NoCannibalizeDrinking()
-	return not ns.CANNIBALIZE_RESTORES_MANA
-end
-
 --------------------------------------------------------------------------------
 -- Shared Widget Factories
 --------------------------------------------------------------------------------
@@ -192,53 +182,7 @@ local function PetBuffTypeToggles()
 end
 
 --[[
-    Poison-group dropdown shared by the Main Hand and Off Hand rows. Values
-    resolve through ns.GetPoisonGroupName each time the dialog renders, and any
-    base item still uncached is warmed so the panel repaints with the client's
-    own names. Rogue-only, like the section that hosts it. The order and the
-    values both come from ns.POISON_GROUP_BASE_ITEMS, so a group the loaded
-    data folder has no base item for is never offered.
-]]
-local function PoisonHandDropdown(label, description, settingKey, order)
-	local sorting = {}
-	for groupID in pairs(ns.POISON_GROUP_BASE_ITEMS) do
-		sorting[#sorting + 1] = groupID
-	end
-	table.sort(sorting)
-
-	return {
-		type = "select",
-		name = label,
-		desc = description,
-		order = order,
-		width = ns.OPTIONS_CONTROL_WIDTH,
-		values = function()
-			local values = {}
-			local coldItemIDs = {}
-			for groupID, baseItem in pairs(ns.POISON_GROUP_BASE_ITEMS) do
-				values[groupID] = ns.GetPoisonGroupName(groupID) or ns.GetItemDisplayName(baseItem)
-				if not C_Item.GetItemInfo(baseItem) then
-					coldItemIDs[#coldItemIDs + 1] = baseItem
-				end
-			end
-			ns.WarmItemCache(coldItemIDs, ns.OPTIONS_REGISTRY.Macros)
-			return values
-		end,
-		sorting = sorting,
-		get = function()
-			return ns.db.profile[settingKey]
-		end,
-		set = function(_, value)
-			ns.db.profile[settingKey] = value
-			ns.ResetMacroState()
-			ns.RequestUpdate()
-		end,
-	}
-end
-
---[[
-    One factory for the Enable Macros toggles. isHidden is optional --
-    Feed Pet and Poisons use it to stay hidden on the wrong class.
+    One factory for the Enable Macros toggles.
 
     macroName is the macro's own MACRO_* name, shown without the "- " every
     locale leads it with: the macros keep the dash, the panel drops it. The
@@ -251,7 +195,7 @@ end
     is how the macro looks on a fresh character's action bar. The checkbox is
     the icon checkbox (Options-Utilities.lua), for the gap between the two.
 ]]
-local function MacroToggle(macroName, key, order, isHidden)
+local function MacroToggle(macroName, key, order)
 	return {
 		type = "toggle",
 		name = (macroName:gsub("^%- ", "")),
@@ -264,7 +208,6 @@ local function MacroToggle(macroName, key, order, isHidden)
 		dialogControl = ns.ICON_CHECKBOX_WIDGET_TYPE,
 		order = order,
 		width = "normal",
-		hidden = isHidden,
 		get = function()
 			return ns.IsMacroEnabled(key)
 		end,
@@ -285,15 +228,14 @@ end
     macros exist, then how each behaves. Page order is the Macros master
     switch, Macro Names on Buttons, Enable Macros, Food & Water (Buff Food, Scroll Buffs, and conjured food
     and water first), Potions & Healthstones, Mana Gems & Runes, Buff
-    Re-Application, Pet Food Buffs, Explosives, then the Druid, Rogue, Forsaken
-    and Night Elf sections, alphabetical within class and within race. Every
-    character sees every class and race section, so one character can set up
-    another's options. Both are the maintainer's choice. The Ignore List has its own panel (Options-Ignore-List.lua).
+    Re-Application, Pet Food Buffs, then Explosives. The class and race
+    sections (Options-Class-Race.lua) and the Ignore List
+    (Options-Ignore-List.lua) have their own panels, nested under this one.
 
     Order values are spaced blocks so a section can be reordered or extended
     without renumbering its neighbors. The General page keeps the add-on-level
-    behavior that does not touch a macro: the welcome message, the mini-map
-    button, and /Commands.
+    behavior: the welcome message, the mini-map button, the Features switches
+    (the Macros one included), and /Commands.
 
     Registered as this builder function rather than a built table (see
     Options/Options.lua), so AceConfig re-invokes it on every open and every
@@ -644,187 +586,6 @@ function ns.BuildMacrosOptions()
 				ns.db.profile.explosivesClickMode = value
 				ns.ResetMacroState()
 				ns.RequestUpdate()
-			end,
-		},
-
-		-- Druids
-		spaceDruid0 = Spacer(500),
-		headerDruid = Header(L["OPTIONS_CLASS_HEADER_FORMAT"]:format(LOCALIZED_CLASS_NAMES_MALE.DRUID), 501),
-		spaceDruid1 = Spacer(502),
-		descDruid = Desc(GetColor("BODY") .. L["OPTIONS_DRUID_DESCRIPTION"] .. "|r", 502.1),
-		spaceDruid2 = Spacer(502.2),
-		toggleDruidMacroHelper = {
-			type = "toggle",
-			name = L["OPTIONS_DRUID_MACRO_HELPER"],
-			desc = L["OPTIONS_DRUID_MACRO_HELPER_DESCRIPTION"],
-			order = 503,
-			width = ns.OPTIONS_LABEL_WIDTH,
-			get = function()
-				return DruidMacroHelperActive()
-			end,
-			set = function(_, value)
-				ns.ToggleMacroSetting("enableDruidMacroHelper", value)
-			end,
-		},
-		druidReturnForm = {
-			type = "select",
-			name = "",
-			desc = L["OPTIONS_DRUID_RETURN_FORM_DESCRIPTION"],
-			order = 504,
-			width = ns.OPTIONS_CONTROL_WIDTH,
-			hidden = function()
-				return not DruidMacroHelperActive()
-			end,
-			values = {
-				bear = L["DRUID_FORM_BEAR"],
-				cat = L["DRUID_FORM_CAT"],
-			},
-			sorting = { "bear", "cat" },
-			get = function()
-				return ns.db.profile.druidReturnForm
-			end,
-			set = function(_, value)
-				ns.db.profile.druidReturnForm = value
-				ns.ResetMacroState()
-				ns.RequestUpdate()
-			end,
-		},
-
-		--[[
-		    Rogues -- poison group per weapon slot plus Stealth Eating.
-		    Group names come from the client's own item names
-		    (ns.GetPoisonGroupName), so the dropdown labels localize for
-		    free. Its Stealth Eating and the Night Elves one write the same
-		    setting, which the Food macro reads as Stealth or Shadowmeld.
-		]]
-		spaceRogue0 = Spacer(520),
-		headerRogue = Header(L["OPTIONS_CLASS_HEADER_FORMAT"]:format(LOCALIZED_CLASS_NAMES_MALE.ROGUE), 521),
-		spaceRogue1 = Spacer(522),
-		descPoisons = {
-			type = "description",
-			name = GetColor("BODY") .. L["OPTIONS_POISONS_DESCRIPTION"] .. "|r",
-			fontSize = "medium",
-			order = 523,
-		},
-		spaceRogue2 = Spacer(524),
-		-- Label-beside-control rows: the label cell, then the unlabeled dropdown, one row wide together.
-		labelMainHandPoison = {
-			type = "description",
-			name = GetColor("BODY") .. L["OPTIONS_POISON_MAIN_HAND"] .. "|r",
-			fontSize = "medium",
-			width = ns.OPTIONS_LABEL_WIDTH,
-			order = 525,
-		},
-		mainHandPoison = PoisonHandDropdown("", L["OPTIONS_POISON_MAIN_HAND_DESCRIPTION"], "mainHandPoisonGroup", 526),
-		spaceRogue3 = Spacer(527),
-		labelOffHandPoison = {
-			type = "description",
-			name = GetColor("BODY") .. L["OPTIONS_POISON_OFF_HAND"] .. "|r",
-			fontSize = "medium",
-			width = ns.OPTIONS_LABEL_WIDTH,
-			order = 528,
-		},
-		offHandPoison = PoisonHandDropdown("", L["OPTIONS_POISON_OFF_HAND_DESCRIPTION"], "offHandPoisonGroup", 529),
-		spaceRogue4 = Spacer(530),
-		toggleStealthEatingRogue = {
-			type = "toggle",
-			name = L["OPTIONS_STEALTH_EATING"],
-			desc = SpellDescription("OPTIONS_STEALTH_EATING_SPELL_DESCRIPTION", ns.STEALTH_SPELL_ID),
-			order = 531,
-			width = "full",
-			get = function()
-				return ns.db and ns.db.profile and ns.db.profile.enableStealthEating
-			end,
-			set = function(_, value)
-				ns.ToggleMacroSetting("enableStealthEating", value)
-			end,
-		},
-
-		--[[
-		    Forsaken -- Cannibalize in the Food macro, and in the Water macro
-		    where it restores mana. Headed "Forsaken", the maintainer's choice,
-		    though the client names the race Undead.
-		]]
-		spaceForsaken0 = Spacer(620),
-		headerForsaken = Header(L["OPTIONS_RACE_HEADER_FORMAT"]:format(L["OPTIONS_FORSAKEN_HEADER"]), 621),
-		spaceForsaken1 = Spacer(622),
-		descCannibalize = {
-			type = "description",
-			name = function()
-				return GetColor("BODY")
-					.. SpellDescription("OPTIONS_CANNIBALIZE_DESCRIPTION", ns.CANNIBALIZE_SPELL_ID)()
-					.. "|r"
-			end,
-			fontSize = "medium",
-			order = 622.1,
-		},
-		spaceForsaken2 = Spacer(622.2),
-		toggleCannibalizeEating = {
-			type = "toggle",
-			name = SpellDescription("OPTIONS_CANNIBALIZE_EATING", ns.CANNIBALIZE_SPELL_ID),
-			desc = SpellDescription("OPTIONS_CANNIBALIZE_EATING_DESCRIPTION", ns.CANNIBALIZE_SPELL_ID),
-			order = 623,
-			width = "full",
-			get = function()
-				return ns.db and ns.db.profile and ns.db.profile.enableCannibalizeEating
-			end,
-			set = function(_, value)
-				ns.ToggleMacroSetting("enableCannibalizeEating", value)
-			end,
-		},
-		toggleCannibalizeDrinking = {
-			type = "toggle",
-			name = SpellDescription("OPTIONS_CANNIBALIZE_DRINKING", ns.CANNIBALIZE_SPELL_ID),
-			desc = SpellDescription("OPTIONS_CANNIBALIZE_DRINKING_DESCRIPTION", ns.CANNIBALIZE_SPELL_ID),
-			order = 624,
-			width = "full",
-			hidden = NoCannibalizeDrinking,
-			get = function()
-				return ns.db and ns.db.profile and ns.db.profile.enableCannibalizeDrinking
-			end,
-			set = function(_, value)
-				ns.ToggleMacroSetting("enableCannibalizeDrinking", value)
-			end,
-		},
-
-		-- Night Elves
-		spaceNightElf0 = Spacer(640),
-		headerNightElf = Header(
-			L["OPTIONS_RACE_HEADER_FORMAT"]:format(C_CreatureInfo.GetRaceInfo(ns.NIGHT_ELF_RACE_ID).raceName),
-			641
-		),
-		spaceNightElf1 = Spacer(642),
-		descStealthPickOne = {
-			type = "description",
-			name = GetColor("HELP") .. L["OPTIONS_STEALTH_PICK_ONE"] .. "|r",
-			fontSize = "medium",
-			order = 643,
-		},
-		spaceNightElf2 = Spacer(644),
-		toggleShadowmeldDrinking = {
-			type = "toggle",
-			name = L["OPTIONS_STEALTH_DRINKING"],
-			desc = SpellDescription("OPTIONS_STEALTH_DRINKING_SPELL_DESCRIPTION", ns.SHADOWMELD_SPELL_ID),
-			order = 645,
-			width = "full",
-			get = function()
-				return ns.db and ns.db.profile and ns.db.profile.enableShadowmeldDrinking
-			end,
-			set = function(_, value)
-				ns.ToggleMacroSetting("enableShadowmeldDrinking", value)
-			end,
-		},
-		toggleStealthEatingNightElf = {
-			type = "toggle",
-			name = L["OPTIONS_STEALTH_EATING"],
-			desc = SpellDescription("OPTIONS_STEALTH_EATING_SPELL_DESCRIPTION", ns.SHADOWMELD_SPELL_ID),
-			order = 646,
-			width = "full",
-			get = function()
-				return ns.db and ns.db.profile and ns.db.profile.enableStealthEating
-			end,
-			set = function(_, value)
-				ns.ToggleMacroSetting("enableStealthEating", value)
 			end,
 		},
 	}

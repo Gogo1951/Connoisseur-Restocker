@@ -27,4 +27,7 @@ Wowhead
 
 wago.tools
 	https://wago.tools/db2/ItemSparse?build=1.15.9.70003
+
+QuestieDB
+	None.
 ]]

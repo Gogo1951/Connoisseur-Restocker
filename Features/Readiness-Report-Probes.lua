@@ -132,7 +132,7 @@ local function SlotHoldsEnchantableOffHand()
 	if not link then
 		return false
 	end
-	local equipLoc = select(9, C_Item.GetItemInfo(link))
+	local _, _, _, equipLoc = C_Item.GetItemInfoInstant(link)
 	return ENCHANTABLE_OFF_HAND[equipLoc] == true
 end
 
@@ -140,8 +140,10 @@ end
     Whether each weapon slot wants a buff and is missing one, as
     (mainHandMissing, offHandMissing).
 
-    GetWeaponEnchantInfo answers for both slots at once and needs no item data
-    at all, which is what keeps this off the sharpening-stone tables. A slot
+    GetWeaponEnchantInfo answers for both slots at once and needs no buff
+    data, which is what keeps this off the sharpening-stone tables; the off
+    hand's equip slot comes from C_Item.GetItemInfoInstant, which never waits
+    on the item cache. A slot
     with no weapon in it is never missing anything -- that is what makes a
     two-hander read correctly with no two-hand special case, since its off hand
     is empty by definition.
@@ -191,7 +193,7 @@ end
     a fight, no table has to be kept in step with the client, and a pole added
     in a later patch is covered the day it ships.
 
-    Read as the numeric class and subclass, never as C_Item.GetItemInfo's type NAMES,
+    Read as the numeric class and subclass from C_Item.GetItemInfoInstant, never as type NAMES,
     which are localized -- matching on "Fishing Pole" would answer correctly in
     English and nowhere else.
 ]]
@@ -215,7 +217,7 @@ function ns.GetQuestionableEquipment()
 		local link = GetInventoryItemLink("player", slot)
 		if link then
 			local itemID = tonumber(link:match("item:(%d+)"))
-			local classID, subclassID = select(12, C_Item.GetItemInfo(link))
+			local _, _, _, _, _, classID, subclassID = C_Item.GetItemInfoInstant(link)
 
 			local byRule = classID == WEAPON_CLASS_ID and NON_COMBAT_WEAPON_SUBCLASSES[subclassID] == true
 			local byName = itemID ~= nil and ns.QUESTIONABLE_EQUIPMENT[itemID] == true

@@ -485,9 +485,9 @@ local function RunRestockLogic()
 	    In-flight gate: a maintained item's bag+bank total can only DROP while a move is in
 	    transit (source slot already empty, destination not yet credited -- and nothing is
 	    locked in that window, so the lock gate in OnBankRestockUpdate can't hold us back). A scan
-	    taken there under-counts: acting on it is what pulled a duplicate stack ("8 -> 28"),
-	    and when the in-transit stack was the bank's LAST one, printed "Finished restocking"
-	    with the pull still in the air -- skipping the stash-back. Don't move and don't finish
+	    taken there under-counts: acting on it pulls a duplicate stack, and when the
+	    in-transit stack is the bank's LAST one, prints "Finished restocking" with the pull
+	    still in the air -- skipping the stash-back. Don't move and don't finish
 	    off a scan like that; wait for the total to recover. If it stays down past
 	    MAX_INFLIGHT_STEPS, the item really left (consumed/destroyed) -- accept the new
 	    baseline and continue.
@@ -541,7 +541,7 @@ local function RunRestockLogic()
 		    the cursor. ALWAYS keep going (return false) even if nothing was issued -- a slot may
 		    still be locked from the previous move; the watchdog above is what stops us if we're
 		    genuinely stuck. Stashing runs first so it can free a bag slot for restocking, except
-		    while the bank has no free slot: a stash cannot land then, and retrying it would
+		    while the bank has no free general-purpose slot: a stash cannot land then, and retrying it would
 		    starve every pull, so restocking runs first, and a whole stack taken out frees the
 		    slot the stash needs.
 		]]

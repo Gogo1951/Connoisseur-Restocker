@@ -37,7 +37,7 @@ ns.BANDAGES = {
 How We Got the Data
 
 Last Validated
-	2026-10-16, WoW Forever 1.60.1.70425
+	2026-10-16, WoW Forever 1.60.1.70450
 
 Notes
 	- Every First Aid bandage on this client, read by the item cache (Features/Item-Cache.lua) to rank the Bandage macro's picks.
@@ -91,15 +91,18 @@ Wowhead
 	None.
 
 wago.tools
-	https://wago.tools/db2/Item?build=1.60.1.70425
-	https://wago.tools/db2/ItemSparse?build=1.60.1.70425
-	https://wago.tools/db2/ItemEffect?build=1.60.1.70425
-	https://wago.tools/db2/ItemXItemEffect?build=1.60.1.70425
-	https://wago.tools/db2/Spell?build=1.60.1.70425
-	https://wago.tools/db2/SpellEffect?build=1.60.1.70425
-	https://wago.tools/db2/SpellMisc?build=1.60.1.70425
-	https://wago.tools/db2/SpellDuration?build=1.60.1.70425
-	https://wago.tools/db2/SpellCastingRequirements?build=1.60.1.70425
-	https://wago.tools/db2/AreaGroupMember?build=1.60.1.70425
-	https://wago.tools/db2/UiMapAssignment?build=1.60.1.70425
+	https://wago.tools/db2/Item?build=1.60.1.70450
+	https://wago.tools/db2/ItemSparse?build=1.60.1.70450
+	https://wago.tools/db2/ItemEffect?build=1.60.1.70450
+	https://wago.tools/db2/ItemXItemEffect?build=1.60.1.70450
+	https://wago.tools/db2/Spell?build=1.60.1.70450
+	https://wago.tools/db2/SpellEffect?build=1.60.1.70450
+	https://wago.tools/db2/SpellMisc?build=1.60.1.70450
+	https://wago.tools/db2/SpellDuration?build=1.60.1.70450
+	https://wago.tools/db2/SpellCastingRequirements?build=1.60.1.70450
+	https://wago.tools/db2/AreaGroupMember?build=1.60.1.70450
+	https://wago.tools/db2/UiMapAssignment?build=1.60.1.70450
+
+QuestieDB
+	None.
 ]]

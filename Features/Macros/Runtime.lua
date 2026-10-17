@@ -74,7 +74,7 @@ function ns.OnMacroUiErrorMessage(message)
 	local itemID = macroFireState.lastID or 0
 	local link = ns.GetItemHyperlink(itemID)
 
-	ns.PrintMessage(string.format(L["MESSAGE_BUG_REPORT"], link, itemID, zone, subzone, mapID, ns.DISCORD_URL))
+	ns.PrintMessage(string.format(L["MESSAGE_BUG_REPORT"], link, itemID, zone, subzone, mapID, ns.LINKS.DISCORD))
 	macroFireState.lastTime = 0
 end
 

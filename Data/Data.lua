@@ -87,10 +87,12 @@ ns.CLASS_COLORS = {
 -- URLs
 --------------------------------------------------------------------------------
 
-ns.CURSEFORGE_URL = "https://www.curseforge.com/wow/addons/consumable-connoisseur"
-ns.GITHUB_URL = "https://github.com/Gogo1951/Connoisseur-Restocker"
-ns.DISCORD_URL = "https://discord.gg/eh8hKq992Q"
-ns.WAGO_URL = "https://addons.wago.io/addons/connoisseur"
+ns.LINKS = {
+	CURSEFORGE = "https://www.curseforge.com/wow/addons/connoisseur-restocker",
+	GITHUB = "https://github.com/Gogo1951/Connoisseur-Restocker",
+	DISCORD = "https://discord.gg/eh8hKq992Q",
+	WAGO = "https://addons.wago.io/addons/connoisseur",
+}
 
 --------------------------------------------------------------------------------
 -- AceConfig Registry Names
@@ -105,12 +107,14 @@ ns.WAGO_URL = "https://addons.wago.io/addons/connoisseur"
 ns.OPTIONS_REGISTRY = {
 	General = ADDON_NAME .. "_General",
 	Macros = ADDON_NAME .. "_Macros",
+	ClassRace = ADDON_NAME .. "_ClassRace",
 	IgnoreList = ADDON_NAME .. "_IgnoreList",
 	Restocker = ADDON_NAME .. "_Restocker",
 	-- Registered but never added to the Blizzard tree: it opens as its own window.
 	StarterListPopup = ADDON_NAME .. "_StarterListPopup",
 	ReadinessReport = ADDON_NAME .. "_ReadinessReport",
 	Profiles = ADDON_NAME .. "_Profiles",
+	FeedbackSupport = ADDON_NAME .. "_FeedbackSupport",
 	Diagnostics = ADDON_NAME .. "_Diagnostics",
 }
 

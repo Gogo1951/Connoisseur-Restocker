@@ -167,7 +167,7 @@ Last Validated
 
 Notes
 	- The foods a hunter's pet eats, for Feed Pet support (Features/Macros/Tools-Hunters-Pet-Food.lua). Diet IDs follow ns.PET_DIET_MAP in Data/Data.lua: 1 Meat, 2 Fish, 3 Bread, 4 Cheese, 5 Fruit, 6 Fungus.
-	- itemLevel is the item level, which decides how happy the food keeps a pet of a given level: Feed Pet takes the lowest-level food that still gives full happiness, then the cheapest, then the one with the fewest in the bags. sellPrice is the vendor sell value per unit in copper. questIDs lists the quests that take the item as an objective, or nil.
+	- itemLevel is the item level, which decides how happy the food keeps a pet of a given level: Feed Pet takes the lowest-level food that still gives full happiness, then the cheapest, then the one with the fewest in the bags. sellPrice is the vendor sell value per unit in copper. questIDs lists the quests that take the item as an objective, or nil; every row's list matches QuestieDB's Classic quest table.
 	- Left out on purpose: foods Feed Pet would waste, even where the client gives them a pet diet. That is special foods that sell for nothing (Whipper Root Tuber, Essence Mango, holiday foods) and battleground or zone rations. Feed Pet feeds the cheapest food first, so it would spend those before ordinary food.
 	- Foods that give the player a Well Fed buff are left out on purpose, on every client: they are cooked or bought for the player, and Feed Pet must never eat them. Raw meat and fish and plain food feed the pet. Pet buff foods (Sporeling Snack, Kibler's Bits) are a separate list, ns.PET_BUFF_FOODS in Game-IDs-Vanilla.lua; no client capped at level 60 has any.
 	- This client's tables carry no pet diet, so diets come from the database query below (with ns.PET_DIET_MAP's numbering, not FoodType's) and can't be checked against the client.
@@ -194,4 +194,7 @@ wago.tools
 	https://wago.tools/db2/SpellEffect?build=1.15.9.70003
 	https://wago.tools/db2/SpellMisc?build=1.15.9.70003
 	https://wago.tools/db2/SpellDuration?build=1.15.9.70003
+
+QuestieDB
+	https://raw.githubusercontent.com/Questie/QuestieDB/master/data/Classic/classicQuestDB.lua
 ]]

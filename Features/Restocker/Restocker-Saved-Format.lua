@@ -14,40 +14,24 @@ end
     One-line saved format. Each item is stored as a single comma-separated string
     so the SavedVariables file has exactly one physical line per item (a real Lua
     table would be expanded across many lines by WoW's serializer).
-    Field order: itemType, itemName, amount, stashToBank, restockFromBank,
-                 buyFromMerchant, reaction, upgrade, buyExtra.  Booleans are 1 / 0.
+    Field order: itemName, amount, stashToBank, restockFromBank, buyFromMerchant,
+                 reaction, upgrade, buyExtra.  Booleans are 1 / 0.
     Every trailing field is always written. A new one can be appended without a
     version bump because the parser treats a missing trailing field as absent, and
     absent reads as each flag's own default: a line written before buyExtra
     existed reads Extra off, which is what a row that never asked for it means.
-    itemType is the human-readable class from C_Item.GetItemInfo (e.g. "Consumable",
-    "Quest", "Trade Goods") and leads so the file sorts into groups. It also files the
-    row in the window's category pane and filter while the item itself is still cold.
+    No item type is stored: the window reads it from the client by itemID
+    (ns.GetRestockItemTypeName), which answers even for an item not cached yet.
     The itemID is NOT stored -- the table key IS the itemID (single source of truth).
     A comma splits the label, so a name containing one reads back cut short; the
     client's own name replaces it at login whenever the client knows the item.
-    There is no version stamp, and none is needed: the parser also reads a line with
-    no leading type, and the next save rewrites it in the current form.
+    There is no version stamp, and none is needed: the name is the last of the
+    leading non-numeric fields, so a line saved with a type ahead of it still reads,
+    and the next save rewrites it in the current form.
 ]]
-
---[[
-    Resolve an item's human-readable type, preferring the live game data and falling
-    back to whatever was saved (so it survives even when the item isn't cached yet).
-]]
-local function ItemTypeOf(item)
-	local info = ns.GetItemData(item.itemID)
-	if info and info.itemType and info.itemType ~= "" then
-		return info.itemType
-	end
-	return item.itemType
-end
 
 local function ItemToString(item)
 	local parts = {}
-	local itemType = ItemTypeOf(item)
-	if itemType and itemType ~= "" then
-		parts[#parts + 1] = itemType
-	end
 	parts[#parts + 1] = item.itemName or ""
 	parts[#parts + 1] = item.amount or 0
 	parts[#parts + 1] = item.stashToBank and 1 or 0
@@ -74,9 +58,9 @@ local function ItemFromString(line, key)
 	end
 
 	--[[
-	    The label (type and/or name) is the leading run of non-numeric fields; the
-	    numeric data (amount, flags, [reaction]) follows. This lets the parser read
-	    both "type, name, ..." and a line with no type, "name, ...".
+	    The label is the leading run of non-numeric fields; the numeric data
+	    (amount, flags, [reaction]) follows. The name is the last label field, so
+	    a line saved with a type ahead of it reads the same.
 	]]
 	local dataStart
 	for j = 1, #fields do
@@ -96,9 +80,7 @@ local function ItemFromString(line, key)
 	local upgradeFlag = tonumber(fields[dataStart + 5])
 	local extra = tonumber(fields[dataStart + 6])
 
-	-- Name is the last label field; an optional type leads it.
 	local itemName = (labelEnd >= 1) and fields[labelEnd] or ""
-	local itemType = (labelEnd >= 2) and fields[1] or nil
 
 	--[[
 	    Flags that default to ON are stored as nil, so only an explicit 0 means off.
@@ -119,7 +101,6 @@ local function ItemFromString(line, key)
 
 	return {
 		itemName = itemName,
-		itemType = itemType,
 		itemID = itemID,
 		amount = amount,
 		stashToBank = (stash == 1) or nil,
@@ -145,19 +126,10 @@ function ns.InflateSavedRestockItems(db)
 		for key, item in pairs(list) do
 			if type(item) == "string" then
 				local inflated = ItemFromString(item, key)
-				--[[
-				    Refresh name and type from the client whenever it knows the item: a
-				    saved name goes stale after a client language switch or a rename,
-				    and the merchant matches orders by name.
-				]]
+				-- The client's name whenever it knows the item: a saved name goes stale after a language switch or a rename.
 				local info = ns.GetItemData(inflated.itemID)
-				if info then
-					if info.itemName and info.itemName ~= "" then
-						inflated.itemName = info.itemName
-					end
-					if info.itemType and info.itemType ~= "" then
-						inflated.itemType = info.itemType
-					end
+				if info and info.itemName and info.itemName ~= "" then
+					inflated.itemName = info.itemName
 				end
 				list[key] = inflated
 			elseif type(item) == "table" then

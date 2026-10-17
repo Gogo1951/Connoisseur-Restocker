@@ -28,7 +28,10 @@ local petBuffOverride = false
     is just `#showtooltip` plus one /use [@player] item:NNN line per scroll
     in ns.SCROLL_CHECK_ORDER priority. No food, no conjure, no state-write —
     the user taps once to apply scrolls; the next tap (with all scrolls
-    applied) sees the macro flip back to its normal food form.
+    applied) sees the macro flip back to its normal food form. WoW Forever is
+    the exception: scrolls trigger the global cooldown there, so one press
+    lands one scroll, and the body holds only the first missing scroll until
+    it lands.
 
     Bare `#showtooltip` lets the action bar resolve the icon from the first
     usable line — the first scroll — which is exactly what the user should
@@ -40,8 +43,9 @@ local petBuffOverride = false
 ]]
 local function BuildScrollOnlyBody(scrollList)
 	local lines = { "#showtooltip" }
-	for _, scrollID in ipairs(scrollList) do
-		lines[#lines + 1] = "/use [@player] item:" .. scrollID
+	local count = (ns.FLAVOR == "Camelot") and 1 or #scrollList
+	for index = 1, count do
+		lines[#lines + 1] = "/use [@player] item:" .. scrollList[index]
 	end
 	return table.concat(lines, "\n") .. "\n"
 end

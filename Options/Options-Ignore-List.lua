@@ -40,7 +40,6 @@ local L = ns.L
 ]]
 local function PromoteColumn()
 	return {
-		type = "execute",
 		name = L["OPTIONS_IGNORE_GLOBAL"],
 		desc = L["OPTIONS_IGNORE_PROMOTE_DESCRIPTION"],
 		width = ns.OPTIONS_PROMOTE_WIDTH,

@@ -37,7 +37,7 @@ ns.POISON_RECIPES = {
 How We Got the Data
 
 Last Validated
-	2026-10-16, WoW Forever 1.60.1.70425
+	2026-10-16, WoW Forever 1.60.1.70450
 
 Notes
 	- What a rogue poison costs to craft, read by Features/Restocker/Restocker-Crafting-Reagents.lua: when the Restock List is short of a poison, the shortfall becomes an order for these reagents, and the vendor has to stock every one of them before any is bought.
@@ -53,7 +53,10 @@ Wowhead
 	None.
 
 wago.tools
-	https://wago.tools/db2/SkillLineAbility?build=1.60.1.70425
-	https://wago.tools/db2/SpellEffect?build=1.60.1.70425
-	https://wago.tools/db2/SpellReagents?build=1.60.1.70425
+	https://wago.tools/db2/SkillLineAbility?build=1.60.1.70450
+	https://wago.tools/db2/SpellEffect?build=1.60.1.70450
+	https://wago.tools/db2/SpellReagents?build=1.60.1.70450
+
+QuestieDB
+	None.
 ]]

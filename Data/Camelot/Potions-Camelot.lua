@@ -50,14 +50,14 @@ ns.POTIONS = {
 How We Got the Data
 
 Last Validated
-	2026-10-16, WoW Forever 1.60.1.70425
+	2026-10-16, WoW Forever 1.60.1.70450
 
 Notes
 	- Every potion this client knows that restores health or mana instantly on the potion cooldown, read by the item cache (Features/Item-Cache.lua) for the Health Potion and Mana Potion macros. Healing Amount and Mana Amount are each effect's low end; requiredAlchemy is the Alchemy rank the tooltip requires.
 	- Allowed Zones are uiMapIDs. The draughts' text says they work only in PvP battlegrounds: 1459 Alterac Valley, 1460 Warsong Gulch, 1461 Arathi Basin.
 	- Holy Spring Water (737) is left out on purpose, an oddball on the potion cooldown. Potions that do something else (rage, speed, protection, invisibility) are not in this table.
 	- Windstone's spell requires area 16593 (Zephras Isle), which UiMapAssignment maps to uiMap 2521; its text says it can't be used outside Skywall. Wildvine Potion's 0 to 1,500 health and mana is entered as 1 and 1, as in Vanilla and TBC, so it ranks below every other potion.
-	- Minor and Lesser Healing, Minor and Lesser Mana, and Greater Healing (287966-287969, 287977) are WoW Forever's level-1 copies of the originals, with the same use spells; their values are the originals' (wago.tools, build 1.60.1.70425), pending Validate Data.
+	- Minor and Lesser Healing, Minor and Lesser Mana, and Greater Healing (287966-287969, 287977) are WoW Forever's level-1 copies of the originals, with the same use spells and the originals' values, which Validate Data confirmed on build 1.60.1.70450.
 	- Season of Discovery items are left out even though this client knows many of their IDs (any ID of 200000 or more that the Classic Era tables also hold): they live only in Data/Discovery/. Where a table would otherwise pick one up, a deliberately-absent line in the table says so.
 
 SQL (CMaNGOS)
@@ -67,15 +67,18 @@ Wowhead
 	None.
 
 wago.tools
-	https://wago.tools/db2/Item?build=1.60.1.70425
-	https://wago.tools/db2/ItemSparse?build=1.60.1.70425
-	https://wago.tools/db2/ItemEffect?build=1.60.1.70425
-	https://wago.tools/db2/ItemXItemEffect?build=1.60.1.70425
-	https://wago.tools/db2/Spell?build=1.60.1.70425
-	https://wago.tools/db2/SpellEffect?build=1.60.1.70425
-	https://wago.tools/db2/SpellMisc?build=1.60.1.70425
-	https://wago.tools/db2/SpellDuration?build=1.60.1.70425
-	https://wago.tools/db2/SpellCastingRequirements?build=1.60.1.70425
-	https://wago.tools/db2/AreaGroupMember?build=1.60.1.70425
-	https://wago.tools/db2/UiMapAssignment?build=1.60.1.70425
+	https://wago.tools/db2/Item?build=1.60.1.70450
+	https://wago.tools/db2/ItemSparse?build=1.60.1.70450
+	https://wago.tools/db2/ItemEffect?build=1.60.1.70450
+	https://wago.tools/db2/ItemXItemEffect?build=1.60.1.70450
+	https://wago.tools/db2/Spell?build=1.60.1.70450
+	https://wago.tools/db2/SpellEffect?build=1.60.1.70450
+	https://wago.tools/db2/SpellMisc?build=1.60.1.70450
+	https://wago.tools/db2/SpellDuration?build=1.60.1.70450
+	https://wago.tools/db2/SpellCastingRequirements?build=1.60.1.70450
+	https://wago.tools/db2/AreaGroupMember?build=1.60.1.70450
+	https://wago.tools/db2/UiMapAssignment?build=1.60.1.70450
+
+QuestieDB
+	None.
 ]]

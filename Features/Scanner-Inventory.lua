@@ -352,9 +352,27 @@ end
     other categories keep the single-winner IsBetter path.
 ]]
 
+--[[
+    Each list slot reuses its record from the scan before, kept per type in
+    rankedRecordPools: FillRecord writes every field, and the diagnostics copy
+    a record before they keep it.
+]]
+local rankedRecordPools = {}
+
 local function AddRankedCandidate(typeName, data, score, count)
 	local list = rankedCandidates[typeName]
-	list[#list + 1] = FillRecord({}, data, count, data.price, score)
+	local pool = rankedRecordPools[typeName]
+	if not pool then
+		pool = {}
+		rankedRecordPools[typeName] = pool
+	end
+	local index = #list + 1
+	local record = pool[index]
+	if not record then
+		record = {}
+		pool[index] = record
+	end
+	list[index] = FillRecord(record, data, count, data.price, score)
 end
 
 --[[

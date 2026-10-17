@@ -7,7 +7,7 @@ ns.QUESTIONABLE_EQUIPMENT = {}
 How We Got the Data
 
 Last Validated
-	2026-10-16, WoW Forever 1.60.1.70425
+	2026-10-16, WoW Forever 1.60.1.70450
 
 Notes
 	- Items that are fine to own and wrong to be wearing when a pull starts, read by the Non-combat Gear Equipped check in Features/Readiness-Report-Probes.lua.
@@ -20,5 +20,8 @@ Wowhead
 	None.
 
 wago.tools
-	https://wago.tools/db2/ItemSparse?build=1.60.1.70425
+	https://wago.tools/db2/ItemSparse?build=1.60.1.70450
+
+QuestieDB
+	None.
 ]]

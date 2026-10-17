@@ -61,7 +61,7 @@ local GROUP_COUNT_WIDTH = 30
 --[[
     The pane is as wide as the longest type name it actually has to show, because
     a guessed width truncates the moment it is wrong: type names come from
-    C_Item.GetItemInfo and are localized by the CLIENT, so no fixed number is right in
+    the client (ns.GetRestockItemTypeName) and are localized by the CLIENT, so no fixed number is right in
     every locale, and "Miscellaneous" already overruns a guess that looked generous
     in English.
 
@@ -83,9 +83,9 @@ local measureFontString
     Size the pane to the widest label it will draw. Called once before the window
     is laid out, since the table's left edge is anchored past the pane.
 
-    Types are read from the saved rows rather than from C_Item.GetItemInfo: this runs at
-    window build time, when the item cache may still be cold, and the stored label
-    is the same string the pane goes on to display.
+    Types come from ns.GetRestockItemTypeName, which needs no item cache, so the
+    labels measured here are the strings the pane goes on to display even at
+    window build time.
 ]]
 function ns.ResolveRestockGroupPaneWidth()
 	if not measureFontString then
@@ -100,9 +100,10 @@ function ns.ResolveRestockGroupPaneWidth()
 	}
 	local settings = ns.restockSettings
 	for _, list in pairs((settings and settings.lists) or {}) do
-		for _, item in pairs(list) do
-			if type(item) == "table" and item.itemType and item.itemType ~= "" then
-				labels[item.itemType] = true
+		for itemID in pairs(list) do
+			local typeName = ns.GetRestockItemTypeName(tonumber(itemID))
+			if typeName then
+				labels[typeName] = true
 			end
 		end
 	end
@@ -178,8 +179,8 @@ local function SetCategoryRow(row, label, count, group, isSelected)
 	row.selected:SetShown(isSelected)
 	--[[
 	    The selected row goes gold and the rest stay muted, which is the same
-	    on/off vocabulary the toggle columns use. Zero-count categories never
-	    render, so there is no third state to draw here.
+	    on/off vocabulary the toggle columns use. A zero-count category draws only
+	    while selected, so it takes the selected look and needs no third state.
 	]]
 	if isSelected then
 		row.name:SetTextColor(GOLD.r, GOLD.g, GOLD.b)

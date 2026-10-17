@@ -15,7 +15,7 @@ local GetColor = ns.GetColor
     defaults, so a reset or a brand-new profile arrives without one. Core calls
     this at login and after every profile change. It invalidates on a version
     change, and on a change of data folder: Classic Era and Season of Discovery
-    characters share one saved file, and so one profile, while their realms
+    characters share one saved file, so an Era and a Season of Discovery character can take turns on one profile, while their realms
     build different folders' tables, so a record one of them derived can be
     wrong for the other. The scanner's stale-schema nil-test catches
     same-version (dev) field additions.

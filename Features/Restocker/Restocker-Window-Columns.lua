@@ -56,7 +56,7 @@ end
     with, so a larger UI font, or a longer word in another locale, widens the
     control instead of overflowing it.
 
-    ns.restockRowHeight and ns.restockButtonHeight start at the values the fixed layout used
+    ns.restockRowHeight and ns.restockButtonHeight start at the stock font's measurements
     and are recomputed by ns.RefreshRestockRowMetrics when the window is built. With the
     stock font the measurement lands back on exactly these numbers.
 ]]

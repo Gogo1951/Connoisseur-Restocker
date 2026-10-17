@@ -25,7 +25,7 @@ ns.PET_FOOD_DATA = {
 	[2287] = { 15, 1, 6, nil }, -- Haunch of Meat
 	[17119] = { 15, 1, 6, nil }, -- Deeprun Rat Kabob
 	[19304] = { 15, 1, 6, nil }, -- Spiced Beef Jerky
-	[1080] = { 15, 1, 78, nil }, -- Tough Condor Meat
+	[1080] = { 15, 1, 78, { 92 } }, -- Tough Condor Meat
 	[18633] = { 15, 1, 6, nil }, -- Styleen's Sour Suckerpop
 	[252029] = { 15, 1, 30, nil }, -- Hippogryph Flank
 	[278117] = { 15, 1, 6, nil }, -- Hard Boiled Eggs
@@ -107,7 +107,7 @@ ns.PET_FOOD_DATA = {
 	-- Bread
 	[4540] = { 5, 3, 1, nil }, -- Tough Hunk of Bread
 	[5349] = { 5, 3, 0, nil }, -- Conjured Muffin
-	[11109] = { 5, 3, 6, nil }, -- Special Chicken Feed
+	[11109] = { 5, 3, 6, { 3861 } }, -- Special Chicken Feed
 	[16166] = { 5, 3, 1, nil }, -- Bean Soup
 	[17344] = { 5, 3, 1, nil }, -- Candy Cane
 	[252028] = { 5, 3, 1, nil }, -- Fresh Gustberry Bread
@@ -126,7 +126,7 @@ ns.PET_FOOD_DATA = {
 	[8075] = { 45, 3, 0, nil }, -- Conjured Sourdough
 	[8076] = { 55, 3, 0, nil }, -- Conjured Sweet Roll
 	[23160] = { 55, 3, 200, nil }, -- Friendship Bread
-	[13724] = { 55, 3, 300, nil }, -- Enriched Manna Biscuit
+	[13724] = { 55, 3, 300, { 7645 } }, -- Enriched Manna Biscuit
 	[19301] = { 60, 3, 350, nil }, -- Alterac Manna Biscuit
 	[22895] = { 65, 3, 0, nil }, -- Conjured Cinnamon Roll
 	-- Cheese
@@ -185,15 +185,15 @@ ns.PET_FOOD_DATA = {
 How We Got the Data
 
 Last Validated
-	2026-10-16, WoW Forever 1.60.1.70425
+	2026-10-16, WoW Forever 1.60.1.70450
 
 Notes
 	- The foods a hunter's pet eats, for Feed Pet support (Features/Macros/Tools-Hunters-Pet-Food.lua). Diet IDs follow ns.PET_DIET_MAP in Data/Data.lua: 1 Meat, 2 Fish, 3 Bread, 4 Cheese, 5 Fruit, 6 Fungus.
 	- itemLevel is the item level, which decides how happy the food keeps a pet of a given level: Feed Pet takes the lowest-level food that still gives full happiness, then the cheapest, then the one with the fewest in the bags. sellPrice is the vendor sell value per unit in copper. questIDs lists the quests that take the item as an objective, or nil.
 	- Left out on purpose: foods Feed Pet would waste, even where the client gives them a pet diet. That is special foods that sell for nothing (Whipper Root Tuber, Essence Mango, holiday foods) and battleground or zone rations (including the Darkspear Islands rations). Feed Pet feeds the cheapest food first, so it would spend those before ordinary food.
 	- Foods that give the player a Well Fed buff are left out on purpose, on every client: they are cooked or bought for the player, and Feed Pet must never eat them. Raw meat and fish and plain food feed the pet. Pet buff foods (Sporeling Snack, Kibler's Bits) are a separate list, ns.PET_BUFF_FOODS in Game-IDs-Camelot.lua; no client capped at level 60 has any. WoW Forever's rework turned these into Well Fed foods, so they left this table on 2026-10-16: Roasted Boar Meat (2681), Westfall Stew (733), Smoked Bear Meat (6890), Succulent Pork Ribs (2685), Slitherskin Mackerel (787), Brilliant Smallfish (6290), Cooked Crab Claw (2682), Longjaw Mud Snapper (4592), Rainbow Fin Albacore (5095), Loch Frenzy Delight (6316), Bristle Whisker Catfish (4593), Rockscale Cod (4594), Mithril Head Trout (8364), Spotted Yellowtail (6887), Filet of Redgill (13930), Spinefin Halibut (8957), Lobster Stew (13933), Baked Salmon (13935).
-	- Diets on this client come from ItemPetFoodID in its own tables, numbered 1 Meat, 2 Fish, 3 Cheese, 4 Bread, 5 Fungus, 6 Fruit, so 3 and 4 and 5 and 6 swap on the way in. Foods added from those tables carry no quest objectives there, so their questIDs are unchecked.
-	- Roasted Quail's level-1 copy (287963) carries the original's row (wago.tools, build 1.60.1.70425), pending Validate Data.
+	- Diets on this client come from ItemPetFoodID in its own tables, numbered 1 Meat, 2 Fish, 3 Cheese, 4 Bread, 5 Fungus, 6 Fruit, so 3 and 4 and 5 and 6 swap on the way in. Those tables hold no quest objectives, so every row's questIDs were checked against QuestieDB's Forever quest table.
+	- Roasted Quail's level-1 copy (287963) carries the original's row, which Validate Data confirmed on build 1.60.1.70450.
 	- Season of Discovery items are left out even though this client knows many of their IDs (any ID of 200000 or more that the Classic Era tables also hold): they live only in Data/Discovery/. Where a table would otherwise pick one up, a deliberately-absent line in the table says so.
 
 SQL (CMaNGOS)
@@ -210,12 +210,15 @@ Wowhead
 	None.
 
 wago.tools
-	https://wago.tools/db2/Item?build=1.60.1.70425
-	https://wago.tools/db2/ItemSparse?build=1.60.1.70425
-	https://wago.tools/db2/ItemEffect?build=1.60.1.70425
-	https://wago.tools/db2/ItemXItemEffect?build=1.60.1.70425
-	https://wago.tools/db2/Spell?build=1.60.1.70425
-	https://wago.tools/db2/SpellEffect?build=1.60.1.70425
-	https://wago.tools/db2/SpellMisc?build=1.60.1.70425
-	https://wago.tools/db2/SpellDuration?build=1.60.1.70425
+	https://wago.tools/db2/Item?build=1.60.1.70450
+	https://wago.tools/db2/ItemSparse?build=1.60.1.70450
+	https://wago.tools/db2/ItemEffect?build=1.60.1.70450
+	https://wago.tools/db2/ItemXItemEffect?build=1.60.1.70450
+	https://wago.tools/db2/Spell?build=1.60.1.70450
+	https://wago.tools/db2/SpellEffect?build=1.60.1.70450
+	https://wago.tools/db2/SpellMisc?build=1.60.1.70450
+	https://wago.tools/db2/SpellDuration?build=1.60.1.70450
+
+QuestieDB
+	https://raw.githubusercontent.com/Questie/QuestieDB/master/data/Forever/foreverQuestDB.lua
 ]]

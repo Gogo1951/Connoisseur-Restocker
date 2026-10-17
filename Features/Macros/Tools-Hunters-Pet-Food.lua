@@ -122,7 +122,6 @@ function ns.ScanPetFood()
 	ns.bestPetFoodID = nil
 	ns.bestPetFoodLink = nil
 
-	-- Must have a living pet out
 	if not UnitExists("pet") or UnitIsDead("pet") or UnitIsGhost("pet") then
 		return
 	end
@@ -132,7 +131,6 @@ function ns.ScanPetFood()
 		return
 	end
 
-	-- Build a set of diet IDs the current pet accepts
 	local petDiets = ns.GetPetFoodTypes()
 	if not petDiets or #petDiets == 0 then
 		return
@@ -198,7 +196,6 @@ function ns.ScanPetFood()
 				local isAbovePet = (levelDelta < 0)
 
 				if inHappyBracket or isAbovePet then
-					-- Skip foods needed for active quests
 					local skipQuest = false
 					if questIDs then
 						skipQuest = IsNeededForQuest(questIDs)

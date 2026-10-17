@@ -93,6 +93,12 @@ local function session(level)
 			local link = "|cffffffff|Hitem:" .. itemID .. "|h[" .. item[1] .. "]|h|r"
 			return item[1], link, 1, 1, 1, item[2], "", 20, "", "icon:" .. itemID, 0
 		end,
+		-- Answers from the client's own tables, cold or not, for any item it has.
+		GetItemInfoInstant = function(itemID)
+			if itemID < 900000 then
+				return itemID, (ITEMS[itemID] or { "Item " .. itemID, "Consumable" })[2]
+			end
+		end,
 	}
 	function UnitLevel()
 		return level or 60
@@ -438,8 +444,8 @@ s.settings.currentList = "Rogue"
 s.settings.lists = { Rogue = { [8928] = { itemID = 8928, itemName = "", amount = 2 } } }
 s.ns.SetupCraftingRecipes()
 local order = s.ns.BuildCraftingPurchaseOrder()
-check("Dust of Deterioration for two Instant Poison VI", order["Item 8924"], 8)
-check("Crystal Vial for two Instant Poison VI", order["Item 8925"], 2)
+check("Dust of Deterioration for two Instant Poison VI", order[8924], 8)
+check("Crystal Vial for two Instant Poison VI", order[8925], 2)
 
 print("10. A row shows the client's name for its item, not the name saved with it")
 s = session()

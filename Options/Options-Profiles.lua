@@ -12,8 +12,8 @@ local _, ns = ...
     while the migration that moves characters off Default runs (README-Notes):
     a character put on Default would be moved off it again at its next login.
     The widgets come already localized from AceDBOptions, so there are no
-    locale keys of our own. Registered second-to-last, directly above
-    Diagnostic Tools (see Options.lua).
+    locale keys of our own. Registered directly above Feedback & Support (see
+    Options.lua).
 ]]
 function ns.BuildProfilesOptions()
 	return LibStub("AceDBOptions-3.0"):GetOptionsTable(

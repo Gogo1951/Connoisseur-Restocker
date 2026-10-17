@@ -24,6 +24,10 @@ ns.currentEngineeringSkill = 0
     unlearned. Never a spell's name: a profession's spell can be named apart
     from its skill line (French First Aid is "Premiers soins" as a spell but
     "Secourisme" as a skill line).
+
+    The skill list leaves out the lines under a collapsed header, so a skill
+    not found while a header is collapsed answers nil, and the caller keeps the
+    last rank read rather than reading the profession as unlearned.
 ]]
 local function ReadSkillRank(skillLineID)
 	local skillLineName = C_TradeSkillUI.GetTradeSkillDisplayName(skillLineID)
@@ -31,26 +35,34 @@ local function ReadSkillRank(skillLineID)
 		return 0
 	end
 
+	local headerCollapsed = false
 	for i = 1, ns.GetNumSkillLines() do
-		local skillName, isHeader, _, skillRank = ns.GetSkillLineInfo(i)
-		if not isHeader and skillName == skillLineName then
+		local skillName, isHeader, isExpanded, skillRank = ns.GetSkillLineInfo(i)
+		if isHeader then
+			if not isExpanded then
+				headerCollapsed = true
+			end
+		elseif skillName == skillLineName then
 			return skillRank
 		end
 	end
 
+	if headerCollapsed then
+		return nil
+	end
 	return 0
 end
 
 function ns.UpdateFirstAidSkill()
-	ns.currentFirstAidSkill = ReadSkillRank(ns.FIRST_AID_SKILL_LINE_ID)
+	ns.currentFirstAidSkill = ReadSkillRank(ns.FIRST_AID_SKILL_LINE_ID) or ns.currentFirstAidSkill
 end
 
 function ns.UpdateAlchemySkill()
-	ns.currentAlchemySkill = ReadSkillRank(ns.ALCHEMY_SKILL_LINE_ID)
+	ns.currentAlchemySkill = ReadSkillRank(ns.ALCHEMY_SKILL_LINE_ID) or ns.currentAlchemySkill
 end
 
 function ns.UpdateEngineeringSkill()
-	ns.currentEngineeringSkill = ReadSkillRank(ns.ENGINEERING_SKILL_LINE_ID)
+	ns.currentEngineeringSkill = ReadSkillRank(ns.ENGINEERING_SKILL_LINE_ID) or ns.currentEngineeringSkill
 end
 
 --------------------------------------------------------------------------------

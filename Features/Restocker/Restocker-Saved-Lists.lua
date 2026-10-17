@@ -80,6 +80,11 @@ function ns.AddRestockList(newListName)
 	ns.UpdateRestockList()
 
 	ns.UpdateRestockListWidgets()
+
+	-- A bank run in progress works from the list in use, so it starts over on the new one.
+	if ns.bankIsOpen then
+		ns.OnRestockerBankOpen()
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -385,6 +390,11 @@ function ns.CloneCurrentRestockList()
 	ns.UpdateRestockList()
 	ns.UpdateRestockListWidgets()
 	ns.BeginRestockListRename()
+
+	-- A bank run in progress works from the list in use, so it starts over on the new one.
+	if ns.bankIsOpen then
+		ns.OnRestockerBankOpen()
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -433,6 +443,11 @@ function ns.CopyIntoCurrentRestockList(listToCopy)
 	]]
 	ns.ClearRestockNewItems()
 	ns.UpdateRestockList()
+
+	-- A bank run in progress works from the list in use, so it starts over on the new one.
+	if ns.bankIsOpen then
+		ns.OnRestockerBankOpen()
+	end
 end
 
 --------------------------------------------------------------------------------

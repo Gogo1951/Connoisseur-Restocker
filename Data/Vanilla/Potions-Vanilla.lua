@@ -65,4 +65,7 @@ wago.tools
 	https://wago.tools/db2/SpellCastingRequirements?build=1.15.9.70003
 	https://wago.tools/db2/AreaGroupMember?build=1.15.9.70003
 	https://wago.tools/db2/UiMapAssignment?build=1.15.9.70003
+
+QuestieDB
+	None.
 ]]

@@ -75,14 +75,6 @@ end
 --------------------------------------------------------------------------------
 
 function ns.OnRestockerMerchantShow()
-	--[[
-	    Idempotent: ns.SetupCraftingRecipes returns immediately once any recipe has
-	    resolved. Called again here because a login can finish before the client has
-	    named a single item, and a merchant is the next moment the table is needed.
-	]]
-	ns.SetupCraftingRecipes()
-
-	ns.restockBuying = true
 	ns.merchantIsOpen = true
 
 	if IsShiftKeyDown() then
@@ -237,25 +229,6 @@ function ns.OnRestockerLogout()
 	ns.DeflateRestockItemsForSave()
 end
 
-function ns.OnRestockerUiErrorMessage(_, message)
-	if message == ERR_INV_FULL or message == ERR_BANK_FULL then
-		--[[
-		    Matched against the client's own ERR_INV_FULL / ERR_BANK_FULL globals rather than
-		    the numeric message ids, which can renumber between client builds and would fail
-		    silently -- the same text comparison ns.OnMacroUiErrorMessage (Macros/Runtime.lua)
-		    makes for ERR_ITEM_WRONG_ZONE.
-		    Do NOT hard-stop restocking here: this error
-		    can fire on a transient race, and silently killing the whole run is what left later
-		    items untouched. The restock loop re-scans every step and stops itself with a clear
-		    message when it's genuinely out of room (see RunRestockLogic / StuckMessage). Clearing
-		    restockBuying stops nothing already sent: a merchant run issues every purchase inside
-		    one MERCHANT_SHOW handler, before this error can arrive, which is why that run checks
-		    its own money and bag space as it goes (ns.RestockFromMerchant).
-		]]
-		ns.restockBuying = false
-	end
-end
-
 --------------------------------------------------------------------------------
 -- Master Switch
 --------------------------------------------------------------------------------
@@ -284,7 +257,6 @@ function ns.SetRestockerEnabled(value)
 	bankRestockStarted = false
 	ns.merchantIsOpen = false
 	ns.merchantBuyingSkipped = false
-	ns.restockBuying = false
 	ns.HideRestockWindow()
 end
 
@@ -317,7 +289,6 @@ function ns.InitializeRestockerEvents()
 		GET_ITEM_INFO_RECEIVED = ns.OnRestockerItemInfoReceived,
 		BAG_UPDATE_DELAYED = WhileEnabled(ns.OnRestockerBagUpdate),
 		PLAYER_LOGOUT = ns.OnRestockerLogout,
-		UI_ERROR_MESSAGE = WhileEnabled(ns.OnRestockerUiErrorMessage),
 		PLAYER_UPDATE_RESTING = WhileEnabled(ns.OnRestockerUpdateResting),
 		PLAYER_CONTROL_GAINED = WhileEnabled(ns.OnRestockerControlGained),
 		PLAYER_LEVEL_UP = WhileEnabled(ns.OnRestockerLevelUp),

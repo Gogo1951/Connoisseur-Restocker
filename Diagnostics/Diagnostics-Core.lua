@@ -53,9 +53,9 @@ local TITLE = ns.ADDON_TITLE
 
 ns.DiagnosticsStrings = {
 	TAB = "Diagnostic Tools",
-	WARNING = "These tools help diagnose problems and are meant for developers. While they are on, the Restock List also prints a step-by-step trace to chat during bank restocks, and their output includes technical details about your client and installed add-ons. Leave this off unless you're troubleshooting with someone.",
+	WARNING = "These tools help diagnose problems and are meant for developers. They won't change how the add-on works, though while they are on the Restock List prints a step-by-step trace to chat during bank restocks, and their output includes technical details about your client and installed add-ons. Leave this off unless you're troubleshooting with someone.",
 	ENABLE = "Enable Diagnostic Tools",
-	ENABLE_DESCRIPTION = "Shows the diagnostic reports and the event log below, and turns on the Restock List's chat trace during bank restocks, until you log out or turn it off.",
+	ENABLE_DESCRIPTION = "Shows the tools below for this session only, and turns on the Restock List's chat trace during bank restocks. Turning it off stops the event log and the trace, and clears every report.",
 
 	TAB_RUN_TESTS = "Run Tests",
 	TAB_SETTINGS = "Settings",
@@ -72,7 +72,6 @@ ns.DiagnosticsStrings = {
 	EVENT_LOG_INTRO = "Records the events "
 		.. TITLE
 		.. " listens to, in the order they fired, showing whether an event never fired, or fired and nothing happened.",
-	EVENT_LOG_PRIVACY = "Some of these events carry lines of chat, which can name other players or quote what they said, so read the log before you paste it anywhere.",
 	EVENT_LOG_IDLE = "Not capturing.",
 	EVENT_LOG_CAPTURING = "Capturing. Reproduce the problem, then press Stop.",
 	EVENT_LOG_STOPPED = "Stopped: %s events captured.",
@@ -82,6 +81,7 @@ ns.DiagnosticsStrings = {
 	EVENT_LOG_STOP_DESCRIPTION = "Stops capturing and keeps what was captured, ready to show.",
 	EVENT_LOG_SHOW = "Show",
 	EVENT_LOG_SHOW_DESCRIPTION = "Prints the captured events in the box below, ready to copy.",
+	EVENT_LOG_PRIVACY = "The log includes the text of chat messages it catches, whispers too. Read it through before you paste it anywhere.",
 	TAINT_TITLE = "Taint Log",
 	TAINT_INTRO = 'Seeing "action blocked" or "interface action failed" errors? Turn this on and the game records the cause to a file. Send the file along with your bug report.',
 	TAINT_STATE = "Taint logging is currently set to level %d (0 = off, 2 = verbose).",
@@ -138,7 +138,7 @@ ns.DiagnosticsStrings = {
 	SELECTION_TITLE = "Item Selection",
 	SELECTION_DESCRIPTION = "Shows what each macro picked and which runners-up it beat, naming the ranking step that decided each one. Runners-up are only kept while these tools are on, so trigger a rescan (loot something, or change zone) after turning them on.",
 	RESTOCKER_TITLE = "Restocker Context",
-	RESTOCKER_DESCRIPTION = "Shows where the Restocker and the Inventory Report stand: their switches, the list in use, your gold and bag space, open windows, the reminders and the tooltip hook.",
+	RESTOCKER_DESCRIPTION = "Shows where the Restocker and the Inventory Report stand: their switches, the list in use, what a merchant would buy now, your gold and bag space, open windows, the reminders and the tooltip hook.",
 	READINESS_TITLE = "Readiness Report",
 	READINESS_DESCRIPTION = "Shows what the Readiness Report would print right now, without waiting for a ready check, and which of its switches are on.",
 	VALIDATE_TITLE = "Validate Data: %s",

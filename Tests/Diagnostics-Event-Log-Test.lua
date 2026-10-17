@@ -37,8 +37,6 @@ local ns = {
 
 ERR_ITEM_WRONG_ZONE = "You can't use that item in this zone."
 SPELL_FAILED_TARGETS_DEAD = "Your target is dead."
-ERR_INV_FULL = "Inventory is full."
-ERR_BANK_FULL = "Your bank is full."
 
 function GetTime()
 	return 1000
@@ -114,10 +112,10 @@ check("counted row", hasLine(report, "UI_ERROR_MESSAGE(Ability is not ready yet.
 
 say("2. A message the add-on acts on still logs as a full line")
 ns:StartEventLog()
-ns:LogEvent("UI_ERROR_MESSAGE", 3, ERR_INV_FULL)
+ns:LogEvent("UI_ERROR_MESSAGE", 3, ERR_ITEM_WRONG_ZONE)
 report = ns:BuildEventLogReport()
 check("one log line", #logLines(report), 1)
-check("full line", logLines(report)[1], "1000.000 UI_ERROR_MESSAGE(3, Inventory is full.)")
+check("full line", logLines(report)[1], "1000.000 UI_ERROR_MESSAGE(3, You can't use that item in this zone.)")
 check("nothing suppressed", report:find("Suppressed", 1, true), nil)
 
 say("3. A firing without a string message logs verbatim and is not counted")

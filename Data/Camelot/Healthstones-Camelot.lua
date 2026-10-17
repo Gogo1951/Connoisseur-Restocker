@@ -18,7 +18,7 @@ ns.HEALTHSTONES = {
 How We Got the Data
 
 Last Validated
-	2026-10-16, WoW Forever 1.60.1.70425
+	2026-10-16, WoW Forever 1.60.1.70450
 
 Notes
 	- Every item that heals instantly on the healthstone cooldown, keyed by the cooldown category Charged Crystal Focus (32578) uses, read by the item cache (Features/Item-Cache.lua) for the Healthstone and Health Potion macros. Healthstone Amount is the low end of the heal; Required Level is the level the tooltip requires (0 for none).
@@ -66,13 +66,16 @@ Wowhead
 	None.
 
 wago.tools
-	https://wago.tools/db2/Item?build=1.60.1.70425
-	https://wago.tools/db2/ItemSparse?build=1.60.1.70425
-	https://wago.tools/db2/ItemEffect?build=1.60.1.70425
-	https://wago.tools/db2/ItemXItemEffect?build=1.60.1.70425
-	https://wago.tools/db2/Spell?build=1.60.1.70425
-	https://wago.tools/db2/SpellEffect?build=1.60.1.70425
-	https://wago.tools/db2/SpellMisc?build=1.60.1.70425
-	https://wago.tools/db2/SpellDuration?build=1.60.1.70425
-	https://wago.tools/db2/SpellLevels?build=1.60.1.70425
+	https://wago.tools/db2/Item?build=1.60.1.70450
+	https://wago.tools/db2/ItemSparse?build=1.60.1.70450
+	https://wago.tools/db2/ItemEffect?build=1.60.1.70450
+	https://wago.tools/db2/ItemXItemEffect?build=1.60.1.70450
+	https://wago.tools/db2/Spell?build=1.60.1.70450
+	https://wago.tools/db2/SpellEffect?build=1.60.1.70450
+	https://wago.tools/db2/SpellMisc?build=1.60.1.70450
+	https://wago.tools/db2/SpellDuration?build=1.60.1.70450
+	https://wago.tools/db2/SpellLevels?build=1.60.1.70450
+
+QuestieDB
+	None.
 ]]

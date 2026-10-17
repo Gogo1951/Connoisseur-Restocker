@@ -61,6 +61,16 @@ ns.DIAGNOSTIC_API_CHECKS = {
 			return type(C_Container) == "table" and type(C_Container.GetContainerItemInfo) == "function"
 		end,
 	},
+	--[[
+	    Every spell name the macros cast and the panels show, on every client:
+	    without it no /cast line can be written.
+	]]
+	{
+		"C_Spell.GetSpellName",
+		function()
+			return type(C_Spell) == "table" and type(C_Spell.GetSpellName) == "function"
+		end,
+	},
 	-- The Forsaken Cannibalize line reads the spell's cooldown (Tools-Forsaken.lua).
 	{
 		"C_Spell.GetSpellCooldown",
@@ -918,6 +928,18 @@ local function AppendChoices(lines)
 		tostring(profile.buffFoodMode),
 		YesNo(ns.allowBuffFood)
 	)
+
+	-- What holds buff food back while it is on (Scanner-Inventory.lua), as the last scan read it.
+	local targetingSelf = C_Secrets.CanCompareUnitTokens("target", "player")
+		and UnitExists("target")
+		and UnitIsUnit("target", "player")
+	lines[#lines + 1] = string.format(
+		"Buff food held back by: Well Fed %s, targeting yourself %s, arena %s // aura data restricted now: %s",
+		YesNo(ns.wellFedState),
+		YesNo(targetingSelf),
+		YesNo(select(2, IsInInstance()) == "arena"),
+		YesNo(C_Secrets.ShouldAurasBeSecret())
+	)
 	lines[#lines + 1] = string.format(
 		"Conjured first: %s (%s) // in force now: %s",
 		OnOff(profile.useConjuredFirst),
@@ -1041,9 +1063,11 @@ local function AppendClassAndRace(lines)
 	)
 	-- Tools-Forsaken.lua is new in the TOCs, so a client updated while running lacks it until a restart.
 	if ns.TargetIsCannibalizable then
+		-- nil while the client restricts the target's identity (Forever, mid-fight), which the macro treats as no.
+		local cannibalizable = ns.TargetIsCannibalizable()
 		lines[#lines + 1] = string.format(
 			"Cannibalize now: target Humanoid or Undead %s // cooldown %s",
-			YesNo(ns.TargetIsCannibalizable()),
+			cannibalizable == nil and "restricted right now" or YesNo(cannibalizable),
 			CannibalizeCooldownText()
 		)
 	else
@@ -1179,8 +1203,9 @@ end
 --[[
     The probe for "the Restocker did nothing" and "the tooltip shows no counts"
     reports: the switches, the list this character shops from, the gold and
-    bag space a purchase needs, the windows open now, the reminders and their
-    gates, and the Inventory Report's hook. Read-only.
+    bag space a purchase needs, the windows open now, the staples offer's
+    gates, what a merchant would buy now, the reminders and their gates, and
+    the Inventory Report's hook. Read-only.
 ]]
 local function MoneyText(copper)
 	copper = copper or 0
@@ -1233,9 +1258,8 @@ function ns:BuildRestockerContextReport()
 	)
 	lines[#lines + 1] = string.format("Free bag slots: %d", FreeBagSlots())
 	lines[#lines + 1] = string.format(
-		"Merchant open: %s // buying now: %s // buying skipped: %s // Bank open: %s",
+		"Merchant open: %s // buying skipped: %s // Bank open: %s",
 		YesNo(ns.merchantIsOpen),
-		YesNo(ns.restockBuying),
 		YesNo(ns.merchantBuyingSkipped),
 		YesNo(ns.bankIsOpen)
 	)
@@ -1260,10 +1284,20 @@ function ns:BuildRestockerContextReport()
 		OnOff(settings.autoOpenAtBank)
 	)
 	lines[#lines + 1] = string.format(
-		"Window open: %s // staples offer dismissed for this character: %s",
+		"Window open: %s // staples offer dismissed for this character: %s // level: %d",
 		YesNo(ns.restockWindow and ns.restockWindow:IsShown()),
-		YesNo(settings.starterListDismissed and settings.starterListDismissed[characterKey])
+		YesNo(settings.starterListDismissed and settings.starterListDismissed[characterKey]),
+		UnitLevel("player") or 0
 	)
+
+	-- What a merchant visit would buy now (the rows short of their Keep amount with Buy on), with what the bags hold.
+	local short = {}
+	for _, entry in ipairs(ns.BuildGroceryList()) do
+		short[#short + 1] =
+			string.format("%s %d/%d", tostring(entry.itemName or entry.itemID), entry.have, entry.wanted)
+	end
+	lines[#lines + 1] =
+		string.format("Short now (a merchant would buy): %s", #short > 0 and table.concat(short, ", ") or "(nothing)")
 
 	--[[
 	    The Inventory Report's file is new in a TOC, so a client updated while
@@ -1641,9 +1675,15 @@ for _, classToken in ipairs({ "DRUID", "ROGUE" }) do
 	end)
 end
 
--- The runes the Mana Gem texts name, and each poison group by its first item.
+--[[
+    The runes the Mana Gem texts name, the pet foods the Pet Food Buffs toggles
+    name, and each poison group by its first item.
+]]
 AddItemLookup("DEMONIC_RUNE_ITEM_ID", ns.DEMONIC_RUNE_ITEM_ID)
 AddItemLookup("DARK_RUNE_ITEM_ID", ns.DARK_RUNE_ITEM_ID)
+for _, itemID in ipairs(SortedKeys(ns.PET_BUFF_FOODS)) do
+	AddItemLookup(string.format("PET_BUFF_FOODS[%d]", itemID), itemID)
+end
 for _, groupID in ipairs(SortedKeys(ns.POISON_GROUP_BASE_ITEMS)) do
 	AddItemLookup(
 		string.format("POISON_GROUP_BASE_ITEMS[%s]", tostring(groupID)),
@@ -1655,17 +1695,22 @@ for _, groupID in ipairs(SortedKeys(ns.POISON_GROUP_BASE_ITEMS)) do
 end
 
 --[[
-    The staples window's rows named by an item rather than a label. Which item
-    can follow the character's level and list, so the row is keyed by its
-    category and asks for that item when the report runs.
+    The staples window's rows named by an item rather than a label. Which tier
+    names the row follows the character's level and list, so every tier item of
+    the category's ladder gets a row, each once, and the report checks every name
+    the window can show for any character. A ladder this client carries no tiers
+    for adds nothing.
 ]]
 for _, category in ipairs(ns.GetStarterCategories()) do
 	if not category.label then
-		AddLookup("STARTER_LIST_CATEGORIES." .. category.key, "stapleItem", category.key, function()
-			return ns.GetStarterCategoryName(category)
-		end, function()
-			C_Item.RequestLoadItemDataByID(ns.GetStarterCategoryNameItemID(category))
-		end)
+		local seen = {}
+		for index, tier in ipairs(category.chain.tiers) do
+			local itemID = tier[2]
+			if not seen[itemID] then
+				seen[itemID] = true
+				AddItemLookup(string.format("STARTER_LIST_CATEGORIES.%s[%d]", category.key, index), itemID)
+			end
+		end
 	end
 end
 
@@ -1687,8 +1732,6 @@ for _, constant in ipairs({
 	"CANCEL",
 	"ERR_ITEM_WRONG_ZONE",
 	"SPELL_FAILED_TARGETS_DEAD",
-	"ERR_INV_FULL",
-	"ERR_BANK_FULL",
 	"UNKNOWNOBJECT",
 }) do
 	AddUiLabel(constant)
