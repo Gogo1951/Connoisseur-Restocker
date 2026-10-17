@@ -194,9 +194,12 @@ local HookTooltips
 
 --[[
     Called by Core's PLAYER_LOGIN branch, after the saved variables are loaded.
-    Name, realm and class are refreshed every login, so a renamed or transferred
-    character reports under what it is now. The name is the whole one, a Forever
-    character's surname included (ns.GetPlayerFullName in Utilities).
+    Name, realm and class are refreshed every login. A renamed or transferred
+    character gets a new key, so its old record, found by the GUID a rename
+    keeps, is dropped here; a record saved before the GUID was stored goes only
+    once its character logs in under the old key again. The name is the whole
+    one, a Forever character's surname included (ns.GetPlayerFullName in
+    Utilities).
 
     The class is read by the Restock List as well, which colors the characters
     on a list by it (Features/Restocker/Restocker-Saved-Lists.lua).
@@ -211,6 +214,16 @@ function ns.InitializeInventoryReport()
 	record.name = ns.GetPlayerFullName()
 	record.realm = GetRealmName()
 	record.class = classToken
+
+	local guid = UnitGUID("player")
+	if guid and not ns.IsSecretValue(guid) then
+		record.guid = guid
+		for otherKey, entry in pairs(inventory) do
+			if otherKey ~= key and entry.guid == guid then
+				inventory[otherKey] = nil
+			end
+		end
+	end
 
 	bagCounts = nil
 	bagsChangedInCombat = false

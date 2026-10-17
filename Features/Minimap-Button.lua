@@ -63,7 +63,7 @@ end
 --------------------------------------------------------------------------------
 
 --[[
-    Show or hide the minimap button. Like the other feature toggles, no argument
+    Show or hide the mini-map button. Like the other feature toggles, no argument
     flips the current state and a boolean sets it directly (options-panel path).
     State lives in ns.db.global.minimap.hide — the same field LibDBIcon reads at
     registration — so the choice persists across reloads with no extra wiring.
@@ -549,7 +549,7 @@ ns.dataBrokerObject = LibDataBroker:NewDataObject(ns.LOCALE_NAME, {
 	type = "data source",
 	text = L["ADDON_TITLE"],
 	icon = "Interface\\Icons\\INV_Misc_Food_02",
-	OnClick = function(_, button)
+	OnClick = function(frame, button)
 		-- Shift + Middle-Click always opens the options panel; checked first (matches every Gogo1951 add-on).
 		if button == "MiddleButton" and IsShiftKeyDown() then
 			ns.OpenOptionsPanel()
@@ -569,6 +569,10 @@ ns.dataBrokerObject = LibDataBroker:NewDataObject(ns.LOCALE_NAME, {
 		end
 
 		ns.UpdateMinimapIcon()
+		-- A data-broker display owns the tooltip in place of the mini-map button, which the call above repaints.
+		if GameTooltip:GetOwner() == frame and frame ~= LibDBIcon:GetMinimapButton(ns.LOCALE_NAME) then
+			UpdateTooltip(frame)
+		end
 	end,
 	OnEnter = function(self)
 		UpdateTooltip(self)

@@ -182,7 +182,6 @@ function ns.AddStarterCategory(category)
 	]]
 	list[itemID] = {
 		itemName = info.itemName,
-		itemType = info.itemType,
 		itemID = itemID,
 		amount = CategoryAmount(category, math.max(1, info.itemStackCount or 1)),
 		buyFromMerchant = true,

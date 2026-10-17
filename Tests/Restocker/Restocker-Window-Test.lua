@@ -411,6 +411,11 @@ local function session(opts)
 		GetItemIconByID = function(itemID)
 			return "icon:" .. itemID
 		end,
+		GetItemInfoInstant = function(itemID)
+			if itemID < 900000 then
+				return itemID, itemOf(itemID)[2]
+			end
+		end,
 		GetItemCount = function(itemID)
 			return bags[itemID] or 0
 		end,
@@ -606,7 +611,6 @@ local function session(opts)
 	function ns.StopBankRestock()
 		bankStops = bankStops + 1
 	end
-	ns.pendingRecipes = {}
 
 	local function loadAddonFile(path)
 		-- Add-on files are chunks taking (addonName, ns) as varargs, the way WoW loads them.
@@ -1533,6 +1537,18 @@ fire(s.window.editBox, "OnMouseUp", "LeftButton")
 check("adding an item rebuilds once", rebuilds, 1)
 s.click(s.rowOf(14530).removeButton)
 check("and so does removing it", rebuilds, 2)
+
+print("21. A free slot in a profession bag is not room for the bank run's stash")
+s = session()
+local freeSlots = { [1] = { 0, 0 }, [2] = { 4, 32 } } -- bagID = { free, bag type }: full bag, empty herb bag
+function C_Container.GetContainerNumFreeSlots(bagID)
+	return freeSlots[bagID][1], freeSlots[bagID][2]
+end
+local bankLike = { { bagID = 1 }, { bagID = 2 } }
+check("any free slot counts by default", s.ns.HasFreeBagSlot(bankLike), true)
+check("the herb bag is not general room", s.ns.HasFreeBagSlot(bankLike, true), false)
+freeSlots[1][1] = 1
+check("a free general slot is", s.ns.HasFreeBagSlot(bankLike, true), true)
 
 print("")
 if failures == 0 then

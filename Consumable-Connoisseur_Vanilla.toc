@@ -174,11 +174,13 @@ Diagnostics/Report-Runner.lua
 Options/Options-Utilities.lua
 Options/Options-General.lua
 Options/Options-Macros.lua
+Options/Options-Class-Race.lua
 Options/Options-Ignore-List.lua
 Options/Options-Restocker.lua
 Options/Options-Starter-List-Popup.lua
 Options/Options-Readiness-Report.lua
 Options/Options-Profiles.lua
+Options/Options-Feedback-Support.lua
 Diagnostics/Options-Diagnostics.lua
 Options/Options.lua
 

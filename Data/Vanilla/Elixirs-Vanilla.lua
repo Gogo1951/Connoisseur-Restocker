@@ -108,4 +108,7 @@ wago.tools
 	https://wago.tools/db2/SpellMisc?build=1.15.9.70003
 	https://wago.tools/db2/SpellDuration?build=1.15.9.70003
 	https://wago.tools/db2/SpellCategories?build=1.15.9.70003
+
+QuestieDB
+	None.
 ]]

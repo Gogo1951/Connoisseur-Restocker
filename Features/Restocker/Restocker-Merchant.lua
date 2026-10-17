@@ -78,29 +78,25 @@ local function BuildPurchaseOrder(purchaseOrders, eachRestockRecord, vendorReact
 		]]
 		local toBuy = math.max(0, amount - haveInBag)
 
-		if toBuy > 0 or buyExtra then
-			-- Keyed by the client's current name, which is what the merchant lists; a saved name can be stale.
-			local info = eachRestockRecord.itemID and ns.GetItemData(eachRestockRecord.itemID)
-			local itemName = (info and info.itemName and info.itemName ~= "" and info.itemName)
-				or eachRestockRecord.itemName
-			local purchaseOrder = purchaseOrders[itemName]
+		-- Keyed by itemID, which the merchant slot's link carries too; a row with none cannot be matched.
+		local itemID = eachRestockRecord.itemID
+		if itemID and (toBuy > 0 or buyExtra) then
+			local purchaseOrder = purchaseOrders[itemID]
 			if not purchaseOrder then
-				-- add new
-				purchaseOrders[itemName] =
-					NewPurchaseOrder(toBuy, itemName, eachRestockRecord.itemID, eachRestockRecord.itemLink)
+				purchaseOrder = NewPurchaseOrder(toBuy, itemID)
+				purchaseOrders[itemID] = purchaseOrder
 			else
-				-- update amount, add more
 				purchaseOrder.amount = purchaseOrder.amount + toBuy
 				purchaseOrder.remaining = purchaseOrder.remaining + toBuy
 			end
 
 			--[[
-			    Flagged on the ORDER, not re-read from the record later: orders are keyed
-			    by item name and a crafting reagent can merge into this same entry, so
-			    the buy loop needs the flag on the thing it actually holds.
+			    Flagged on the ORDER, not re-read from the record later: a crafting
+			    reagent can merge into this same entry, so the buy loop needs the flag
+			    on the thing it actually holds.
 			]]
 			if buyExtra then
-				purchaseOrders[itemName].buyExtra = true
+				purchaseOrder.buyExtra = true
 			end
 		end
 	end
@@ -179,14 +175,20 @@ function ns.IsRestockItemShort(record)
 	return key ~= nil and wanted > 0 and (C_Item.GetItemCount(key, false, false) or 0) < wanted
 end
 
-local function UpdatePurchaseOrdersWithCraftingReagents(purchaseOrders, ingredientName, toBuy)
-	if not purchaseOrders[ingredientName] then
-		purchaseOrders[ingredientName] = NewPurchaseOrder(toBuy, ingredientName, nil, nil)
+local function UpdatePurchaseOrdersWithCraftingReagents(purchaseOrders, reagentID, toBuy)
+	if not purchaseOrders[reagentID] then
+		purchaseOrders[reagentID] = NewPurchaseOrder(toBuy, reagentID)
 	else
-		local purchase = purchaseOrders[ingredientName]
+		local purchase = purchaseOrders[reagentID]
 		purchase.amount = purchase.amount + toBuy
 		purchase.remaining = purchase.remaining + toBuy
 	end
+end
+
+-- The item a merchant slot sells, read off its link; nil until the client has resolved the slot.
+local function MerchantSlotItemID(index)
+	local link = GetMerchantItemLink(index)
+	return link and tonumber(link:match("item:(%d+)")), link
 end
 
 --------------------------------------------------------------------------------
@@ -220,9 +222,9 @@ end
 local function VendorStocksAllReagents(craftingPurchaseOrder)
 	local needed = {}
 	local neededCount = 0
-	for reagentName, amount in pairs(craftingPurchaseOrder) do
+	for reagentID, amount in pairs(craftingPurchaseOrder) do
 		if amount > 0 then
-			needed[reagentName] = true
+			needed[reagentID] = true
 			neededCount = neededCount + 1
 		end
 	end
@@ -234,15 +236,16 @@ local function VendorStocksAllReagents(craftingPurchaseOrder)
 
 	local stockedCount = 0
 	for i = 1, GetMerchantNumItems() do
-		local itemName, _, _, _, numAvailable, isPurchasable, _, hasExtendedCost = ns.GetMerchantItemInfo(i)
+		local _, _, _, _, numAvailable, isPurchasable, _, hasExtendedCost = ns.GetMerchantItemInfo(i)
+		local itemID = MerchantSlotItemID(i)
 		if
-			itemName
-			and needed[itemName]
+			itemID
+			and needed[itemID]
 			and isPurchasable
 			and not hasExtendedCost
 			and (numAvailable == -1 or numAvailable > 0)
 		then
-			needed[itemName] = nil -- count each reagent once, however many slots carry it
+			needed[itemID] = nil -- count each reagent once, however many slots carry it
 			stockedCount = stockedCount + 1
 			if stockedCount == neededCount then
 				return true, true
@@ -260,7 +263,7 @@ end
     calls, and "2" is not a number any player can interpret.
 
     A merchant can list one item in more than one slot, and orders are keyed by
-    name, so two items sharing a name share an order too. Each slot therefore
+    itemID, so every such slot reads the same order. Each slot therefore
     buys from remaining, not from the order's whole amount, or a second slot
     would buy the order again. Whether an order was filled is decided once,
     after the last slot (ns.RestockFromMerchant): the order is the only place
@@ -279,22 +282,18 @@ end
     business spending.
 ]]
 local function PurchaseMerchantItem(i, purchaseOrders, budget)
-	local itemName, _, price, batchQuantity, merchantAvailable, isPurchasable, _, hasExtendedCost =
-		ns.GetMerchantItemInfo(i)
+	local _, _, price, batchQuantity, merchantAvailable, isPurchasable, _, hasExtendedCost = ns.GetMerchantItemInfo(i)
 	if not isPurchasable or hasExtendedCost then
 		return
 	end
-	local itemLink = GetMerchantItemLink(i)
+	local itemID, itemLink = MerchantSlotItemID(i)
 
-	local buyItem = purchaseOrders[itemName]
+	local buyItem = itemID and purchaseOrders[itemID]
 	local unitsOrdered = 0
 
 	if buyItem then
-		--[[
-		    Link and cached record are both missing until the client resolves the item, so fall
-		    back to single-unit buys, which BuyMerchantItem accepts for anything.
-		]]
-		local itemInfo = itemLink and ns.GetItemData(itemLink)
+		-- The cached record can lag the link, so fall back to single-unit buys, which BuyMerchantItem accepts for anything.
+		local itemInfo = ns.GetItemData(itemLink)
 		local stackCount = itemInfo and itemInfo.itemStackCount or 1
 		if stackCount < 1 then
 			stackCount = 1
@@ -365,19 +364,15 @@ end
 
 --[[
     One vendor's worth of an item to buy. Transient: a purchase order lives for
-    the length of one merchant visit and is never saved, which is why itemLink can
-    be carried here when the list row that produced it does not store one.
-    remaining is what it still owes as its slots are bought, and bought is what
-    they delivered.
+    the length of one merchant visit and is never saved. remaining is what it
+    still owes as its slots are bought, and bought is what they delivered.
 ]]
-function NewPurchaseOrder(amount, itemName, itemID, itemLink)
+function NewPurchaseOrder(amount, itemID)
 	return {
 		amount = amount,
 		remaining = amount,
 		bought = 0,
-		itemName = itemName,
-		itemID = itemID or 0,
-		itemLink = itemLink or "",
+		itemID = itemID,
 	}
 end
 
@@ -426,8 +421,8 @@ function ns.RestockFromMerchant()
 	end
 
 	-- Insert craft reagents for missing items into purchase orders, or add
-	for ingredientName, toBuy in pairs(craftingPurchaseOrder) do
-		UpdatePurchaseOrdersWithCraftingReagents(purchaseOrders, ingredientName, toBuy)
+	for reagentID, toBuy in pairs(craftingPurchaseOrder) do
+		UpdatePurchaseOrdersWithCraftingReagents(purchaseOrders, reagentID, toBuy)
 	end
 
 	--[[
@@ -453,10 +448,6 @@ function ns.RestockFromMerchant()
 
 	-- Loop through vendor items
 	for i = 1, GetMerchantNumItems() do
-		if not ns.restockBuying then
-			return
-		end
-
 		PurchaseMerchantItem(i, purchaseOrders, budget)
 	end
 

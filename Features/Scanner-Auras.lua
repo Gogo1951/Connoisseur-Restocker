@@ -361,7 +361,7 @@ local HAS_PET_BUFF_FOODS = next(ns.PET_BUFF_FOODS) ~= nil
 
 --[[
     Whether pet buff food applies to this character right now: this flavor has
-    one, the feature is on, its group restriction is satisfied, the player is
+    one, the character is a Hunter, the feature is on, its group restriction is satisfied, the player is
     high enough level for the food to exist, and there is a live pet to feed.
 
     Single source of truth on purpose. Both ns.FindPetBuffOverride
@@ -371,7 +371,7 @@ local HAS_PET_BUFF_FOODS = next(ns.PET_BUFF_FOODS) ~= nil
     buff its own macro would never apply, with no way to satisfy it.
 ]]
 function ns.ShouldTrackPetFood()
-	if not HAS_PET_BUFF_FOODS then
+	if not HAS_PET_BUFF_FOODS or not ns.isHunter then
 		return false
 	end
 	local settings = ns.db and ns.db.profile
@@ -520,7 +520,10 @@ function ns.UpdateAuraTracking()
 	local settings = ns.db.profile
 
 	local buffFoodActive, scrollsActive = PlayerAuraFeaturesActive(settings)
-	local petBuffActive = HAS_PET_BUFF_FOODS and settings.usePetBuffFood and ns.IsModeActive(settings.petBuffFoodMode)
+	local petBuffActive = HAS_PET_BUFF_FOODS
+		and ns.isHunter
+		and settings.usePetBuffFood
+		and ns.IsModeActive(settings.petBuffFoodMode)
 
 	local currentSnapshot
 	if buffFoodActive or scrollsActive then
@@ -593,7 +596,7 @@ function ns.OnUnitAura(unit)
 			end
 		end
 	elseif unit == "pet" then
-		if HAS_PET_BUFF_FOODS and ns.db and ns.db.profile and ns.db.profile.usePetBuffFood then
+		if HAS_PET_BUFF_FOODS and ns.isHunter and ns.db and ns.db.profile and ns.db.profile.usePetBuffFood then
 			needsUpdate = true
 			reason = "petbuff"
 		end

@@ -90,7 +90,6 @@ local function MoveToTier(list, fromID, toID)
 		local info = ns.GetItemData(toID)
 		item.itemID = toID
 		item.itemName = info and info.itemName or ""
-		item.itemType = (info and info.itemType) or item.itemType
 		list[toID] = item
 	end
 

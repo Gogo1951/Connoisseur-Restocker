@@ -16,8 +16,9 @@ local REGISTRY = ns.OPTIONS_REGISTRY
     because the Profiles panel's tree label is read from the stock
     AceDBOptions-3.0 table (ns.BuildProfilesOptions().name), which needs the
     database to exist. Child-panel order in Blizzard's settings tree is the
-    order of the AddToBlizOptions calls: General (root) -> Macros (-> Ignore
-    List) -> Restocker -> Readiness Report -> Profiles -> Diagnostic Tools. The
+    order of the AddToBlizOptions calls: General (root) -> Macros (-> Class &
+    Race -> Ignore List) -> Restocker -> Readiness Report -> Profiles -> Feedback & Support ->
+    Diagnostic Tools. The
     third AddToBlizOptions argument is the parent: the root's display name
     (L["ADDON_TITLE"]) by default, or a child's category ID to nest a panel a
     level deeper. AceConfigDialog maps only root names to IDs, so a nested
@@ -41,6 +42,13 @@ function ns.RegisterOptionsPanels()
 	    "Enable Macros" section's header.
 	]]
 	local macrosCategoryID = RegisterChild(REGISTRY.Macros, ns.BuildMacrosOptions, L["TAB_MACROS"])
+
+	--[[
+	    Class & Race panel (Options-Class-Race.lua), nested under Macros above
+	    the Ignore List: the options that shape the macros for one class or
+	    race.
+	]]
+	RegisterChild(REGISTRY.ClassRace, ns.BuildClassRaceOptions, L["TAB_CLASS_RACE"], macrosCategoryID)
 
 	--[[
 	    Ignore List panel (Options-Ignore-List.lua), nested under Macros: the
@@ -88,6 +96,9 @@ function ns.RegisterOptionsPanels()
 	    a locale key for a stock widget.
 	]]
 	RegisterChild(REGISTRY.Profiles, ns.BuildProfilesOptions, ns.BuildProfilesOptions().name)
+
+	-- Feedback & Support panel (Options-Feedback-Support.lua): the tree lists it as OPTIONS_FEEDBACK.
+	RegisterChild(REGISTRY.FeedbackSupport, ns.BuildFeedbackSupportOptions, L["OPTIONS_FEEDBACK"])
 
 	--[[
 	    Diagnostic Tools last so it sits at the bottom of the tree. Its display

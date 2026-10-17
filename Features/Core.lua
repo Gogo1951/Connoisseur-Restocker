@@ -202,9 +202,9 @@ end
     Per-arrival state: refreshed at login AND on every later loading screen,
     because the cached level and zone move as the player levels and travels.
 
-    Split out of InitializeSavedVariables, which is confined to PLAYER_LOGIN — SavedVariables
-    initialization must not hang off PLAYER_ENTERING_WORLD, which refires on
-    every loading screen. Nothing here touches the database.
+    Kept apart from InitializeSavedVariables, which runs at PLAYER_LOGIN only:
+    SavedVariables initialization must not hang off PLAYER_ENTERING_WORLD, which
+    refires on every loading screen. Nothing here touches the database.
 
     Order matters on the login path: this runs AFTER InitializeSavedVariables, because
     ns.InitializeCharacterConstants is what resolves ns.isHunter for the registration
@@ -344,7 +344,7 @@ frame:SetScript("OnEvent", function(_, event, ...)
 	    The Inventory Report's recorders, ahead of the guard for the same
 	    reasons: they only read containers and write saved variables, and a
 	    logout mid-combat must still save this character's bags. BAG_UPDATE_DELAYED
-	    continues past here to the macro rebuild below as before.
+	    continues past here to the macro rebuild below.
 	]]
 	local inventoryHandler = ns.inventoryEventHandlers and ns.inventoryEventHandlers[event]
 	if inventoryHandler then
@@ -492,6 +492,19 @@ frame:SetScript("OnEvent", function(_, event, ...)
 		return
 	end
 
+	--[[
+	    Skill ranks are read ahead of the guard: a bandage in a fight raises First
+	    Aid there, and nothing re-reads the skills when combat ends. The reads
+	    touch nothing protected, and ns.RequestUpdate defers the rebuild.
+	]]
+	if event == "SKILL_LINES_CHANGED" then
+		ns.UpdateFirstAidSkill()
+		ns.UpdateAlchemySkill()
+		ns.UpdateEngineeringSkill()
+		ns.RequestUpdate()
+		return
+	end
+
 	if InCombatLockdown() then
 		isUpdatePending = true
 		return
@@ -543,11 +556,6 @@ frame:SetScript("OnEvent", function(_, event, ...)
 		C_Timer.After(3, function()
 			ns.RequestUpdate()
 		end)
-	elseif event == "SKILL_LINES_CHANGED" then
-		ns.UpdateFirstAidSkill()
-		ns.UpdateAlchemySkill()
-		ns.UpdateEngineeringSkill()
-		ns.RequestUpdate()
 	elseif event == "UNIT_AURA" then
 		ns.OnUnitAura(...)
 	end

@@ -77,7 +77,7 @@ L["MESSAGE_MACRO_SLOTS_FULL"] =
 	"매크로 슬롯이 가득 차서 일부 Connoisseur 매크로를 만들지 못했습니다. 더 이상 사용하지 않는 매크로를 삭제해 슬롯을 비우거나, 설정 > 애드온 > Connoisseur > 매크로에서 필요 없는 Connoisseur 매크로를 끄세요."
 
 L["CHAT_LOADED"] =
-	"버전 %s. 설정(이 메시지 비활성화 옵션 포함)은 설정 > 애드온 > Connoisseur에서 찾을 수 있습니다. 애드온이 마음에 드시나요? 친구에게 알려주세요! (="
+	"버전 %s. 설정(이 메시지 비활성화 옵션 포함)은 설정 > 애드온 > Connoisseur에 있습니다. 이 애드온이 마음에 드시나요? 친구에게 알려 주거나, CurseForge에서 즐겨찾기에 추가하거나, GitHub 페이지에서 Star를 눌러 주세요. (="
 
 L["CHAT_OPTIONS_IN_COMBAT"] = "안전을 위해 전투 중에는 설정 인터페이스를 열 수 없습니다."
 
@@ -423,15 +423,29 @@ L["OPTIONS_COMMAND_DESCRIPTION"] = "이 애드온의 설정 인터페이스를 �
 L["RESTOCKER_COMMAND"] = "/crs"
 L["RESTOCKER_COMMAND_DESCRIPTION"] = "보충 목록을 엽니다."
 
---[[
-    Feedback & Support. The four service names are brand names and stay English
-    in every locale; OPTIONS_VERSION translates, with %s the version number.
-]]
-L["OPTIONS_COMMUNITY_HEADER"] = "피드백 및 지원"
-L["DISCORD"] = "Discord"
-L["GITHUB"] = "GitHub"
-L["CURSEFORGE"] = "CurseForge"
-L["WAGO"] = "Wago"
+-- Options: Feedback & Support Panel
+L["OPTIONS_LEVEL_UP_TITLE"] = "Connoisseur의 레벨 업을 도와주세요"
+L["OPTIONS_LEVEL_UP_INTRO"] =
+	"이 애드온은 이 게임을 사랑하고 모두가 최대한 재미있게 즐기기를 바라는 플레이어들이 만들었습니다. 저희는 절대 후원을 요청하지 않습니다. 저희의 작업이 여러분의 게임을 조금이라도 더 좋게 만든다는 것이 가장 큰 보람입니다. 그렇다면 꼭 이야기를 들려주세요!"
+L["OPTIONS_LEVEL_UP_WAYS"] =
+	"더 많은 플레이어에게 다가갈 수 있도록 도와주실 수 있는 몇 가지 방법을 소개합니다."
+L["OPTIONS_LEVEL_UP_FEEDBACK"] =
+	"• 피드백 공유: 버그를 발견하셨거나 아이디어가 있으신가요? Discord에서 알려 주세요. 여러분의 피드백은 애드온을 개선하는 데 도움이 되며, 풀 리퀘스트도 언제나 환영합니다."
+L["OPTIONS_LEVEL_UP_FRIEND"] =
+	"• 친구에게 알리기: 이 애드온을 좋아할 만한 분을 알고 계신가요? 그분께 알려 주세요. 입소문은 더 많은 플레이어가 좋은 애드온을 발견하는 데 도움이 됩니다."
+L["OPTIONS_LEVEL_UP_CURSEFORGE"] =
+	"• CurseForge에서 즐겨찾기: 아래 CurseForge 링크를 열고 로그인한 다음, Download 버튼 아래의 별을 클릭하세요. 즐겨찾기는 더 많은 플레이어가 이 애드온을 발견하는 데 도움이 됩니다."
+L["OPTIONS_LEVEL_UP_GITHUB"] =
+	"• GitHub에서 Star 누르기: 아래 GitHub 링크를 열고 로그인한 다음, 오른쪽 위의 Star를 클릭하세요. 별은 프로젝트가 더 많은 무료 개발자 도구를 이용할 자격을 얻는 데 도움이 됩니다."
+L["OPTIONS_LEVEL_UP_THANKS"] = "Connoisseur를 선택해 주셔서 감사합니다!"
+
+L["OPTIONS_FEEDBACK"] = "피드백 및 지원"
+L["OPTIONS_FEEDBACK_LINKS_HEADER"] = "피드백 및 지원 링크"
+L["OPTIONS_CURSEFORGE"] = "CurseForge"
+L["OPTIONS_GITHUB"] = "GitHub"
+L["OPTIONS_DISCORD"] = "Discord"
+L["OPTIONS_WAGO"] = "Wago"
+L["OPTIONS_COPY_LINK"] = "링크를 복사하려면 해당 상자를 클릭한 다음 Ctrl+A와 Ctrl+C를 누르세요."
 L["OPTIONS_VERSION"] = "버전 %s"
 
 --[[
@@ -439,7 +453,8 @@ L["OPTIONS_VERSION"] = "버전 %s"
     title on the page; OPTIONS_MACROS_DESCRIPTION is the intro beneath it, which
     orients the player to the page's two halves -- which macros exist, then how
     each one behaves. The Enable Macros header below titles the first section,
-    after the page's one headerless toggle, Macro Names on Buttons.
+    after the page's two headerless toggles, Enable Macro Updates and Macro
+    Names on Buttons.
 ]]
 L["TAB_MACROS"] = "매크로"
 L["OPTIONS_MACROS_DESCRIPTION"] =
@@ -558,6 +573,15 @@ L["OPTIONS_EXPLOSIVES_CLICK_LAYOUT_DESCRIPTION"] =
 -- Each layout names its Left-Click alone: Right-Click always does the other, and the short value fits the standard dropdown.
 L["EXPLOSIVES_MODE_ATPLAYER"] = "좌클릭 @player"
 L["EXPLOSIVES_MODE_TOSS"] = "좌클릭 던지기"
+
+--[[
+    Class & Race panel (Options-Class-Race.lua), nested under Macros. TAB_CLASS_RACE
+    is its label in the settings tree and the title on the page;
+    OPTIONS_CLASS_RACE_DESCRIPTION is the intro beneath it.
+]]
+L["TAB_CLASS_RACE"] = "직업 및 종족"
+L["OPTIONS_CLASS_RACE_DESCRIPTION"] =
+	"특정 직업이나 종족에 맞게 매크로를 조정하는 옵션입니다. 모든 항목은 모든 캐릭터에서 표시됩니다."
 
 -- The class and race sections' headers; %s is the client's name for the class or race, or OPTIONS_FORSAKEN_HEADER.
 L["OPTIONS_CLASS_HEADER_FORMAT"] = "직업 옵션: %s"
@@ -753,7 +777,7 @@ L["OPTIONS_READINESS_DESCRIPTION"] =
 ]]
 L["OPTIONS_READINESS_RESET"] = "준비 보고서 설정 초기화"
 L["OPTIONS_READINESS_RESET_DESCRIPTION"] =
-	"이 페이지의 모든 체크박스와 두 기준값을 기본값으로 되돌리며, 다른 페이지는 건드리지 않습니다."
+	"이 페이지의 모든 체크박스와 두 기준값을 기본값으로 되돌립니다."
 L["OPTIONS_READINESS_RESET_CONFIRM"] =
 	"준비 보고서의 모든 설정을 기본값으로 초기화할까요? 보고서 자체도 다시 꺼집니다."
 
@@ -781,7 +805,7 @@ L["OPTIONS_READINESS_SCROLLS_DESCRIPTION"] =
     stones is not covered, and one deployed stone covers it.
 ]]
 L["OPTIONS_READINESS_SOULSTONE_DESCRIPTION"] =
-	"그룹 내 누구에게도 영혼석이 활성화되어 있지 않으면 알려 줍니다. 가방에 있는 영혼석은 인정하지 않습니다. 영혼석을 창조할 수 있는 흑마법사에게만 표시됩니다."
+	"그룹 내 누구에게도 영혼석이 활성화되어 있지 않으면 알려 줍니다. 가방에 있는 영혼석은 인정하지 않습니다. 영혼석을 창조할 수 있는 흑마법사에게만 알려 줍니다."
 L["OPTIONS_READINESS_MAIN_HAND"] = "주장비 무기 버프"
 --[[
     Says the Shaman exemption outright, because a main-hand line that goes quiet
@@ -809,13 +833,13 @@ L["OPTIONS_READINESS_EXPIRING_THRESHOLD_DESCRIPTION"] =
 
 -- Missing Items
 L["OPTIONS_READINESS_HEALTHSTONE_DESCRIPTION"] =
-	"생명석을 하나도 가지고 있지 않으면 알려 줍니다. 부탁할 흑마법사가 그룹에 있거나, 자신이 흑마법사일 때만 표시됩니다."
+	"생명석을 하나도 가지고 있지 않으면 알려 줍니다. 부탁할 흑마법사가 그룹에 있거나, 자신이 흑마법사일 때만 알려 줍니다."
 L["OPTIONS_READINESS_MANA_GEM_DESCRIPTION"] =
-	"마나 보석을 하나도 가지고 있지 않으면 알려 줍니다. 마나 보석을 창조할 수 있는 마법사에게만 표시됩니다."
+	"마나 보석을 하나도 가지고 있지 않으면 알려 줍니다. 마나 보석을 창조할 수 있는 마법사에게만 알려 줍니다."
 L["OPTIONS_READINESS_HEALING_POTION_DESCRIPTION"] =
 	"전투 중에는 아무도 물약을 건네줄 수 없으므로, 치유 물약을 하나도 가지고 있지 않으면 알려 줍니다."
 L["OPTIONS_READINESS_MANA_POTION_DESCRIPTION"] =
-	"마나 물약을 하나도 가지고 있지 않으면 알려 줍니다. 마나를 사용하는 직업으로 플레이할 때만 표시됩니다."
+	"마나 물약을 하나도 가지고 있지 않으면 알려 줍니다. 마나를 사용하는 직업으로 플레이할 때만 알려 줍니다."
 -- %s is the client's name for the First Aid skill line.
 L["OPTIONS_READINESS_BANDAGES_SKILL_DESCRIPTION"] =
 	"현재 %s 숙련도로 사용할 수 있는 붕대를 하나도 가지고 있지 않으면 알려 줍니다."

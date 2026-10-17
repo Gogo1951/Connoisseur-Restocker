@@ -19,7 +19,7 @@
     cannibalize out of combat too, under the same gates, and never in combat.
     The cooldown's end is timed for a rebuild, once per cooldown. Every body
     stays within 255 bytes in Russian with six-digit item IDs, shedding the
-    Cannibalize lines last. The target signature moves with the creature type.
+    Cannibalize lines first. The target signature moves with the creature type.
     With Macros switched off nothing is written, while the bag scan and the
     mini-map icon still run.
 ]]
@@ -359,6 +359,25 @@ Update()
 check("scroll-only mode comes first", written.Food, "#showtooltip\n/use [@player] item:10307\n")
 
 Reset()
+ns.scrollOverrideIDs = { 10307, 10306 }
+Update()
+check(
+	"one press uses every missing scroll",
+	written.Food,
+	"#showtooltip\n/use [@player] item:10307\n/use [@player] item:10306\n"
+)
+Reset()
+ns.FLAVOR = "Camelot"
+ns.scrollOverrideIDs = { 10307, 10306 }
+Update()
+check(
+	"... but one at a time on Forever, where scrolls trigger the GCD",
+	written.Food,
+	"#showtooltip\n/use [@player] item:10307\n"
+)
+ns.FLAVOR = nil
+
+Reset()
 ns.isRogue, ns.stealthSpellName = true, "Stealth"
 ns.db.profile.enableStealthEating = true
 Update()
@@ -572,17 +591,17 @@ Update()
 for _, typeName in ipairs({ "Food", "Water", "Health Potion", "Mana Potion" }) do
 	check(typeName .. " fits in 255 bytes", #written[typeName] <= 255, true)
 end
--- 246 bytes once its fallback potions are shed: the Rogue's Health Potion keeps Cannibalize.
+-- Too long at six digits: the Rogue's Health Potion sheds Cannibalize before any potion.
 contains(
-	"the Rogue's Health Potion keeps Cannibalize at six digits",
+	"the Rogue's Health Potion sheds Cannibalize at six digits",
 	written["Health Potion"],
 	"Каннибализм",
-	true
+	false
 )
-contains("... shedding its fallback potions first", written["Health Potion"], "/use item:250330", false)
-contains("... and keeping its best potion", written["Health Potion"], "/use item:250329", true)
+contains("... keeping its fallback potions", written["Health Potion"], "/use item:250330", true)
+contains("... and its best potion", written["Health Potion"], "/use item:250329", true)
 
--- Too long even with every fallback shed: Cannibalize goes, and then the fallback potions fit again.
+-- A far longer Cannibalize name changes nothing more: it is shed first, so the fallback potions stay.
 Russian()
 ns.cannibalizeSpellName = ("Каннибализм"):rep(4)
 Update()

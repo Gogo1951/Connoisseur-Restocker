@@ -526,8 +526,8 @@ end
     flips the current state (mini-map click path); a boolean sets it directly
     (options-panel path) and matches what AceConfig hands back to the set
     callback. The buff-food and scroll switches also change which auras are
-    tracked. The Macros panel repaints either way, since a mini-map click has
-    nothing else to ask for one while the panel is open.
+    tracked. The Macros and Class & Race panels repaint either way, since a
+    mini-map click has nothing else to ask for one while a panel is open.
 ]]
 local AURA_TRACKED_SETTINGS = {
 	useBuffFood = true,
@@ -547,6 +547,7 @@ function ns.ToggleMacroSetting(key, value)
 	ns.ResetMacroState()
 	ns.RequestUpdate()
 	AceConfigRegistry:NotifyChange(ns.OPTIONS_REGISTRY.Macros)
+	AceConfigRegistry:NotifyChange(ns.OPTIONS_REGISTRY.ClassRace)
 end
 
 --[[

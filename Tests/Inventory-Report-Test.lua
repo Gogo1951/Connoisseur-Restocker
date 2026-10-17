@@ -185,6 +185,9 @@ local function session(opts)
 	GetRealmName = function()
 		return realm
 	end
+	UnitGUID = function()
+		return opts.guid or ("Player-" .. name)
+	end
 	format = string.format
 	Enum = { TooltipDataType = { Item = 0 } }
 	GameTooltip = NewTooltip("GameTooltip")
@@ -538,6 +541,17 @@ s = session({ name = "Mossbark", inventory = shared })
 s.loot(0, {})
 s.logout()
 check("bags emptied while playing are saved as empty", shared["Mossbark-Mankrik"].bags, "")
+
+print("16. A renamed character's old record goes at its next login, found by its GUID")
+shared = {}
+s = session({ name = "Oldname", guid = "Player-1-0001", inventory = shared })
+s.loot(0, { { DEW, 4 } })
+s.logout()
+session({ name = "Gogohunter", class = "HUNTER", guid = "Player-1-0002", inventory = shared })
+session({ name = "Newname", guid = "Player-1-0001", inventory = shared })
+check("the old name's record is gone", shared["Oldname-Mankrik"], nil)
+check("the new one carries the GUID", shared["Newname-Mankrik"].guid, "Player-1-0001")
+check("another character's record stays", shared["Gogohunter-Mankrik"] ~= nil, true)
 
 print("")
 if failures == 0 then

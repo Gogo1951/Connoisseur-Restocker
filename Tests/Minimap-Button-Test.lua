@@ -640,7 +640,7 @@ lines = s.hover()
 checkLines("everything known", lines, find(lines, "Mage") - 1, {
 	" ",
 	"Mage",
-	"Food and Water Macros",
+	"Food & Water Macros",
 	"Right-Click | Conjure",
 	"Middle-Click | Ritual of Refreshment",
 	"Target a lower-level player to conjure for their level.",
@@ -657,7 +657,7 @@ s = session({ class = "MAGE", knows = { CONJURE_WATER } })
 lines = s.hover()
 checkLines("only Conjure Water: one row, its line, no gem group", lines, find(lines, "Mage"), {
 	"Mage",
-	"Food and Water Macros",
+	"Food & Water Macros",
 	"Right-Click | Conjure",
 	"Target a lower-level player to conjure for their level.",
 	" ",

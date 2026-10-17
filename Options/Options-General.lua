@@ -5,14 +5,6 @@ local GetColor = ns.GetColor
 local Header = ns.OptionsHeader
 local Desc = ns.OptionsDesc
 local Spacer = ns.OptionsSpacer
-local RowLabel = ns.OptionsRowLabel
-
---[[
-    Feedback & Support rows use a narrower label than the default split so the
-    URL box is wide enough to show a full address without truncating it.
-]]
-local LINK_LABEL_WIDTH = 0.6
-local LINK_URL_WIDTH = ns.OPTIONS_ROW_WIDTH - LINK_LABEL_WIDTH
 
 --------------------------------------------------------------------------------
 -- General Panel
@@ -21,13 +13,12 @@ local LINK_URL_WIDTH = ns.OPTIONS_ROW_WIDTH - LINK_LABEL_WIDTH
 --[[
     The root page holds add-on-level behavior only -- nothing here shapes what
     a macro holds. In order: intro, Welcome Message, Mini-map Button, Features
-    (each feature's master switch, also atop its own panel), /Commands,
-    Feedback & Support, and version.
+    (each feature's master switch, also on its own panel) and /Commands.
 
     Everything that shapes a macro lives on the Macros panel
     (Options-Macros.lua), Restocker on its own (Options-Restocker.lua), and the
     Readiness Report on its own (Options-Readiness-Report.lua), beside the
-    Ignore List, Profiles and Diagnostic Tools.
+    Ignore List, Profiles, Feedback & Support and Diagnostic Tools.
 
     Every toggle on this page is account-wide (ns.db.global) -- see
     Data/Default-Settings.lua for why each one stays there.
@@ -98,72 +89,6 @@ function ns.BuildGeneralOptions()
 				GetColor("INFO") .. L["RESTOCKER_COMMAND"] .. "|r" .. "  " .. L["RESTOCKER_COMMAND_DESCRIPTION"],
 				25
 			),
-
-			-- Feedback & Support
-			spaceCommunity0 = Spacer(900),
-			headerCommunity = Header(L["OPTIONS_COMMUNITY_HEADER"], 901),
-			spaceCommunity1 = Spacer(902),
-			discordLabel = RowLabel(GetColor("BODY") .. L["DISCORD"] .. "|r", 903, LINK_LABEL_WIDTH),
-			discordURL = {
-				type = "input",
-				name = "",
-				order = 904,
-				width = LINK_URL_WIDTH,
-				get = function()
-					return ns.DISCORD_URL
-				end,
-				set = function() end,
-			},
-			spaceCommunity2 = Spacer(905),
-			githubLabel = RowLabel(GetColor("BODY") .. L["GITHUB"] .. "|r", 906, LINK_LABEL_WIDTH),
-			githubURL = {
-				type = "input",
-				name = "",
-				order = 907,
-				width = LINK_URL_WIDTH,
-				get = function()
-					return ns.GITHUB_URL
-				end,
-				set = function() end,
-			},
-			spaceCommunity3 = Spacer(908),
-			curseforgeLabel = RowLabel(GetColor("BODY") .. L["CURSEFORGE"] .. "|r", 909, LINK_LABEL_WIDTH),
-			curseforgeURL = {
-				type = "input",
-				name = "",
-				order = 910,
-				width = LINK_URL_WIDTH,
-				get = function()
-					return ns.CURSEFORGE_URL
-				end,
-				set = function() end,
-			},
-			spaceCommunity4 = Spacer(911),
-			wagoLabel = RowLabel(GetColor("BODY") .. L["WAGO"] .. "|r", 912, LINK_LABEL_WIDTH),
-			wagoURL = {
-				type = "input",
-				name = "",
-				order = 913,
-				width = LINK_URL_WIDTH,
-				get = function()
-					return ns.WAGO_URL
-				end,
-				set = function() end,
-			},
-
-			-- Version
-			spaceVersion0 = {
-				type = "description",
-				name = " ",
-				width = "full",
-				order = 998,
-			},
-			versionLine = {
-				type = "description",
-				name = GetColor("MUTED") .. L["OPTIONS_VERSION"]:format(ns.Version) .. "|r",
-				fontSize = "medium",
-				order = 999,
-			},
 		},
 	}
 end

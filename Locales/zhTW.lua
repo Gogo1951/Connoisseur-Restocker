@@ -77,7 +77,7 @@ L["MESSAGE_MACRO_SLOTS_FULL"] =
 	"由於你的巨集欄位已滿，部分 Connoisseur 巨集未能建立。請刪除不再使用的巨集以騰出欄位，或在 選項 > 插件 > Connoisseur > 巨集 中關閉不需要的 Connoisseur 巨集。"
 
 L["CHAT_LOADED"] =
-	"版本 %s。設定（包括停用此訊息的選項）可以在 選項 > 插件 > Connoisseur 中找到。喜歡這個插件嗎？告訴朋友吧！(="
+	"版本 %s。設定（包括停用此訊息的選項）位於 選項 > 插件 > Connoisseur。喜歡這個插件嗎？告訴朋友，在 CurseForge 上收藏它，或在它的 GitHub 頁面上點擊 Star。(="
 
 L["CHAT_OPTIONS_IN_COMBAT"] = "基於安全考量，戰鬥中無法開啟選項介面。"
 
@@ -263,7 +263,7 @@ L["MENU_OPTIONS_KEYBIND"] = "Shift + 中鍵點擊"
     MINIMAP_MIDDLE_CLICK.
 ]]
 L["NOTE_MACRO_FEED_PET"] = "餵養寵物巨集"
-L["NOTE_MACRO_FOOD_WATER"] = "食物和水巨集"
+L["NOTE_MACRO_FOOD_WATER"] = "食物與水巨集"
 L["NOTE_MACRO_MANA_GEM"] = "法力寶石巨集"
 L["NOTE_MACRO_HEALTHSTONE"] = "治療石巨集"
 L["NOTE_MACRO_SOULSTONE"] = "靈魂石巨集"
@@ -421,15 +421,28 @@ L["OPTIONS_COMMAND_DESCRIPTION"] = "開啟此插件的選項介面。"
 L["RESTOCKER_COMMAND"] = "/crs"
 L["RESTOCKER_COMMAND_DESCRIPTION"] = "開啟你的補貨清單。"
 
---[[
-    Feedback & Support. The four service names are brand names and stay English
-    in every locale; OPTIONS_VERSION translates, with %s the version number.
-]]
-L["OPTIONS_COMMUNITY_HEADER"] = "回饋與支援"
-L["DISCORD"] = "Discord"
-L["GITHUB"] = "GitHub"
-L["CURSEFORGE"] = "CurseForge"
-L["WAGO"] = "Wago"
+-- Options: Feedback & Support Panel
+L["OPTIONS_LEVEL_UP_TITLE"] = "幫助 Connoisseur 升級"
+L["OPTIONS_LEVEL_UP_INTRO"] =
+	"這個插件由熱愛這款遊戲、希望讓每個人都盡可能玩得開心的玩家打造。我們永遠不會請求捐款。真正讓我們滿足的，是知道我們的努力讓你的遊戲體驗更好了一點。如果確實如此，我們很想聽你說說！"
+L["OPTIONS_LEVEL_UP_WAYS"] = "以下是你可以幫助我們接觸更多玩家的幾種方式。"
+L["OPTIONS_LEVEL_UP_FEEDBACK"] =
+	"• 分享回饋：發現了錯誤或有新點子？請在 Discord 上告訴我們。你的回饋能幫助我們改進插件，也隨時歡迎提交拉取請求。"
+L["OPTIONS_LEVEL_UP_FRIEND"] =
+	"• 告訴朋友：認識可能會喜歡這個插件的人嗎？告訴他們吧。口耳相傳能幫助更多玩家發現優秀的插件。"
+L["OPTIONS_LEVEL_UP_CURSEFORGE"] =
+	"• 在 CurseForge 上收藏：打開下方的 CurseForge 連結，登入後點擊 Download 按鈕下方的星號。收藏能幫助更多玩家發現這個插件。"
+L["OPTIONS_LEVEL_UP_GITHUB"] =
+	"• 在 GitHub 上點 Star：打開下方的 GitHub 連結，登入後點擊右上角的 Star。星號能幫助專案取得更多免費開發者工具的資格。"
+L["OPTIONS_LEVEL_UP_THANKS"] = "感謝你選擇 Connoisseur！"
+
+L["OPTIONS_FEEDBACK"] = "回饋與支援"
+L["OPTIONS_FEEDBACK_LINKS_HEADER"] = "回饋與支援連結"
+L["OPTIONS_CURSEFORGE"] = "CurseForge"
+L["OPTIONS_GITHUB"] = "GitHub"
+L["OPTIONS_DISCORD"] = "Discord"
+L["OPTIONS_WAGO"] = "Wago"
+L["OPTIONS_COPY_LINK"] = "要複製連結，請點擊其輸入框，然後按 Ctrl+A 和 Ctrl+C。"
 L["OPTIONS_VERSION"] = "版本 %s"
 
 --[[
@@ -437,7 +450,8 @@ L["OPTIONS_VERSION"] = "版本 %s"
     title on the page; OPTIONS_MACROS_DESCRIPTION is the intro beneath it, which
     orients the player to the page's two halves -- which macros exist, then how
     each one behaves. The Enable Macros header below titles the first section,
-    after the page's one headerless toggle, Macro Names on Buttons.
+    after the page's two headerless toggles, Enable Macro Updates and Macro
+    Names on Buttons.
 ]]
 L["TAB_MACROS"] = "巨集"
 L["OPTIONS_MACROS_DESCRIPTION"] =
@@ -555,6 +569,15 @@ L["OPTIONS_EXPLOSIVES_CLICK_LAYOUT_DESCRIPTION"] =
 -- Each layout names its Left-Click alone: Right-Click always does the other, and the short value fits the standard dropdown.
 L["EXPLOSIVES_MODE_ATPLAYER"] = "左鍵點擊 @player"
 L["EXPLOSIVES_MODE_TOSS"] = "左鍵點擊投擲"
+
+--[[
+    Class & Race panel (Options-Class-Race.lua), nested under Macros. TAB_CLASS_RACE
+    is its label in the settings tree and the title on the page;
+    OPTIONS_CLASS_RACE_DESCRIPTION is the intro beneath it.
+]]
+L["TAB_CLASS_RACE"] = "職業與種族"
+L["OPTIONS_CLASS_RACE_DESCRIPTION"] =
+	"這些選項會針對某個職業或種族調整你的巨集。所有區塊在每個角色上都會顯示。"
 
 -- The class and race sections' headers; %s is the client's name for the class or race, or OPTIONS_FORSAKEN_HEADER.
 L["OPTIONS_CLASS_HEADER_FORMAT"] = "職業選項：%s"
@@ -737,8 +760,7 @@ L["OPTIONS_READINESS_DESCRIPTION"] =
     page that emptied itself with no warning would read as a bug.
 ]]
 L["OPTIONS_READINESS_RESET"] = "重置就緒報告設定"
-L["OPTIONS_READINESS_RESET_DESCRIPTION"] =
-	"將本頁的所有核取方塊和兩個門檻恢復為預設值，其他頁面皆不受影響。"
+L["OPTIONS_READINESS_RESET_DESCRIPTION"] = "將本頁的所有核取方塊和兩個門檻恢復為預設值。"
 L["OPTIONS_READINESS_RESET_CONFIRM"] =
 	"將就緒報告的所有設定重置為預設值？這也會重新關閉報告本身。"
 
@@ -766,7 +788,7 @@ L["OPTIONS_READINESS_SCROLLS_DESCRIPTION"] =
     stones is not covered, and one deployed stone covers it.
 ]]
 L["OPTIONS_READINESS_SOULSTONE_DESCRIPTION"] =
-	"當隊伍中沒有人身上有生效的靈魂石時提醒；背包裡的靈魂石不算。僅對能製造靈魂石的術士顯示。"
+	"當隊伍中沒有人身上有生效的靈魂石時提醒；背包裡的靈魂石不算。僅提醒能製造靈魂石的術士。"
 L["OPTIONS_READINESS_MAIN_HAND"] = "主手武器增益"
 --[[
     Says the Shaman exemption outright, because a main-hand line that goes quiet
@@ -794,13 +816,13 @@ L["OPTIONS_READINESS_EXPIRING_THRESHOLD_DESCRIPTION"] =
 
 -- Missing Items
 L["OPTIONS_READINESS_HEALTHSTONE_DESCRIPTION"] =
-	"當你身上沒有治療石時提醒。僅當隊伍中有可以索取的術士，或你自己就是術士時才顯示。"
+	"當你身上沒有治療石時提醒。僅當隊伍中有可以索取的術士，或你自己就是術士時才提醒。"
 L["OPTIONS_READINESS_MANA_GEM_DESCRIPTION"] =
-	"當你身上沒有法力寶石時提醒。僅對能製造法力寶石的法師顯示。"
+	"當你身上沒有法力寶石時提醒。僅提醒能製造法力寶石的法師。"
 L["OPTIONS_READINESS_HEALING_POTION_DESCRIPTION"] =
 	"當你身上沒有治療藥水時提醒，因為戰鬥中沒人能遞給你藥水。"
 L["OPTIONS_READINESS_MANA_POTION_DESCRIPTION"] =
-	"當你身上沒有法力藥水時提醒。僅當你的角色是使用法力的職業時顯示。"
+	"當你身上沒有法力藥水時提醒。僅當你的角色是使用法力的職業時才提醒。"
 -- %s is the client's name for the First Aid skill line.
 L["OPTIONS_READINESS_BANDAGES_SKILL_DESCRIPTION"] = "當你身上沒有%s技能允許使用的繃帶時提醒。"
 L["OPTIONS_READINESS_DURABILITY"] = "受損裝備低於"

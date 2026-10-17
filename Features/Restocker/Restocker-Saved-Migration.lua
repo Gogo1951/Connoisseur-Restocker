@@ -197,9 +197,6 @@ function ns.NameBlindingPowderRows()
 	end
 	for _, row in ipairs(unnamed) do
 		row.itemName = info.itemName
-		if info.itemType and info.itemType ~= "" then
-			row.itemType = info.itemType
-		end
 	end
 	-- The first sync at login runs before the window is built, and a new window draws the names itself.
 	if ns.restockWindow then

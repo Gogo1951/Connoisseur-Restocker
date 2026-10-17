@@ -134,7 +134,7 @@ end
     Drop into the first genuinely-empty slot of this container, naming the slot
     ourselves. Detect empty with GetContainerItemInfo -- it returns nil ONLY when the
     slot is truly empty, whereas GetContainerItemLink is also nil for a not-yet-cached
-    item, which made us "place" onto an occupied slot and strand the item.
+    item, so testing the link would place onto an occupied slot and strand the item.
 
     EVERY container goes through this, player bags included. The two APIs that let the
     SERVER pick the slot -- PutItemInBackpack and PutItemInBag(invslot) -- clear the
@@ -291,7 +291,7 @@ local function PutItemInBank(bankInventory, itemInfo, amount)
 	    No free slot took it (bank effectively full). LAST resort: merge into the best partial
 	    stack. We AVOID doing this first because merging a just-split cursor item onto an
 	    occupied same-item slot can be rejected and BOUNCE the item back to its source, emptying
-	    the cursor without it ever landing (that's what left "9 need 10" stuck). When the bank
+	    the cursor without it ever landing, which leaves the last unit short. When the bank
 	    is full it's the only chance to land the item; if it still bounces, the next re-scan and
 	    the watchdog report it honestly.
 	]]
@@ -338,8 +338,7 @@ local function PutItemInPlayerBag(playerInventory, itemInfo, amount)
 	    No free slot took it (bags effectively full). LAST resort: merge into the best partial
 	    stack. We AVOID doing this first because merging a just-split cursor item onto an
 	    occupied same-item slot can be rejected and BOUNCE the item back to the bank, emptying
-	    the cursor without it ever landing -- exactly what left the final unit stuck at "9 need
-	    10". When bags are full it's the only way to top off a stack; a bounce is caught by the
+	    the cursor without it ever landing, which leaves the last unit short. When bags are full it's the only way to top off a stack; a bounce is caught by the
 	    next re-scan and the watchdog.
 	]]
 	if CursorHasItem() and itemInfo then
@@ -362,10 +361,11 @@ local function PutItemInPlayerBag(playerInventory, itemInfo, amount)
 	return true
 end
 
-function ns.HasFreeBagSlot(bags)
+-- generalOnly counts only general-purpose bags: a herb, enchanting or soul bag takes only its own kind.
+function ns.HasFreeBagSlot(bags, generalOnly)
 	for _, bag in ipairs(bags) do
-		local numberOfFreeSlots = C_Container.GetContainerNumFreeSlots(bag.bagID)
-		if numberOfFreeSlots > 0 then
+		local numberOfFreeSlots, bagType = C_Container.GetContainerNumFreeSlots(bag.bagID)
+		if numberOfFreeSlots > 0 and (not generalOnly or bagType == 0) then
 			return true
 		end
 	end
@@ -601,11 +601,12 @@ function ns.MoveRestockItemToBank(bankInventory, moveItemID, moveAmount)
 end
 
 --[[
-    Where a restock still has room, as (bags, bank). The caller decides what an
-    answer means; this only reports it.
+    Where a restock still has room, as (bags, bank). The bank counts only a free
+    general-purpose slot: a free slot in a profession bag cannot take what the
+    run stashes. The caller decides what an answer means; this only reports it.
 ]]
 function ns.GetRestockSpace()
-	return ns.HasFreeBagSlot(ns.restockPlayerBags), ns.HasFreeBagSlot(bankBags)
+	return ns.HasFreeBagSlot(ns.restockPlayerBags), ns.HasFreeBagSlot(bankBags, true)
 end
 
 function GetRestockContainerItemInfo(bagID, slot)

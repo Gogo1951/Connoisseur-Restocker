@@ -55,7 +55,7 @@ ns.GOBLIN_ENGINEER_SPELL_ID = 20222
 How We Got the Data
 
 Last Validated
-	2026-10-16, WoW Forever 1.60.1.70425
+	2026-10-16, WoW Forever 1.60.1.70450
 
 Notes
 	- Single spell, item, race and skill-line IDs the feature code reads by name, grouped by use. The client supplies every name the player sees from these IDs.
@@ -73,6 +73,9 @@ Wowhead
 	None.
 
 wago.tools
-	https://wago.tools/db2/SpellName?build=1.60.1.70425
-	https://wago.tools/db2/ItemSparse?build=1.60.1.70425
+	https://wago.tools/db2/SpellName?build=1.60.1.70450
+	https://wago.tools/db2/ItemSparse?build=1.60.1.70450
+
+QuestieDB
+	None.
 ]]

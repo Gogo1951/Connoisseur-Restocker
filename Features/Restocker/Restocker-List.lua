@@ -52,19 +52,18 @@ ns.restockItemWait = {}
 ns.restockColdRows = {}
 
 --[[
-    Five things here can be waiting on the client to resolve an item: a pending
-    add, a crafting recipe, a deferred upgrade, a deferred Starter List tick and
-    a row the open window drew without its item.
+    Four things here can be waiting on the client to resolve an item: a pending
+    add, a deferred upgrade, a deferred Starter List tick and a row the open
+    window drew without its item.
     The client answers GET_ITEM_INFO_RECEIVED once per item it resolves, which
     during a login is a flood, so Core is asked to listen only while at least one
-    of the five is outstanding, and released the moment they all drain.
+    of the four is outstanding, and released the moment they all drain.
 
     Called after anything that adds to those queues, and at the end of the handler
     that drains them.
 ]]
 function ns.SyncRestockItemInfoSubscription()
 	local waiting = next(ns.restockItemWait) ~= nil
-		or next(ns.pendingRecipes) ~= nil
 		or ns.HasPendingUpgrade()
 		or ns.HasPendingStarterAdds()
 		or next(ns.restockColdRows) ~= nil
@@ -94,15 +93,6 @@ function ns.OnRestockerItemInfoReceived(itemID, success)
 	if ns.restockColdRows[itemID] then
 		ns.restockColdRows[itemID] = nil
 		ns.RepaintRestockRows(itemID)
-	end
-
-	--[[
-	    If this was an autobuy item setup item request. Tested with next(), not #:
-	    ns.pendingRecipes is keyed by itemID (Restocker-Crafting-Reagents.lua), so it is a sparse
-	    table and the length operator reads 0 no matter how many recipes are waiting.
-	]]
-	if next(ns.pendingRecipes) ~= nil then
-		ns.RetryWaitingRecipes()
 	end
 
 	-- If this was an item add request for an unknown item
@@ -193,7 +183,6 @@ function ns.AddRestockItem(text)
 	local buyItem = {}
 
 	buyItem.itemName = (itemInfo).itemName
-	buyItem.itemType = (itemInfo).itemType
 	buyItem.itemID = itemID
 	--[[
 	    One stack of the item, not one unit: a fresh row asking for a single

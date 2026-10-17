@@ -77,7 +77,7 @@ L["MESSAGE_MACRO_SLOTS_FULL"] =
 	"No se pudieron crear algunas macros de Connoisseur porque tus espacios para macros están llenos. Libera un espacio borrando macros que ya no uses, o desactiva las macros de Connoisseur que no necesites en Opciones > Addons > Connoisseur > Macros."
 
 L["CHAT_LOADED"] =
-	"Versión %s. Los ajustes (incluida la opción de desactivar este mensaje) se encuentran en Opciones > Addons > Connoisseur. ¿Te gusta el addon? ¡Cuéntaselo a un amigo! (="
+	"Versión %s. Los ajustes (incluida la opción de desactivar este mensaje) están en Opciones > Addons > Connoisseur. ¿Te gusta este addon? Cuéntaselo a un amigo, márcalo como favorito en CurseForge o pulsa Star en su página de GitHub. (="
 
 L["CHAT_OPTIONS_IN_COMBAT"] = "Como medida de seguridad, la interfaz de opciones no se puede abrir durante el combate."
 
@@ -421,15 +421,28 @@ L["OPTIONS_COMMAND_DESCRIPTION"] = "Abre la interfaz de opciones de este addon."
 L["RESTOCKER_COMMAND"] = "/crs"
 L["RESTOCKER_COMMAND_DESCRIPTION"] = "Abre tu lista de reabastecimiento."
 
---[[
-    Feedback & Support. The four service names are brand names and stay English
-    in every locale; OPTIONS_VERSION translates, with %s the version number.
-]]
-L["OPTIONS_COMMUNITY_HEADER"] = "Comentarios y soporte"
-L["DISCORD"] = "Discord"
-L["GITHUB"] = "GitHub"
-L["CURSEFORGE"] = "CurseForge"
-L["WAGO"] = "Wago"
+-- Options: Feedback & Support Panel
+L["OPTIONS_LEVEL_UP_TITLE"] = "Ayuda a Connoisseur a subir de nivel"
+L["OPTIONS_LEVEL_UP_INTRO"] =
+	"Este addon lo han creado jugadores que aman este juego y quieren que sea lo más divertido posible para todos. Nunca pediremos donaciones. La verdadera satisfacción es saber que nuestro trabajo hace que el juego sea un poco mejor para ti. Si es así, ¡nos encantaría saberlo!"
+L["OPTIONS_LEVEL_UP_WAYS"] = "Estas son algunas formas en que puedes ayudarnos a llegar a más jugadores."
+L["OPTIONS_LEVEL_UP_FEEDBACK"] =
+	"• Comparte tu opinión: ¿Has encontrado un error o tienes una idea? Dínoslo en Discord. Tus comentarios nos ayudan a mejorar el addon, y las pull requests siempre son bienvenidas."
+L["OPTIONS_LEVEL_UP_FRIEND"] =
+	"• Cuéntaselo a un amigo: ¿Conoces a alguien a quien le podría gustar este addon? Háblale de él. El boca a boca ayuda a que más jugadores descubran grandes addons."
+L["OPTIONS_LEVEL_UP_CURSEFORGE"] =
+	"• Favorito en CurseForge: Abre el enlace de CurseForge de abajo, inicia sesión y haz clic en la estrella bajo el botón Download. Los favoritos ayudan a que más jugadores descubran el addon."
+L["OPTIONS_LEVEL_UP_GITHUB"] =
+	"• Star en GitHub: Abre el enlace de GitHub de abajo, inicia sesión y haz clic en Star, arriba a la derecha. Las estrellas ayudan al proyecto a optar a más herramientas gratuitas para desarrolladores."
+L["OPTIONS_LEVEL_UP_THANKS"] = "¡Gracias por elegir Connoisseur!"
+
+L["OPTIONS_FEEDBACK"] = "Comentarios y soporte"
+L["OPTIONS_FEEDBACK_LINKS_HEADER"] = "Enlaces de comentarios y soporte"
+L["OPTIONS_CURSEFORGE"] = "CurseForge"
+L["OPTIONS_GITHUB"] = "GitHub"
+L["OPTIONS_DISCORD"] = "Discord"
+L["OPTIONS_WAGO"] = "Wago"
+L["OPTIONS_COPY_LINK"] = "Para copiar un enlace, haz clic en su casilla y pulsa Ctrl+A y Ctrl+C."
 L["OPTIONS_VERSION"] = "Versión %s"
 
 --[[
@@ -437,7 +450,8 @@ L["OPTIONS_VERSION"] = "Versión %s"
     title on the page; OPTIONS_MACROS_DESCRIPTION is the intro beneath it, which
     orients the player to the page's two halves -- which macros exist, then how
     each one behaves. The Enable Macros header below titles the first section,
-    after the page's one headerless toggle, Macro Names on Buttons.
+    after the page's two headerless toggles, Enable Macro Updates and Macro
+    Names on Buttons.
 ]]
 L["TAB_MACROS"] = "Macros"
 L["OPTIONS_MACROS_DESCRIPTION"] =
@@ -554,6 +568,15 @@ L["OPTIONS_EXPLOSIVES_CLICK_LAYOUT_DESCRIPTION"] = "Elige qué clic lanza el exp
 -- Each layout names its Left-Click alone: Right-Click always does the other, and the short value fits the standard dropdown.
 L["EXPLOSIVES_MODE_ATPLAYER"] = "Clic izquierdo @player"
 L["EXPLOSIVES_MODE_TOSS"] = "Clic izquierdo Lanzar"
+
+--[[
+    Class & Race panel (Options-Class-Race.lua), nested under Macros. TAB_CLASS_RACE
+    is its label in the settings tree and the title on the page;
+    OPTIONS_CLASS_RACE_DESCRIPTION is the intro beneath it.
+]]
+L["TAB_CLASS_RACE"] = "Clase y raza"
+L["OPTIONS_CLASS_RACE_DESCRIPTION"] =
+	"Estas opciones ajustan tus macros para una clase o raza concreta. Todas las secciones se muestran en todos los personajes."
 
 -- The class and race sections' headers; %s is the client's name for the class or race, or OPTIONS_FORSAKEN_HEADER.
 L["OPTIONS_CLASS_HEADER_FORMAT"] = "Opciones de clase: %s"
@@ -746,7 +769,7 @@ L["OPTIONS_READINESS_DESCRIPTION"] =
 ]]
 L["OPTIONS_READINESS_RESET"] = "Restablecer ajustes del informe de preparación"
 L["OPTIONS_READINESS_RESET_DESCRIPTION"] =
-	"Restablece a sus valores por defecto todas las casillas y ambos umbrales de esta página, sin tocar las demás páginas."
+	"Restablece a sus valores por defecto todas las casillas y ambos umbrales de esta página."
 L["OPTIONS_READINESS_RESET_CONFIRM"] =
 	"¿Restablecer todos los ajustes del informe de preparación a sus valores por defecto? Esto también vuelve a desactivar el propio informe."
 
@@ -774,7 +797,7 @@ L["OPTIONS_READINESS_SCROLLS_DESCRIPTION"] =
     stones is not covered, and one deployed stone covers it.
 ]]
 L["OPTIONS_READINESS_SOULSTONE_DESCRIPTION"] =
-	"Avisa cuando nadie de tu grupo tiene una Piedra de alma activa; una guardada en una bolsa no cuenta. Solo se muestra a los brujos que pueden crearla."
+	"Avisa cuando nadie de tu grupo tiene una Piedra de alma activa; una guardada en una bolsa no cuenta. Solo avisa a los brujos que pueden crearla."
 L["OPTIONS_READINESS_MAIN_HAND"] = "Beneficio de arma (mano principal)"
 --[[
     Says the Shaman exemption outright, because a main-hand line that goes quiet
@@ -802,13 +825,13 @@ L["OPTIONS_READINESS_EXPIRING_THRESHOLD_DESCRIPTION"] =
 
 -- Missing Items
 L["OPTIONS_READINESS_HEALTHSTONE_DESCRIPTION"] =
-	"Avisa cuando no llevas ninguna Piedra de salud. Solo se muestra cuando hay un brujo en tu grupo al que pedirla, o cuando el brujo eres tú."
+	"Avisa cuando no llevas ninguna Piedra de salud. Solo avisa cuando hay un brujo en tu grupo al que pedirla, o cuando el brujo eres tú."
 L["OPTIONS_READINESS_MANA_GEM_DESCRIPTION"] =
-	"Avisa cuando no llevas ninguna Gema de maná. Solo se muestra a los magos que pueden conjurarla."
+	"Avisa cuando no llevas ninguna Gema de maná. Solo avisa a los magos que pueden conjurarla."
 L["OPTIONS_READINESS_HEALING_POTION_DESCRIPTION"] =
 	"Avisa cuando no llevas ninguna poción de curación, ya que nadie puede darte una en plena pelea."
 L["OPTIONS_READINESS_MANA_POTION_DESCRIPTION"] =
-	"Avisa cuando no llevas ninguna poción de maná. Solo se muestra cuando juegas con una clase que usa maná."
+	"Avisa cuando no llevas ninguna poción de maná. Solo avisa cuando juegas con una clase que usa maná."
 -- %s is the client's name for the First Aid skill line.
 L["OPTIONS_READINESS_BANDAGES_SKILL_DESCRIPTION"] =
 	"Avisa cuando no llevas ninguna venda que tu habilidad de %s te permita usar."

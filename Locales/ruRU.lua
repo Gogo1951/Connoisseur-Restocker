@@ -77,7 +77,7 @@ L["MESSAGE_MACRO_SLOTS_FULL"] =
 	"Не удалось создать некоторые макросы Connoisseur, так как все ячейки для макросов заняты. Освободите ячейку, удалив макросы, которыми вы больше не пользуетесь, или отключите ненужные макросы Connoisseur в меню Параметры > Модификации > Connoisseur > Макросы."
 
 L["CHAT_LOADED"] =
-	"Версия %s. Настройки (включая возможность отключения этого сообщения) находятся в меню Параметры > Модификации > Connoisseur. Нравится аддон? Расскажите другу! (="
+	"Версия %s. Настройки (включая возможность отключить это сообщение) находятся в меню Параметры > Модификации > Connoisseur. Нравится этот аддон? Расскажите другу, добавьте его в избранное на CurseForge или нажмите Star на его странице GitHub. (="
 
 L["CHAT_OPTIONS_IN_COMBAT"] =
 	"В целях безопасности интерфейс настроек нельзя открыть в бою."
@@ -430,15 +430,30 @@ L["OPTIONS_COMMAND_DESCRIPTION"] = "Открывает интерфейс нас
 L["RESTOCKER_COMMAND"] = "/crs"
 L["RESTOCKER_COMMAND_DESCRIPTION"] = "Открывает ваш список пополнения."
 
---[[
-    Feedback & Support. The four service names are brand names and stay English
-    in every locale; OPTIONS_VERSION translates, with %s the version number.
-]]
-L["OPTIONS_COMMUNITY_HEADER"] = "Обратная связь и поддержка"
-L["DISCORD"] = "Discord"
-L["GITHUB"] = "GitHub"
-L["CURSEFORGE"] = "CurseForge"
-L["WAGO"] = "Wago"
+-- Options: Feedback & Support Panel
+L["OPTIONS_LEVEL_UP_TITLE"] = "Помогите Connoisseur прокачаться"
+L["OPTIONS_LEVEL_UP_INTRO"] =
+	"Этот аддон создали игроки, которые любят эту игру и хотят сделать её как можно интереснее для всех. Мы никогда не попросим пожертвований. Больше всего нас радует знать, что наша работа хоть немного улучшает для вас игру. Если это так, мы будем рады об этом услышать!"
+L["OPTIONS_LEVEL_UP_WAYS"] =
+	"Вот несколько способов помочь нам охватить больше игроков."
+L["OPTIONS_LEVEL_UP_FEEDBACK"] =
+	"• Поделитесь отзывом: нашли ошибку или есть идея? Сообщите нам в Discord. Ваши отзывы помогают нам улучшать аддон, а пул-реквесты всегда приветствуются."
+L["OPTIONS_LEVEL_UP_FRIEND"] =
+	"• Расскажите другу: знаете кого-то, кому может понравиться этот аддон? Расскажите ему. Сарафанное радио помогает большему числу игроков находить отличные аддоны."
+L["OPTIONS_LEVEL_UP_CURSEFORGE"] =
+	"• Добавьте в избранное на CurseForge: откройте ссылку на CurseForge ниже, войдите в аккаунт и нажмите на звёздочку под кнопкой Download. Избранное помогает большему числу игроков находить этот аддон."
+L["OPTIONS_LEVEL_UP_GITHUB"] =
+	"• Поставьте Star на GitHub: откройте ссылку на GitHub ниже, войдите в аккаунт и нажмите Star в правом верхнем углу. Звёзды помогают проекту получить доступ к большему числу бесплатных инструментов для разработчиков."
+L["OPTIONS_LEVEL_UP_THANKS"] = "Спасибо, что выбрали Connoisseur!"
+
+L["OPTIONS_FEEDBACK"] = "Обратная связь и поддержка"
+L["OPTIONS_FEEDBACK_LINKS_HEADER"] = "Ссылки для обратной связи и поддержки"
+L["OPTIONS_CURSEFORGE"] = "CurseForge"
+L["OPTIONS_GITHUB"] = "GitHub"
+L["OPTIONS_DISCORD"] = "Discord"
+L["OPTIONS_WAGO"] = "Wago"
+L["OPTIONS_COPY_LINK"] =
+	"Чтобы скопировать ссылку, щёлкните по её полю, затем нажмите Ctrl+A и Ctrl+C."
 L["OPTIONS_VERSION"] = "Версия %s"
 
 --[[
@@ -446,7 +461,8 @@ L["OPTIONS_VERSION"] = "Версия %s"
     title on the page; OPTIONS_MACROS_DESCRIPTION is the intro beneath it, which
     orients the player to the page's two halves -- which macros exist, then how
     each one behaves. The Enable Macros header below titles the first section,
-    after the page's one headerless toggle, Macro Names on Buttons.
+    after the page's two headerless toggles, Enable Macro Updates and Macro
+    Names on Buttons.
 ]]
 L["TAB_MACROS"] = "Макросы"
 L["OPTIONS_MACROS_DESCRIPTION"] =
@@ -570,6 +586,15 @@ L["OPTIONS_EXPLOSIVES_CLICK_LAYOUT_DESCRIPTION"] =
 -- Each layout names its Left-Click alone: Right-Click always does the other, and the short value fits the standard dropdown.
 L["EXPLOSIVES_MODE_ATPLAYER"] = "ЛКМ @player"
 L["EXPLOSIVES_MODE_TOSS"] = "ЛКМ Бросок"
+
+--[[
+    Class & Race panel (Options-Class-Race.lua), nested under Macros. TAB_CLASS_RACE
+    is its label in the settings tree and the title on the page;
+    OPTIONS_CLASS_RACE_DESCRIPTION is the intro beneath it.
+]]
+L["TAB_CLASS_RACE"] = "Класс и раса"
+L["OPTIONS_CLASS_RACE_DESCRIPTION"] =
+	"Эти настройки меняют ваши макросы для конкретного класса или расы. Все разделы видны на любом персонаже."
 
 -- The class and race sections' headers; %s is the client's name for the class or race, or OPTIONS_FORSAKEN_HEADER.
 L["OPTIONS_CLASS_HEADER_FORMAT"] = "Настройки класса: %s"
@@ -773,7 +798,7 @@ L["OPTIONS_READINESS_DESCRIPTION"] =
 ]]
 L["OPTIONS_READINESS_RESET"] = "Сбросить настройки отчёта о готовности"
 L["OPTIONS_READINESS_RESET_DESCRIPTION"] =
-	"Возвращает все флажки и оба порога на этой странице к значениям по умолчанию, не затрагивая остальные страницы."
+	"Возвращает все флажки и оба порога на этой странице к значениям по умолчанию."
 L["OPTIONS_READINESS_RESET_CONFIRM"] =
 	"Сбросить все настройки отчёта о готовности к значениям по умолчанию? Это также снова выключит сам отчёт."
 
@@ -801,7 +826,7 @@ L["OPTIONS_READINESS_SCROLLS_DESCRIPTION"] =
     stones is not covered, and one deployed stone covers it.
 ]]
 L["OPTIONS_READINESS_SOULSTONE_DESCRIPTION"] =
-	"Сообщает, когда ни на ком из вашей группы нет активного Камня души; камень в сумке не считается. Показывается только чернокнижнику, который может его создать."
+	"Сообщает, когда ни на ком из вашей группы нет активного Камня души; камень в сумке не считается. Сообщается только чернокнижнику, который может его создать."
 L["OPTIONS_READINESS_MAIN_HAND"] = "Бафф оружия (правая рука)"
 --[[
     Says the Shaman exemption outright, because a main-hand line that goes quiet
@@ -829,13 +854,13 @@ L["OPTIONS_READINESS_EXPIRING_THRESHOLD_DESCRIPTION"] =
 
 -- Missing Items
 L["OPTIONS_READINESS_HEALTHSTONE_DESCRIPTION"] =
-	"Сообщает, когда у вас нет Камня здоровья. Показывается, только когда в группе есть чернокнижник, у которого можно попросить камень, или когда вы сами чернокнижник."
+	"Сообщает, когда у вас нет Камня здоровья. Сообщается, только когда в группе есть чернокнижник, у которого можно попросить камень, или когда вы сами чернокнижник."
 L["OPTIONS_READINESS_MANA_GEM_DESCRIPTION"] =
-	"Сообщает, когда у вас нет мана-камня. Показывается только магу, который может его сотворить."
+	"Сообщает, когда у вас нет мана-камня. Сообщается только магу, который может его сотворить."
 L["OPTIONS_READINESS_HEALING_POTION_DESCRIPTION"] =
 	"Сообщает, когда у вас нет лечебного зелья, ведь посреди боя вам его никто не передаст."
 L["OPTIONS_READINESS_MANA_POTION_DESCRIPTION"] =
-	"Сообщает, когда у вас нет зелья маны. Показывается, только если вы играете за класс, использующий ману."
+	"Сообщает, когда у вас нет зелья маны. Сообщается, только если вы играете за класс, использующий ману."
 -- %s is the client's name for the First Aid skill line.
 L["OPTIONS_READINESS_BANDAGES_SKILL_DESCRIPTION"] =
 	'Сообщает, когда у вас нет бинтов, которые позволяет использовать ваш навык "%s".'

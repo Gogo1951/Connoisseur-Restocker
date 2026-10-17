@@ -390,7 +390,6 @@ local function session(classToken, level, client, noStockCheckBox)
 	function ns.GetCharacterKey()
 		return "Tester - Realm"
 	end
-	ns.pendingRecipes = {}
 	-- MIGRATION (remove after 2026-10-18): the Blinding Powder name wait, which Restocker-Saved-Migration-Test covers.
 	function ns.NameBlindingPowderRows()
 		return false

@@ -8,59 +8,13 @@ local _, ns = ...
     The craftable items the Restock List buys reagents for, keyed by the crafted
     item's itemID, which is how BuildCraftingPurchaseOrder finds a list row's
     recipe. Merchants never list the crafted item; the orders it produces are
-    for its reagents, under their own names.
+    for its reagents, by their own item IDs, so a recipe needs no item data.
 
     Recipe rows live in Data/{Game}/Poison-Recipes-{Game}.lua.
 ]]
 local buyIngredients = {}
 
---[[
-    Recipes whose item data had not resolved when they were set up. Read by the
-    GET_ITEM_INFO_RECEIVED handler, which is the answer to that miss arriving.
-]]
-ns.pendingRecipes = {}
-
---[[
-    A recipe needs the localized name of every reagent, the name merchants list
-    them under, and C_Item.GetItemInfo answers nil for anything the client has not
-    cached yet -- the normal state during a login. A recipe missing any of those
-    names is parked whole and retried when the answer arrives; adding it half-named
-    would order reagents under a name nothing ever matches.
-]]
-local function AddRecipe(recipe)
-	for _, reagent in ipairs(recipe.reagents) do
-		local info = ns.GetItemData(reagent.itemID)
-		if not info then
-			ns.pendingRecipes[recipe.itemID] = recipe
-			ns.SyncRestockItemInfoSubscription()
-			return
-		end
-		reagent.localizedName = info.itemName
-	end
-
-	buyIngredients[recipe.itemID] = recipe
-	ns.pendingRecipes[recipe.itemID] = nil
-end
-
-function ns.RetryWaitingRecipes()
-	for _, recipe in pairs(ns.pendingRecipes) do
-		AddRecipe(recipe)
-	end
-end
-
---------------------------------------------------------------------------------
--- Known Recipes
---------------------------------------------------------------------------------
-
---[[
-    Turn the data rows into the runtime shape.
-
-    Called at login and again at every merchant. The guard is on buyIngredients
-    rather than on a "did we run" flag on purpose: a login where the client had
-    named nothing yet leaves it empty, and the merchant call is then the second
-    chance to build the table. Once anything is in it, RetryWaitingRecipes owns
-    the rest.
-]]
+-- Turns the data rows into the runtime shape, once, at login.
 function ns.SetupCraftingRecipes()
 	if next(buyIngredients) then
 		return
@@ -71,7 +25,7 @@ function ns.SetupCraftingRecipes()
 		for _, reagent in ipairs(row[2]) do
 			reagents[#reagents + 1] = { itemID = reagent[1], count = reagent[2] }
 		end
-		AddRecipe({ itemID = row[1], reagents = reagents })
+		buyIngredients[row[1]] = { itemID = row[1], reagents = reagents }
 	end
 end
 
@@ -84,7 +38,6 @@ function ns.BuildCraftingPurchaseOrder()
 	local settings = ns.restockSettings
 
 	local list = settings.lists[settings.currentList]
-	local reagentIDs = {}
 
 	for _, item in pairs(list) do
 		-- A row's Buy toggle governs every purchase it makes, its ingredients included (nil means on).
@@ -113,9 +66,7 @@ function ns.BuildCraftingPurchaseOrder()
 			if craftedMissing > 0 then
 				for _, reagent in ipairs(recipe.reagents) do
 					local amountToGet = reagent.count * craftedMissing
-					local name = reagent.localizedName
-					purchaseOrder[name] = (purchaseOrder[name] or 0) + amountToGet
-					reagentIDs[name] = reagent.itemID
+					purchaseOrder[reagent.itemID] = (purchaseOrder[reagent.itemID] or 0) + amountToGet
 				end
 			end
 		end
@@ -125,12 +76,8 @@ function ns.BuildCraftingPurchaseOrder()
 	    Reagents already in the bags come off the order. The floor matters because
 	    these numbers do not stay in this table: ns.RestockFromMerchant folds them into
 	    purchaseOrders alongside the merchant restock amounts, keyed by the same
-	    localized name. A surplus of vials left a negative here, and a negative
-	    added to a vial line the player actually asked for would quietly shrink it.
-
-	    Keyed by the reagent's localized name rather than its itemID, because that
-	    is what GetMerchantItemInfo reports and what the merchant restock merges
-	    these lines against. The bags are still counted by the reagent's itemID.
+	    itemID. A surplus of vials left a negative here, and a negative added to a
+	    vial line the player actually asked for would quietly shrink it.
 
 	    A reagent the list also keeps, with Buy on, has an order of its own for
 	    its Keep amount less the same bags (BuildPurchaseOrder), and the two are
@@ -138,15 +85,15 @@ function ns.BuildCraftingPurchaseOrder()
 	    comes off here, and the merged order is Keep plus what the crafts need,
 	    less the bags once.
 	]]
-	for reagent, _ in pairs(purchaseOrder) do
-		local inBags = C_Item.GetItemCount(reagentIDs[reagent], false) or 0
-		local row = list[reagentIDs[reagent]]
+	for reagentID, _ in pairs(purchaseOrder) do
+		local inBags = C_Item.GetItemCount(reagentID, false) or 0
+		local row = list[reagentID]
 		if row and row.buyFromMerchant ~= false then
 			inBags = math.max(0, inBags - (row.amount or 0))
 		end
 		if inBags > 0 then
-			local remaining = purchaseOrder[reagent] - inBags
-			purchaseOrder[reagent] = remaining > 0 and remaining or 0
+			local remaining = purchaseOrder[reagentID] - inBags
+			purchaseOrder[reagentID] = remaining > 0 and remaining or 0
 		end
 	end
 

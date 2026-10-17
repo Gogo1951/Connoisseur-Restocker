@@ -68,7 +68,7 @@ end
 
 --[[
     Each feature's master switch, drawn twice: in the General panel's Features
-    section and atop the feature's own panel. Both copies come from here and
+    section and on the feature's own panel. Both copies come from here and
     share one setter, and a change repaints both panels, so neither shows a
     stale box.
 ]]
@@ -313,9 +313,8 @@ end
       labels: { addName, addHelp, addInvalid, removeDesc, empty }
       rowWidth: optional total row budget, default ns.OPTIONS_ROW_WIDTH
       startOrder: optional first order, so a panel can seat its own head above
-      actionColumn: optional per-row control, { type, width, name, desc } plus
-        func(itemID) for an "execute" (the Ignore List's Global button), or
-        values, sorting, get(itemID) and set(itemID, value) for a "select"
+      actionColumn: optional per-row button, { width, name, desc, func(itemID) }
+        (the Ignore List's Global button)
 
     Restore Defaults is deliberately absent: it belongs to lists that ship
     defaults, and a list the player built from nothing has none to restore. A
@@ -429,36 +428,17 @@ function ns.BuildItemListOptions(spec)
 		}
 
 		if actionColumn then
-			if actionColumn.type == "execute" then
-				cells.action = {
-					type = "execute",
-					name = actionColumn.name,
-					desc = actionColumn.desc,
-					width = actionColumn.width,
-					order = 2,
-					func = function()
-						actionColumn.func(capturedID)
-						AceConfigRegistry:NotifyChange(spec.notifyKey)
-					end,
-				}
-			else
-				cells.action = {
-					type = "select",
-					name = "",
-					desc = actionColumn.desc,
-					values = actionColumn.values,
-					sorting = actionColumn.sorting,
-					width = actionColumn.width,
-					order = 2,
-					get = function()
-						return actionColumn.get(capturedID)
-					end,
-					set = function(_, value)
-						actionColumn.set(capturedID, value)
-						AceConfigRegistry:NotifyChange(spec.notifyKey)
-					end,
-				}
-			end
+			cells.action = {
+				type = "execute",
+				name = actionColumn.name,
+				desc = actionColumn.desc,
+				width = actionColumn.width,
+				order = 2,
+				func = function()
+					actionColumn.func(capturedID)
+					AceConfigRegistry:NotifyChange(spec.notifyKey)
+				end,
+			}
 		end
 
 		-- Removing one row takes one click and no confirm.

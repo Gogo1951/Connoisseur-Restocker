@@ -357,13 +357,12 @@ twoSlotScenario("on,  need 10, limited 4 then unlimited", { amount = 10, buyExtr
   upgrade default -- because absent means "this row never asked for a buyout",
   not "buy out every limited shelf you pass".
 ]]
-local FIELD_COUNT = 9
+local FIELD_COUNT = 8
 
 ---@param item table
 ---@return string
 local function itemToString(item)
 	local parts = {}
-	parts[#parts + 1] = item.itemType or ""
 	parts[#parts + 1] = item.itemName or ""
 	parts[#parts + 1] = item.amount or 0
 	parts[#parts + 1] = item.stashToBank and 1 or 0
@@ -442,7 +441,6 @@ end
 print("\nTHE FLAG SURVIVES A LOGOUT")
 
 roundTripScenario("Extra on, round trip", {
-	itemType = "Consumable",
 	itemName = "Major Mana Potion",
 	amount = 35,
 	stashToBank = true,
@@ -451,7 +449,6 @@ roundTripScenario("Extra on, round trip", {
 }, true)
 
 roundTripScenario("Extra off, round trip", {
-	itemType = "Consumable",
 	itemName = "Major Healing Potion",
 	amount = 10,
 	stashToBank = true,
@@ -459,7 +456,6 @@ roundTripScenario("Extra off, round trip", {
 }, false)
 
 roundTripScenario("Extra on with every other flag off", {
-	itemType = "Consumable",
 	itemName = "Free Action Potion",
 	amount = 10,
 	buyFromMerchant = false,
@@ -474,7 +470,6 @@ roundTripScenario("Extra on with every other flag off", {
 	into the tier above.
 ]]
 roundTripScenario("Upgrade off survives a logout", {
-	itemType = "Consumable",
 	itemName = "Superior Mana Potion",
 	amount = 10,
 	stashToBank = true,

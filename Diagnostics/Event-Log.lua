@@ -38,15 +38,11 @@ ns.MESSAGE_ID_FILTERED_EVENTS = {
 --[[
     The allowlist: the messages the add-on acts on, each the exact global its
     live handler compares against, read on every call so the filter can't
-    drift from the handlers: ERR_ITEM_WRONG_ZONE (Features/Macros/Runtime.lua),
-    SPELL_FAILED_TARGETS_DEAD (Features/Macros/Tools-Hunters.lua), and
-    ERR_INV_FULL and ERR_BANK_FULL (Features/Restocker/Restocker-Events.lua).
+    drift from the handlers: ERR_ITEM_WRONG_ZONE (Features/Macros/Runtime.lua)
+    and SPELL_FAILED_TARGETS_DEAD (Features/Macros/Tools-Hunters.lua).
 ]]
 local function IsCorrelatedMessage(text)
-	return text == ERR_ITEM_WRONG_ZONE
-		or text == SPELL_FAILED_TARGETS_DEAD
-		or text == ERR_INV_FULL
-		or text == ERR_BANK_FULL
+	return text == ERR_ITEM_WRONG_ZONE or text == SPELL_FAILED_TARGETS_DEAD
 end
 
 --[[

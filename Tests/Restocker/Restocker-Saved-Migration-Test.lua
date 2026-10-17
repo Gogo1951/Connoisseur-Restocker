@@ -262,7 +262,6 @@ local row = unpacked(settings.lists.Rogue)[5530]
 local asSaved = unpacked({ [6510] = GAUNTLETS_LINE })[6510]
 check("itemID", row.itemID, 5530)
 check("named from the item cache", row.itemName, "Blinding Powder")
-check("typed from the item cache", row.itemType, "Reagent")
 check("amount", row.amount, 40)
 for _, field in ipairs({ "stashToBank", "restockFromBank", "buyFromMerchant", "reaction", "upgrade", "buyExtra" }) do
 	check(field .. " as saved", row[field], asSaved[field])
@@ -370,7 +369,6 @@ local function loginOnClient(lists, loadedItemIDs)
 	end
 
 	-- The other waiters Restocker-List.lua syncs with, idle here; their own tests cover them.
-	session.pendingRecipes = {}
 	function session.HasPendingUpgrade()
 		return false
 	end
@@ -417,7 +415,6 @@ check("no name yet", row.itemName, "")
 check("listening for Blinding Powder", client.registered, true)
 client.deliver()
 check("named in the same session", row.itemName, "Blinding Powder")
-check("typed too", row.itemType, "Reagent")
 check("window redrawn", client.redraws, 1)
 check("event released", client.registered, false)
 

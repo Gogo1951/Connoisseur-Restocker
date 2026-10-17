@@ -95,4 +95,7 @@ wago.tools
 	https://wago.tools/db2/SpellEffect?build=1.15.9.70003
 	https://wago.tools/db2/SpellLevels?build=1.15.9.70003
 	https://wago.tools/db2/SkillLineAbility?build=1.15.9.70003
+
+QuestieDB
+	None.
 ]]

@@ -367,7 +367,7 @@ ns.CONSUMABLE_UPGRADE_CHAINS = {
 How We Got the Data
 
 Last Validated
-	2026-10-16, WoW Forever 1.60.1.70425
+	2026-10-16, WoW Forever 1.60.1.70450
 
 Notes
 	- The staple ladders, read by Features/Restocker/Restocker-Upgrade.lua and the Starter List (Restocker-Starter-List.lua). Each family goes up in fixed steps, so a Restock List entry can follow the player instead of going stale: at level 45 "Soft Banana Bread" is what you want, at 55 it is not.
@@ -430,5 +430,8 @@ Wowhead
 	None.
 
 wago.tools
-	https://wago.tools/db2/ItemSparse?build=1.60.1.70425
+	https://wago.tools/db2/ItemSparse?build=1.60.1.70450
+
+QuestieDB
+	None.
 ]]

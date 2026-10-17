@@ -22,23 +22,31 @@ local function IsNewItem(item)
 end
 
 --[[
-    The item-type group used for sorting and the category pane -- the exact WoW item class
-    from C_Item.GetItemInfo (e.g. "Consumable", "Weapon", "Armor", "Quest", "Trade Goods",
-    "Miscellaneous"). Falls back to a stored type, then "Other" until the item is cached.
+    The client's name for an item's class ("Consumable", "Trade Goods"), read by
+    itemID from C_Item.GetItemInfoInstant, which answers without the item cache,
+    so a cold row files under its real group. Nil for an ID the client has no item for.
+]]
+function ns.GetRestockItemTypeName(itemID)
+	if not itemID then
+		return nil
+	end
+	local _, itemType = C_Item.GetItemInfoInstant(itemID)
+	if itemType and itemType ~= "" then
+		return itemType
+	end
+	return nil
+end
+
+--[[
+    The item-type group used for sorting and the category pane: the client's
+    item class name, or "Other" for an ID the client has no item for.
     Just-added items report the "New" group instead, until the window closes.
 ]]
 local function ItemGroupOf(item)
 	if IsNewItem(item) then
 		return L["RESTOCKER_GROUP_NEW"]
 	end
-	local info = ns.GetItemData(item.itemID)
-	if info and info.itemType and info.itemType ~= "" then
-		return info.itemType
-	end
-	if item.itemType and item.itemType ~= "" then
-		return item.itemType
-	end
-	return L["RESTOCKER_GROUP_OTHER"]
+	return ns.GetRestockItemTypeName(item.itemID) or L["RESTOCKER_GROUP_OTHER"]
 end
 
 --[[

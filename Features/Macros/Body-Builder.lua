@@ -203,10 +203,9 @@ end
     when the class can learn the conjure, else /run ConnoisseurNoItem("<typeName>");
     an out-of-combat item still goes above it, so that line is only reached in
     combat.
-    Ends with the macro-length trim, which sheds stacked healthstone lines and
-    then ranked fallback /use lines from the bottom up, and then the
-    Cannibalize lines, the one extra that is a convenience rather than a
-    consumable.
+    Ends with the macro-length trim, which sheds the Cannibalize lines first,
+    the one extra that is a convenience rather than a consumable, then stacked
+    healthstone lines, then ranked fallback /use lines from the bottom up.
 ]]
 function ns.BuildStandardBody(
 	definition,
@@ -289,6 +288,24 @@ function ns.BuildStandardBody(
 	local body = tooltipLine .. conjureBlock .. actionBlock .. appendedBlock
 
 	--[[
+	    Too long: the Cannibalize lines go first, before any consumable line, so
+	    build again without them. The rebuilt body then sheds its own stones
+	    and fallbacks below if it is still too long.
+	]]
+	if #body > ns.MACRO_BODY_MAX_LENGTH and (corpseCast or outOfCombatCorpse) then
+		return ns.BuildStandardBody(
+			definition,
+			itemID,
+			useIDs,
+			stackIDs,
+			conjureInfo,
+			appendText,
+			outOfCombatID,
+			outOfCombatStealth
+		)
+	end
+
+	--[[
 	    Measured in bytes against ns.MACRO_BODY_MAX_LENGTH (Data/Data.lua),
 	    which carries the reason the unit is bytes.
 
@@ -322,24 +339,6 @@ function ns.BuildStandardBody(
 			end
 			body = tooltipLine .. conjureBlock .. actionBlock .. appendedBlock
 		end
-	end
-
-	--[[
-	    Still too long with every fallback shed: drop the Cannibalize lines and
-	    build again. A Mage's Food macro, whose conjure clicks never shed, can
-	    reach this in a long-named locale.
-	]]
-	if #body > ns.MACRO_BODY_MAX_LENGTH and (corpseCast or outOfCombatCorpse) then
-		return ns.BuildStandardBody(
-			definition,
-			itemID,
-			useIDs,
-			stackIDs,
-			conjureInfo,
-			appendText,
-			outOfCombatID,
-			outOfCombatStealth
-		)
 	end
 
 	return body

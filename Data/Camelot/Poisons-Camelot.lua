@@ -38,13 +38,13 @@ ns.POISON_DATA = {
 How We Got the Data
 
 Last Validated
-	2026-10-16, WoW Forever 1.60.1.70425
+	2026-10-16, WoW Forever 1.60.1.70450
 
 Notes
 	- ns.POISON_DATA holds every rogue poison the Poisons macro can apply, read by Features/Macros/Tools-Rogues.lua: Required Level is the level the tooltip requires, and Poison Group is ns.POISON_GROUPS' numbering (Data/Data.lua), which carries no game IDs and so lives there.
 	- ns.POISON_GROUP_BASE_ITEMS names the base (rank 1) item of each group. A group's display name is that item's name from C_Item.GetItemInfo, so the client's own localization does the work, with the options panels' loading text standing in until the item is cached (ns.GetPoisonGroupName).
 	- Anesthetic Poison is a TBC poison, so this client has no group 1.
-	- The ranks above level 60 (Anesthetic I-II, Deadly VI-IX, Instant VII-IX, Wound V-VII) don't exist on this client and are left out. Instant Toxin (5654, level 24) is an Instant-group poison this client knows; it came from its tables on wago.tools (build 1.60.1.70425), pending Validate Data.
+	- The ranks above level 60 (Anesthetic I-II, Deadly VI-IX, Instant VII-IX, Wound V-VII) don't exist on this client and are left out. Instant Toxin (5654, level 24) is an Instant-group poison this client knows; it came from its tables on wago.tools, and Validate Data confirmed it on build 1.60.1.70450.
 	- Season of Discovery items are left out even though this client knows many of their IDs (any ID of 200000 or more that the Classic Era tables also hold): they live only in Data/Discovery/. Where a table would otherwise pick one up, a deliberately-absent line in the table says so.
 
 SQL (CMaNGOS)
@@ -54,7 +54,10 @@ Wowhead
 	None.
 
 wago.tools
-	https://wago.tools/db2/ItemSparse?build=1.60.1.70425
-	https://wago.tools/db2/SkillLineAbility?build=1.60.1.70425
-	https://wago.tools/db2/SpellEffect?build=1.60.1.70425
+	https://wago.tools/db2/ItemSparse?build=1.60.1.70450
+	https://wago.tools/db2/SkillLineAbility?build=1.60.1.70450
+	https://wago.tools/db2/SpellEffect?build=1.60.1.70450
+
+QuestieDB
+	None.
 ]]
