@@ -20,7 +20,7 @@ Macros that automatically use your best food, water, potions, healthstones, band
 
 ## Setup
 
-1. Install the add-on, ideally using [CurseForge](https://www.curseforge.com/wow/addons/consumable-connoisseur) or [Wago](https://addons.wago.io/addons/connoisseur).
+1. Install the add-on, ideally using [CurseForge](https://www.curseforge.com/wow/addons/connoisseur-restocker) or [Wago](https://addons.wago.io/addons/connoisseur).
 2. Log in. Connoisseur scans your bags and creates its macros in your General macro tab.
 3. Type `/m` to open the in-game Macro interface, then find the dash-prefixed macros (`- Food`, `- Water`, `- Health Potion`, `- Poisons`, and the rest) in the General tab and drag them onto your action bars.
 4. Pick your staples when Connoisseur Staples pops up at login, or type `/crs` any time and click **Pick Staples**. From then on, whenever you visit a vendor or your bank, Connoisseur keeps you stocked.
@@ -48,33 +48,31 @@ Macros that automatically use your best food, water, potions, healthstones, band
 **How it picks.** Connoisseur ranks every usable item in your bags:
 
 * A percentage restore beats a flat one, then the biggest restore wins.
-* Buff food jumps the queue when Buff Food is on and you're missing Well Fed.
-* Conjured food and water can jump it too: turn on Use Conjured Food & Water First and your Food and Water macros eat and drink it before anything that restores more, while you're leveling or whenever else you choose.
-* Turn on Use Restock List Food & Water Last and, between two items that restore the same amount, your Food and Water macros use the one that isn't on your Restock List.
+* Buff food jumps the queue when you're missing Well Fed, and conjured food and water can go first whenever you choose.
 * Ties go to whatever loses its worth soonest: conjured items first, then items that only work in one zone, then soulbound ones, then whatever vendors for least.
-* Anything you can't use is filtered out, whether that's a level requirement, a missing profession skill, or the wrong zone.
-* Inside a PvP Arena, where the game blocks ordinary food and drink, only conjured items and the arena's own drinks are offered.
-* Macros can't be edited in combat, so the Potion and Healthstone macros carry your best item plus up to two fallbacks. On a long fight the icon can go stale, but a press still uses the best item in your bags.
-* Coming from an add-on with one button for both? Turn on Use Food & Water in Potion Macros Out of Combat and your Health Potion macro eats, and your Mana Potion macro drinks, whenever you're out of combat, stealthing as it does if you use Stealth Eating or Stealth Drinking.
+* Anything you can't use is skipped, whether that's a level requirement, a missing profession skill, or the wrong zone.
+* Inside a PvP Arena, only conjured items and the arena's own drinks are offered.
+* Want one button for both? Your Health Potion macro can eat, and your Mana Potion macro drink, whenever you're out of combat.
 
 #### Class & Race Features
 
-* **Forsaken** // Cannibalize can stand in for eating, and on WoW Forever for drinking too. Target a Humanoid or Undead you've killed and your Food or Water macro casts Cannibalize while it's off cooldown; any other time it eats or drinks as usual.
-* **Night Elves** // Stealth Drinking and Stealth Eating add Shadowmeld to the Water or Food macro. Pick one, since eating or drinking after you stealth breaks it.
-* **Druids** // With DruidMacroHelper integration on, your Health Potion, Mana Potion, and Healthstone macros powershift you out of form, use the item, and put you back in Bear or Cat.
-* **Hunters** // `- Feed Pet` is an all-in-one pet button. Left-Click calls, feeds, or revives your pet, feeding it the lowest-level food that still gives full happiness. Right-Click, or click during combat, to cast Mend Pet. Hold Shift to force Revive, or Ctrl to Dismiss.
-* **Mages** // Right-Click Food or Water to conjure more, or Middle-Click either one for Ritual of Refreshment. Right-Click Mana Gem to conjure a gem, and again for a lower-rank backup. Targeting a lower-level player conjures food or water they can use.
-* **Rogues** // Left-Click `- Poisons` for your Off Hand, Right-Click for your Main Hand, or Middle-Click to open the Poisons window. Pick each hand's poison in the options, and old poisons are replaced automatically. Stealth Eating slips you into Stealth while you snack.
-* **Warlocks** // Right-Click Healthstone to create one, and again for a lower-rank backup, or Middle-Click it for Ritual of Souls. Right-Click Soulstone to create one. Targeting a lower-level player makes a Healthstone sized for them.
+* **Forsaken** // Target a Humanoid or Undead you've killed and your Food macro casts Cannibalize instead, and on WoW Forever your Water macro too.
+* **Night Elves** // Stealth Drinking or Stealth Eating slips Shadowmeld into your Water or Food macro.
+* **Druids** // With DruidMacroHelper, your Health Potion, Mana Potion, and Healthstone macros powershift you out of form and back into Bear or Cat.
+* **Hunters** // `- Feed Pet` calls, feeds, or revives your pet on Left-Click, feeding it the lowest-level food that still gives full happiness, and casts Mend Pet on Right-Click.
+* **Mages** // Right-Click Food, Water, or Mana Gem to conjure more, or Middle-Click Food or Water for Ritual of Refreshment. Target a lower-level player to conjure food or water they can use.
+* **Rogues** // Left-Click `- Poisons` for your Off Hand, Right-Click for your Main Hand, or Middle-Click to open the Poisons window. Stealth Eating slips you into Stealth while you snack.
+* **Warlocks** // Right-Click Healthstone or Soulstone to create one, or Middle-Click Healthstone for Ritual of Souls. Target a lower-level player to make a Healthstone sized for them.
 
 ### Restocker
 
-* **Build your list in ten seconds.** From level 6, Connoisseur Staples pops up at login while your Restock List is empty. Tick the staples you carry (food, water, ammo, poisons, class reagents, even your Hearthstone), pick how many stacks of each, and you're done. After that, `/crs` opens your Restock List any time: Pick Staples brings the staples back, and you can drop in anything else from your bags.
-* **Your list levels with you.** Food, water, ammo, poisons, potions, and class reagents climb their upgrade paths as you level, and every swap is announced in chat. Refreshing Spring Water becomes Ice Cold Milk at 5, Melon Juice at 15, Sweet Nectar at 25, and so on. Anything above your level, or without an upgrade path, stays exactly where you put it.
+* **Build your list in ten seconds.** From level 6, Connoisseur Staples pops up at login while your Restock List is empty. Tick the staples you carry (food, water, ammo, poisons, class reagents, even your Hearthstone), pick how many stacks of each, and you're done. `/crs` opens the list any time, and you can drop in anything else from your bags.
+* **Your list levels with you.** Food, water, ammo, poisons, potions, and class reagents climb their upgrade paths as you level, and every swap is announced in chat. Refreshing Spring Water becomes Ice Cold Milk at 5, Melon Juice at 15, Sweet Nectar at 25, and so on.
 * **Rogues get a bonus.** Put the finished poison on your list and its ingredients buy themselves at any merchant that stocks them all.
-* **Reminders** speak up when you reach an inn or a city short of something, or when you close a merchant or the bank with orders still outstanding. Pick one line or item by item, with an optional alert sound for busy chat.
-* **Named lists** let a character switch loadouts or share one with an alt. Copy, rename, and delete all live in the window.
-* **A Gold Reserve** keeps restocking from spending your last gold. It starts at 1 gold, and chat tells you when it, or an empty purse, stops a merchant run.
+* **Reminders** speak up when you reach an inn or a city short of something, or leave a merchant or the bank with orders still outstanding.
+* **Named lists** let a character switch loadouts or share one with an alt.
+* **A Gold Reserve** keeps restocking from spending your last gold.
+* **Inventory Tooltips** show how many of any item you have in your bags, your bank, and on your other characters on the realm.
 * **Hold Shift** while opening a merchant or the bank to skip restocking for that visit.
 
 <img width="800" src="https://github.com/user-attachments/assets/62a9acfb-6c3d-4443-bf73-3af49ae3a5ec" />
@@ -93,10 +91,6 @@ Connoisseur // Character : Frost (17/0/33), 1 Unspent Talent Point
 * **Missing Buffs** // Flask or elixirs, Well Fed for you and your pet, scrolls, weapon buffs, and your group's Soulstone.
 * **Missing Items** // Healthstone, Mana Gem, potions, bandages, and gear close to breaking.
 * **Character** // Your spec and any unspent talent points, a PvP flag, and fishing or riding gear left on.
-
-### Inventory Tooltips
-
-Hover any item to see how many you have in your bags, in your bank, and on your other characters on the realm. Items on your Restock List show what you have against what you keep.
 
 ### Mini-Map Button
 
@@ -118,12 +112,14 @@ Hover any item to see how many you have in your bags, in your bank, and on your 
 
 Type `/foodie` to open the Options Interface, also found under **Options > AddOns > Connoisseur**, or `/crs` to open your Restock List.
 
-* **Connoisseur** // The welcome message, the mini-map button, the `/foodie` and `/crs` commands, and where to reach the author.
-* **Macros** // Which macros exist and how each one picks: buff food, scroll buffs, conjured food and water, buff re-application, pet food buffs, eating and drinking from the potion macros, Healthstone stacking, runes and other mana items, explosive clicks, and the class options. Connoisseur hides macro names on your action buttons unless you switch them back on here.
+* **Connoisseur** // The welcome message, the mini-map button, an on/off switch for each feature, and the `/foodie` and `/crs` commands.
+* **Macros** // Which macros exist and how each one picks: buff food, scroll buffs, conjured food and water, buff re-application, pet food buffs, eating and drinking from the potion macros, Healthstone stacking, runes and other mana items, and explosive clicks. Connoisseur hides macro names on your action buttons unless you switch them back on here.
+  * **Class & Race** // Druid powershifting, Rogue poisons and Stealth eating, Forsaken Cannibalize, and Night Elf Shadowmeld drinking. Every section shows on every character.
   * **Ignore List** // Items no macro will ever offer, on the Global list for every character or on one character's own list.
 * **Restocker** // Reminders and how much they say, the alert sound, the Gold Reserve, opening the window at a bank or merchant, the Connoisseur Staples pop-up, and the Inventory Report that adds your bag, bank, and alt counts to item tooltips.
 * **Readiness Report** // What a ready check reports on. It ships switched off, so turn it on to use it.
 * **Profiles** // Copy one character's setup onto another, or reset one back to defaults.
+* **Feedback & Support** // Where to reach the author, and how you can help the add-on grow.
 * **Diagnostic Tools** // Read-only probes to paste into a bug report.
 
 Most settings are per character, so your raiding 60 and your level-15 alt keep their own consumable choices. Which macros exist, the mini-map button, the Restocker and Readiness Report settings, and your Restock Lists are account-wide, though each character picks the list it shops from.
@@ -140,7 +136,7 @@ Most settings are per character, so your raiding 60 and your level-15 alt keep t
 
 🟢 World of Warcraft: Forever // 1.60.1
 
-🟡 World of Warcraft: Season of Discovery // 1.15.9
+🟢 World of Warcraft: Season of Discovery // 1.15.9
 
 🟢 World of Warcraft: Classic // 1.15.9
 
@@ -152,7 +148,7 @@ Most settings are per character, so your raiding 60 and your level-15 alt keep t
 
 * targon's [Free Refills](https://www.wowinterface.com/downloads/info7950-FreeRefills.html)
 * kvakvs's [Restocker Classic](https://www.curseforge.com/wow/addons/restocker-classic)
-* guardycmw's [Restocker (MoP)](https://www.curseforge.com/wow/addons/restocker-mop)
+* guardycmw's [Restocker Kit](https://www.curseforge.com/wow/addons/restocker-kit)
 
 ## Get Involved
 
