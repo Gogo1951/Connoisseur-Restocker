@@ -25,13 +25,13 @@
 ### Dot-defined namespace functions
 
 - **Departs from:** the guide's snippets, which define `ns` functions with colons.
-- **Instead:** Every `ns` function outside `Diagnostics/` is dot-defined and takes no `self`, while `Diagnostics/` keeps Pretty Wide Quest Log's colon methods.
-- **Why:** Nothing outside the diagnostics framework uses `self`, and the framework stays identical to the Pretty Wide Quest Log folder it is copied from.
+- **Instead:** Every `ns` function outside `Diagnostics/` is dot-defined and takes no `self`, while `Diagnostics/` keeps Magic Eraser's colon methods.
+- **Why:** Nothing outside the diagnostics framework uses `self`, and the framework stays identical to the Magic Eraser folder it is copied from.
 
 ### Every class and race section shows to everyone
 
 - **Departs from:** OPTIONS PANEL → Widget Conventions, "Only show spells the player knows".
-- **Instead:** The Macros panel shows its Druid, Rogue, Night Elf and Forsaken sections, and the Feed Pet and Poisons macro toggles, to every character, and gates only on what a client can't do.
+- **Instead:** The Class & Race panel shows its Druid, Rogue, Night Elf and Forsaken sections, and the Macros panel its Feed Pet and Poisons macro toggles, to every character, and gates only on what a client can't do.
 - **Why:** The maintainer wants every option visible from any character.
 
 ### Feature subfolders
@@ -46,11 +46,14 @@
 - **Instead:** The README's H1 is "Connoisseur & Restocker", the name the Inventory Report's tooltip header carries too.
 - **Why:** The maintainer wants the title to say that Restocker lives on inside Connoisseur.
 
+### Staples pop-up answer kept account-wide
+
+- **Departs from:** SAVED VARIABLES → The Two Models, "per-character state in `ns.db.profile`".
+- **Instead:** Whether a character answered the staples pop-up is saved in `ns.db.global`, keyed by character.
+- **Why:** Switching, copying or resetting a profile must never bring back, or suppress, a pop-up the character already answered.
+
 ## Decisions
 
-- The consumable data tables leave out oddball items that a data check turns up, even when they share a table's cooldown: Scorpid Surprise (5473), Green Tea Leaf (1401), Holy Spring Water (737) and Night Dragon's Breath (11952) stay out.
-- Season of Discovery items live only in `Data/Discovery/`: every other data folder leaves them out with a deliberately-absent note, even where its client's Validate Data reports them OK, since OK only proves the client knows the ID.
 - Star's Tears and Star's Lament are offered only inside an arena (arena column 1), though the client lets them be used anywhere: they are expensive, and ordinary food and water serve better outside one.
 - The four Ogre Brews keep Gruul's Lair (330) among their allowed zones: they work there, though their tooltip names only the Blade's Edge Plateaus.
 - Harvest Bread and Winter Veil Loaf carry no arena value though their tooltips say Conjured Item: the TBC client doesn't flag them usable in arenas, so they are never offered there.
-- The pet-food tables leave out foods Feed Pet would waste, even when the client gives them a pet diet: special foods that sell for nothing (Whipper Root Tuber, Essence Mango, holiday foods) and battleground or zone rations. Feed Pet feeds the cheapest food in the pet's level bracket first, so it would spend those before ordinary food.
