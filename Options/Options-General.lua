@@ -75,6 +75,8 @@ function ns.BuildGeneralOptions()
 			toggleRestocker = ns.OptionsFeatureSwitch("Restocker", 17.1, ns.OPTIONS_ROW_WIDTH / 2),
 			toggleReadinessReport = ns.OptionsFeatureSwitch("ReadinessReport", 17.2, ns.OPTIONS_ROW_WIDTH / 2),
 			toggleInventoryReport = ns.OptionsFeatureSwitch("InventoryReport", 17.3, ns.OPTIONS_ROW_WIDTH / 2),
+			spaceFeatures2 = Spacer(18),
+			descFeaturesNote = Desc(GetColor("INFO") .. L["OPTIONS_FEATURES_NOTE"] .. "|r", 19),
 
 			-- /Commands
 			spaceCommands0 = Spacer(20),

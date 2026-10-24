@@ -26,7 +26,7 @@ ns.SOULSTONE_BUFF_SPELL_IDS = {
 How We Got the Data
 
 Last Validated
-	2026-10-16, Classic Era 1.15.9.70003
+	2026-10-23, Classic Era 1.15.9.70003
 
 Notes
 	- ns.SOULSTONES holds the warlock's soulstones, read by the item cache and the Readiness Report. Rank Value is the stone's resurrection health, used as a sortable preference score (Minor < Lesser < Soulstone < Greater < Major).

@@ -13,7 +13,7 @@ ns.QUESTIONABLE_EQUIPMENT = {
 How We Got the Data
 
 Last Validated
-	2026-10-16, Classic Era 1.15.9.70003
+	2026-10-23, Classic Era 1.15.9.70003
 
 Notes
 	- Items that are fine to own and wrong to be wearing when a pull starts, read by the Non-combat Gear Equipped check in Features/Readiness-Report-Probes.lua.

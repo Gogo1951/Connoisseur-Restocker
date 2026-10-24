@@ -108,7 +108,7 @@ ns.SCROLL_DATA = {
 How We Got the Data
 
 Last Validated
-	2026-10-16, TBC Anniversary 2.5.6.70006
+	2026-10-23, TBC Anniversary 2.5.6.70006
 
 Notes
 	- The stat scrolls, read by Features/Scanner-Auras.lua (FindBestScroll) to pick a scroll whose buff the player lacks. Each type lists its scrolls as { itemID, buffID, requiredLevel, amount }: the buff is the aura the scroll leaves, requiredLevel the level the tooltip requires, amount the stat it grants.
@@ -128,4 +128,7 @@ wago.tools
 	https://wago.tools/db2/SpellEffect?build=2.5.6.70006
 	https://wago.tools/db2/SpellMisc?build=2.5.6.70006
 	https://wago.tools/db2/SpellDuration?build=2.5.6.70006
+
+QuestieDB
+	None.
 ]]

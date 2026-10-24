@@ -152,41 +152,19 @@ end
     locale-independent) and resolves to the localized LABEL_* string via
     ns.MACRO_CONFIG at print time. Unknown keys fall back to the raw key so a stale
     macro body from an older version still prints something sensible.
+
+    canMake is set when the character knows the spell that makes the item (the
+    body writes it only for a Mage's Food, Water and Mana Gem and a Warlock's
+    Healthstone and Soulstone), so the line names the Right-Click that makes
+    more instead. Mages conjure and warlocks create, the verbs their spells use.
 ]]
-function ConnoisseurNoItem(typeName)
+function ConnoisseurNoItem(typeName, canMake)
 	local config = ns.MACRO_CONFIG[typeName]
 	local label = config and config.label or typeName
+	if canMake and config then
+		local key = ns.isWarlock and "TIP_EMPTY_CREATE" or "TIP_EMPTY_CONJURE"
+		ns.PrintMessage(string.format(L[key], label, config.macro))
+		return
+	end
 	ns.PrintMessage(string.format(L["MESSAGE_NO_ITEM"], label))
-end
-
--- MIGRATION (remove after 2026-10-18)
---[[
-    A macro body saved by an older build still calls the short names with the
-    short tip keys until the add-on next rewrites it, so the short names stay
-    callable and translate their keys.
-]]
-local RENAMED_TIP_KEYS = {
-	nofood = "noPetFood",
-	noskills = "noPetSkills",
-	nomend = "noMendPet",
-	nopois = "noHandPoison",
-	ncwater = "noConjureWater",
-	ncfood = "noConjureFood",
-	ncgem = "noConjureManaGem",
-	nctable = "noRitualOfRefreshment",
-	nchs = "noCreateHealthstone",
-	ncss = "noCreateSoulstone",
-	ncsw = "noRitualOfSouls",
-	npois = "noPoisonsSkill",
-}
-
-ConnFire = ConnoisseurFire
-ConnNoItem = ConnoisseurNoItem
-
-function ConnTip(key)
-	ConnoisseurTip(RENAMED_TIP_KEYS[key] or key)
-end
-
-function ConnIf(condition, key)
-	ConnoisseurTipIf(condition, RENAMED_TIP_KEYS[key] or key)
 end

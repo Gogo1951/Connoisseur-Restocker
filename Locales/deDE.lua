@@ -7,7 +7,15 @@ end
 -- Brand
 --------------------------------------------------------------------------------
 
-L["ADDON_TITLE"] = "Connoisseur"
+--[[
+    The add-on has two names. ADDON_TITLE, the full name, is for window
+    titles and anywhere the add-on is talked about; ADDON_SHORT_NAME is for
+    tooltips and the chat prints ("C & R // ..."). Both are proper nouns and
+    stay as written in every locale, as does the full name inside any
+    sentence below.
+]]
+L["ADDON_TITLE"] = "Connoisseur & Restocker"
+L["ADDON_SHORT_NAME"] = "C & R"
 
 --------------------------------------------------------------------------------
 -- Macro Names
@@ -74,10 +82,25 @@ L["MESSAGE_BUG_REPORT"] =
 	"Sieht aus, als hättest du einen Bug gefunden! %s (%s) kann in %s > %s (%s) nicht verwendet werden. Bitte melde das, damit wir es beheben können. Danke! %s"
 L["MESSAGE_NO_ITEM"] = "Kein geeigneter Gegenstand vom Typ %s in deinen Taschen gefunden."
 L["MESSAGE_MACRO_SLOTS_FULL"] =
-	"Einige Connoisseur-Makros konnten nicht erstellt werden, weil deine Makroplätze voll sind. Mache einen Platz frei, indem du Makros löschst, die du nicht mehr verwendest, oder deaktiviere nicht benötigte Connoisseur-Makros unter Optionen > Addons > Connoisseur > Makros."
+	"Einige Makros von Connoisseur & Restocker konnten nicht erstellt werden, weil deine Makroplätze voll sind. Mache einen Platz frei, indem du Makros löschst, die du nicht mehr verwendest, oder deaktiviere nicht benötigte Makros von Connoisseur & Restocker unter Optionen > Addons > Connoisseur & Restocker > Makros."
+--[[
+    Printed once after the add-on creates one or more of its macros, so a new
+    player learns they exist. %s is "/m", the game's own macro command, colored
+    at the call site. "General" is the macro window's tab for account-wide
+    macros; use the client's own name for that tab. The macro names are this
+    locale's own MACRO_FOOD and MACRO_WATER values, written exactly as this
+    locale ships them.
+]]
+L["MESSAGE_MACROS_READY"] =
+	"Deine Makros sind bereit. Gib %s ein, öffne den Reiter Allgemeine Makros und ziehe - Essen, - Wasser und die anderen auf deine Aktionsleisten."
+-- The mini-map button's Right-Click and Middle-Click. %s is the item's link.
+L["MESSAGE_IGNORE_ADDED"] = "%s steht jetzt auf der Ignorierliste dieses Charakters."
+-- %d is how many items the Middle-Click took off the list: exactly one, or two or more.
+L["MESSAGE_IGNORE_CLEARED_ONE"] = "1 Gegenstand von der Ignorierliste dieses Charakters entfernt."
+L["MESSAGE_IGNORE_CLEARED_MANY"] = "%d Gegenstände von der Ignorierliste dieses Charakters entfernt."
 
 L["CHAT_LOADED"] =
-	"Version %s. Die Einstellungen (einschließlich der Option, diese Nachricht zu deaktivieren) findest du unter Optionen > Addons > Connoisseur. Gefällt dir dieses Add-on? Erzähle einem Freund davon, markiere es auf CurseForge als Favorit oder klicke auf seiner GitHub-Seite auf Star. (="
+	"Version %s. Die Einstellungen (einschließlich der Option, diese Nachricht zu deaktivieren) findest du unter Optionen > Addons > Connoisseur & Restocker. Gefällt dir dieses Add-on? Erzähle einem Freund davon, markiere es auf CurseForge als Favorit oder klicke auf seiner GitHub-Seite auf Star. (="
 
 L["CHAT_OPTIONS_IN_COMBAT"] = "Aus Sicherheitsgründen kann das Optionsmenü im Kampf nicht geöffnet werden."
 
@@ -150,7 +173,7 @@ L["READINESS_UNSPENT_TALENTS_MANY"] = "%d nicht verteilte Talentpunkte"
 -- ConnoisseurTip Messages
 --------------------------------------------------------------------------------
 
--- Printed in chat by macro bodies via /run ConnoisseurTip("key") or ConnoisseurTipIf. See Features/Macros/Runtime.lua.
+-- Printed in chat by macro bodies via /run ConnoisseurTip("key") or ConnoisseurTipIf, and TIP_EMPTY_* via ConnoisseurNoItem. See Features/Macros/Runtime.lua.
 
 L["TIP_PET_NO_FOOD"] = "Du hast derzeit kein nützliches Futter für dein Tier."
 -- The four %s are the client's names for Call Pet, Dismiss Pet, Feed Pet and Revive Pet, in that order.
@@ -160,6 +183,16 @@ L["TIP_NO_HAND_POISON"] = "Für diese Waffe ist das gewählte Gift aufgebraucht.
 
 -- %s is the localized spell name, resolved at print time.
 L["TIP_DONT_KNOW_SPELL"] = "Du kennst %s derzeit nicht."
+
+--[[
+    A Mage's Food, Water or Mana Gem macro, or a Warlock's Healthstone or
+    Soulstone macro, pressed with none in the bags by a character who knows the
+    spell that makes it. { LABEL_* name, MACRO_* name }: "No Water in your
+    bags. Right-Click - Water to conjure more." Mages conjure, warlocks create,
+    the same verbs as NOTE_CONJURE and NOTE_CREATE.
+]]
+L["TIP_EMPTY_CONJURE"] = "Kein %s in deinen Taschen. Rechtsklicke auf %s, um mehr herbeizuzaubern."
+L["TIP_EMPTY_CREATE"] = "Kein %s in deinen Taschen. Rechtsklicke auf %s, um einen herzustellen."
 
 --------------------------------------------------------------------------------
 -- Minimap Tooltip
@@ -240,7 +273,7 @@ L["MINIMAP_RESTOCKER_EMPTY"] = "Deine Liste ist leer."
 L["MENU_RESTOCKER"] = "Restocker-Liste"
 L["MENU_RESTOCKER_DESCRIPTION"] = "Kauft die Gegenstände auf deiner Liste und lagert sie in der Bank."
 L["MENU_RESTOCKER_KEYBIND"] = "Shift + Rechtsklick"
-L["MENU_OPTIONS"] = "Connoisseur-Optionen"
+L["MENU_OPTIONS"] = "C & R-Optionen"
 L["MENU_OPTIONS_KEYBIND"] = "Shift + Mittelklick"
 
 --------------------------------------------------------------------------------
@@ -368,25 +401,23 @@ L["MODE_MAX_LEVEL"] = "Auf Höchststufe"
 
 --[[
     The block Features/Inventory-Report.lua adds under an item's own tooltip
-    lines. Its header is "Connoisseur & Restocker // Inventory Report": the
-    brand below, filled with ADDON_TITLE and TAB_RESTOCKER, then the title, in
-    the chat prints' branded colors. Under it, each line is a label on the left
-    with its count at the right edge: Bags, Bank, one line per other character
-    (the client's own character names, so no keys here), then Total.
+    lines. Its header is "C & R // Inventory Report": ADDON_SHORT_NAME, then the
+    title, in the chat prints' branded colors, with the total at its right
+    edge. Under it, one line per character, this one first: the name on the
+    left (the client's own character names, so no keys here), its counts at
+    the right edge.
 
-    Keep the labels to a word: they share a line with a number, and the tooltip
-    is as wide as its longest line. The Bags count of a Restock List item is the
-    have/keep ratio MINIMAP_RESTOCKER_ITEM_COUNT prints.
+    Keep the counts short: they share a line with a name, and the tooltip is
+    as wide as its longest line.
 ]]
--- { add-on name, feature name }
-L["INVENTORY_REPORT_BRAND"] = "%s & %s"
 L["INVENTORY_REPORT_TITLE"] = "Inventarbericht"
-L["INVENTORY_REPORT_BAGS"] = "Taschen"
-L["INVENTORY_REPORT_BANK"] = "Bank"
--- In place of the Bank count, muted, until this character's bank has been opened once with the add-on running.
-L["INVENTORY_REPORT_BANK_UNKNOWN"] = "Unbekannt"
--- Everything above it added up: this character and every other one on the realm.
-L["INVENTORY_REPORT_TOTAL"] = "Gesamt"
+-- A character's bags, then its bank: "Bag 39, Bank 1". The words show gray and each count white.
+L["INVENTORY_REPORT_COUNTS"] = "Taschen %s, Bank %s"
+-- The same row when only one of the two holds some; a place holding none is left out.
+L["INVENTORY_REPORT_BAG"] = "Taschen %s"
+L["INVENTORY_REPORT_BANK"] = "Bank %s"
+-- On the header's right: every character on the realm added up, the word gray and the count white.
+L["INVENTORY_REPORT_TOTAL"] = "Gesamt %s"
 
 --------------------------------------------------------------------------------
 -- Options Panel
@@ -403,14 +434,20 @@ L["OPTIONS_WELCOME_MESSAGE_DESCRIPTION"] = "Gibt beim Anmelden eine Willkommensn
 L["OPTIONS_MINIMAP_BUTTON"] = "Minikarten-Button aktivieren"
 L["OPTIONS_MINIMAP_BUTTON_DESCRIPTION"] = "Zeigt den Minikarten-Button an."
 
--- Features: each feature's master switch, also atop its own panel.
+-- Features: each feature's master switch, also on the panel that configures it.
 L["OPTIONS_FEATURES_HEADER"] = "Funktionen"
 L["OPTIONS_MACROS_ENABLE"] = "Makro-Aktualisierungen aktivieren"
 L["OPTIONS_MACROS_ENABLE_DESCRIPTION"] =
-	"Hält deine Connoisseur-Makros auf deine besten Gegenstände ausgerichtet, während sich deine Taschen ändern. Aus lässt jedes Makro so, wie es zuletzt war."
+	"Hält deine Makros von Connoisseur & Restocker auf deine besten Gegenstände ausgerichtet, während sich deine Taschen ändern. Aus lässt jedes Makro so, wie es zuletzt war."
 L["OPTIONS_RESTOCKER_ENABLE"] = "Restocker aktivieren"
 L["OPTIONS_RESTOCKER_ENABLE_DESCRIPTION"] =
 	"Kauft und lagert nach deiner Nachschubliste ein und erinnert dich, wenn dir etwas ausgeht. Aus schaltet all das ab, auch das Fenster der Nachschubliste."
+-- Mirrors Thanks for the Buff's OPTIONS_FEATURES_NOTE.
+L["OPTIONS_FEATURES_NOTE"] =
+	'Die Änderungen, die mit WoW Forever kommen, könnten uns dazu bringen, "Connoisseur & Restocker" umzubauen. Mit unserem anderen Add-on "Thanks for the Buff" gibt es schon einige mögliche Überschneidungen, daher könnte sich einiges verschieben, oder alles wird zu einem größeren Add-on zusammengeführt, vielleicht "Buttons, Buffs, & Bags". Teile uns deine Meinung auf Discord, CurseForge oder GitHub mit. Danke!'
+
+-- The label before a panel's Example line, which shows a chat print as it will arrive.
+L["SAMPLE_EXAMPLE"] = "Beispiel: %s"
 
 --[[
     /Commands. Both halves of each line are locale keys: the literal, which
@@ -424,7 +461,7 @@ L["RESTOCKER_COMMAND"] = "/crs"
 L["RESTOCKER_COMMAND_DESCRIPTION"] = "Öffnet deine Nachschubliste."
 
 -- Options: Feedback & Support Panel
-L["OPTIONS_LEVEL_UP_TITLE"] = "Hilf Connoisseur beim Leveln"
+L["OPTIONS_LEVEL_UP_TITLE"] = "Hilf Connoisseur & Restocker beim Leveln"
 L["OPTIONS_LEVEL_UP_INTRO"] =
 	"Dieses Add-on wurde von Spielern entwickelt, die dieses Spiel lieben und es für alle so unterhaltsam wie möglich machen wollen. Wir werden nie um Spenden bitten. Die wahre Genugtuung liegt darin, zu wissen, dass unsere Arbeit das Spiel für dich ein kleines bisschen besser macht. Wenn das so ist, würden wir uns freuen, davon zu hören!"
 L["OPTIONS_LEVEL_UP_WAYS"] = "Hier sind ein paar Möglichkeiten, wie du uns helfen kannst, mehr Spieler zu erreichen."
@@ -436,7 +473,7 @@ L["OPTIONS_LEVEL_UP_CURSEFORGE"] =
 	"• Favorit auf CurseForge: Öffne unten den CurseForge-Link, melde dich an und klicke auf den Stern unter der Schaltfläche Download. Favoriten helfen mehr Spielern, das Add-on zu entdecken."
 L["OPTIONS_LEVEL_UP_GITHUB"] =
 	"• Star auf GitHub: Öffne unten den GitHub-Link, melde dich an und klicke oben rechts auf Star. Sterne helfen dem Projekt, sich für weitere kostenlose Entwicklerwerkzeuge zu qualifizieren."
-L["OPTIONS_LEVEL_UP_THANKS"] = "Danke, dass du dich für Connoisseur entschieden hast!"
+L["OPTIONS_LEVEL_UP_THANKS"] = "Danke, dass du dich für Connoisseur & Restocker entschieden hast!"
 
 L["OPTIONS_FEEDBACK"] = "Feedback & Unterstützung"
 L["OPTIONS_FEEDBACK_LINKS_HEADER"] = "Links für Feedback & Unterstützung"
@@ -451,27 +488,34 @@ L["OPTIONS_VERSION"] = "Version %s"
     Macros panel. TAB_MACROS is the panel's label in the settings tree and the
     title on the page; OPTIONS_MACROS_DESCRIPTION is the intro beneath it, which
     orients the player to the page's two halves -- which macros exist, then how
-    each one behaves. The Enable Macros header below titles the first section,
-    after the page's two headerless toggles, Enable Macro Updates and Macro
-    Names on Buttons.
+    each one behaves. The Which Macros to Create header below titles the first
+    section, after the page's two headerless toggles, Enable Macro Updates and
+    Macro Names on Buttons.
 ]]
 L["TAB_MACROS"] = "Makros"
 L["OPTIONS_MACROS_DESCRIPTION"] =
-	"Connoisseur erstellt ein Makro pro Verbrauchsgegenstand und hält es aktuell, während sich deine Taschen ändern, damit der Button auf deiner Leiste immer zum besten Gegenstand greift, den du dabeihast. Wähle unten, welche Makros erstellt werden, und lege dann fest, wie jedes seinen Gegenstand auswählt."
+	"Connoisseur & Restocker erstellt ein Makro pro Verbrauchsgegenstand und hält es aktuell, während sich deine Taschen ändern, damit der Button auf deiner Leiste immer zum besten Gegenstand greift, den du dabeihast. Wähle unten, welche Makros erstellt werden, und lege dann fest, wie jedes seinen Gegenstand auswählt."
 
 -- Macro Names on Buttons
 L["OPTIONS_MACRO_NAMES"] = "Makronamen auf Buttons aktivieren"
 L["OPTIONS_MACRO_NAMES_DESCRIPTION"] =
-	"Zeigt den Makronamen-Text auf den Buttons deiner Aktionsleisten an, den Connoisseur standardmäßig ausblendet."
+	"Zeigt den Makronamen-Text auf den Buttons deiner Aktionsleisten an, den Connoisseur & Restocker standardmäßig ausblendet."
 
--- Enable Macros
-L["OPTIONS_ENABLE_MACROS_HEADER"] = "Makros aktivieren"
-L["OPTIONS_ENABLE_MACROS_DESCRIPTION"] =
-	"Wähle, welche Makros Connoisseur erstellt und pflegt. Wenn du eines deaktivierst, wird es auch entfernt."
 --[[
-    Hover text on each Enable Macros toggle, whose own label names the macro.
-    It says "this macro" because a LABEL_* is not every macro's name: Feed Pet's
-    label is Pet Food.
+    Which Macros to Create. "General" in the description is the Macros
+    window's tab for account-wide macros; use the client's own name for it. The
+    button under the checkboxes opens that window.
+]]
+L["OPTIONS_MACROS_TO_CREATE_HEADER"] = "Zu erstellende Makros"
+L["OPTIONS_ENABLE_MACROS_DESCRIPTION"] =
+	"Wähle, welche Makros Connoisseur & Restocker erstellt und pflegt. Wenn du eines deaktivierst, wird es auch entfernt. Du findest sie im Reiter Allgemeine Makros des Makrofensters, bereit zum Ziehen auf deine Aktionsleisten."
+L["OPTIONS_OPEN_MACRO_WINDOW"] = "Makrofenster öffnen"
+L["OPTIONS_OPEN_MACRO_WINDOW_DESCRIPTION"] =
+	"Öffnet das Makrofenster des Spiels im Reiter Allgemeine Makros, wo diese Makros liegen."
+--[[
+    Hover text on each Which Macros to Create toggle, whose own label names
+    the macro. It says "this macro" because a LABEL_* is not every macro's
+    name: Feed Pet's label is Pet Food.
 ]]
 L["OPTIONS_MACRO_TOGGLE_DESCRIPTION"] =
 	"Erstellt und pflegt dieses Makro und entfernt es, wenn du das Kästchen abwählst."
@@ -659,6 +703,9 @@ L["OPTIONS_IGNORE_LIST_DESCRIPTION"] =
 L["OPTIONS_IGNORE_GLOBAL"] = "Global"
 L["OPTIONS_IGNORE_PROMOTE_DESCRIPTION"] =
 	"Verschiebt diesen Gegenstand auf die Global-Liste, sodass er auf jedem Charakter ignoriert wird."
+L["OPTIONS_IGNORE_ADD_FROM_BAGS"] = "Aus Taschen hinzufügen"
+L["OPTIONS_IGNORE_ADD_FROM_BAGS_DESCRIPTION"] =
+	"Wähle etwas aus, das du bei dir trägst. Die Taschen schließen sich, wenn das Optionsmenü geöffnet wird, daher ersetzt dies das Hineinziehen eines Gegenstands."
 L["OPTIONS_IGNORE_ADD_ID"] = "Per Gegenstands-ID hinzufügen"
 L["OPTIONS_IGNORE_ADD_ID_DESCRIPTION"] =
 	"Gib eine Gegenstands-ID ein oder mache Shift + Klick auf einen Gegenstandslink im Chat, während dieses Feld ausgewählt ist."
@@ -666,6 +713,11 @@ L["OPTIONS_IGNORE_ADD_ID_INVALID"] =
 	"Gib eine Gegenstands-ID ein oder mache Shift + Klick auf einen Gegenstandslink im Chat."
 L["OPTIONS_IGNORE_REMOVE"] = "Entfernen"
 L["OPTIONS_IGNORE_EMPTY"] = "Diese Liste ist leer."
+L["OPTIONS_IGNORE_CLEAR"] = "Liste leeren"
+L["OPTIONS_IGNORE_CLEAR_DESCRIPTION"] =
+	"Entfernt alle Gegenstände aus dieser Liste. Ein Charakter mit leerer Liste verschwindet aus der Liste links, außer es ist der, den du gerade spielst."
+L["OPTIONS_IGNORE_CLEAR_CONFIRM"] =
+	"Alle Gegenstände aus dieser Liste entfernen? Das lässt sich nicht rückgängig machen."
 -- %d is the item ID, shown while the client is still resolving the item.
 L["LOADING_ITEM"] = "Lade ID: %d"
 
@@ -748,7 +800,7 @@ L["OPTIONS_INVENTORY_REPORT_DESCRIPTION"] =
 ]]
 L["OPTIONS_RESTOCKER_PRAISE_HEADER"] = "Danksagung"
 L["OPTIONS_RESTOCKER_PRAISE"] =
-	"Ich habe Restocker schon immer geliebt und bin dankbar für die Gelegenheit, ihn in Connoisseur weiterleben zu lassen. Ein riesiges Dankeschön an ChiliFajita für den ursprünglichen Auto Restocker und an kvakvs und guardycmw, die ihn durch Classic und Mists of Pandaria am Leben gehalten haben."
+	"Ich habe Restocker schon immer geliebt und bin dankbar für die Gelegenheit, ihn in Connoisseur & Restocker weiterleben zu lassen. Ein riesiges Dankeschön an ChiliFajita für den ursprünglichen Auto Restocker und an kvakvs und guardycmw, die ihn durch Classic und Mists of Pandaria am Leben gehalten haben."
 
 -- Readiness Report
 L["TAB_READINESS_REPORT"] = "Bereitschaftsbericht"
@@ -820,7 +872,7 @@ L["OPTIONS_READINESS_OFF_HAND_DESCRIPTION"] =
 ]]
 L["OPTIONS_READINESS_EXPIRING"] = "Ablaufende Buffs innerhalb von"
 L["OPTIONS_READINESS_EXPIRING_DESCRIPTION"] =
-	"Nennt jeden Buff auf dir, der bald abläuft, nicht nur die von Connoisseur angewendeten, und ist unabhängig von der Buff-Erneuerung unter Makros."
+	"Nennt jeden Buff auf dir, der bald abläuft, nicht nur die von Connoisseur & Restocker angewendeten, und ist unabhängig von der Buff-Erneuerung unter Makros."
 -- %s is a whole or half number of minutes.
 L["OPTIONS_READINESS_EXPIRING_MINUTES"] = "%s Minuten"
 -- The one-minute entry alone; one plural template cannot render it grammatically.
@@ -872,11 +924,11 @@ L["RESTOCKER_PROFILE_EXISTS"] = 'Eine Liste namens "%s" existiert bereits.'
 ]]
 L["RESTOCKER_UNKNOWN_ITEM"] = "Es gibt keine ID %d."
 L["RESTOCKER_BANK_NOT_OPEN"] = "Die Bank ist nicht geöffnet."
-L["RESTOCKER_DISABLED"] = "Der Restocker ist aus. Schalte ihn unter Optionen > Addons > Connoisseur ein."
+L["RESTOCKER_DISABLED"] = "Der Restocker ist aus. Schalte ihn unter Optionen > Addons > Connoisseur & Restocker ein."
 --[[
     %s is the /crs slash command, colored at the call site. Only the bank flow
     prints this, so the Shift hint names the bank; Shift is read as the window
-    opens (ns.OnRestockerBankOpen), not stored as a preference.
+    opens (ns.OnRestockerBankFrameOpened), not stored as a preference.
 ]]
 L["RESTOCKER_COMPLETE"] =
 	"Auffüllen abgeschlossen. Halte Shift beim Öffnen der Bank, um das Auffüllen zu überspringen. Gib %s ein, um deine Nachschubliste zu bearbeiten."
@@ -974,13 +1026,19 @@ L["RESTOCKER_RESTOCKED_PARTIAL_ONE"] = "1 Nachschubposten teilweise erfüllt."
 L["RESTOCKER_RESTOCKED_PARTIAL_MANY"] = "%d Nachschubposten teilweise erfüllt."
 -- Printed after the counts above when the bags ran out of room before every order was bought.
 L["RESTOCKER_BAGS_FULL_PARTIAL"] = "Deine Taschen waren voll, bevor alles gekauft war."
--- Printed after the counts above when gold ran out, or the Gold Reserve was reached, before every order was bought.
+-- Printed after the counts above when gold ran out before every order was bought, while the Gold Reserve is off.
 L["RESTOCKER_OUT_OF_GOLD"] = "Nicht genug Gold, um den Nachschub abzuschließen."
--- RESTOCKER_OUT_OF_GOLD's line while the Gold Reserve is on, whole so each locale joins its sentences its own way. %s is the reserve with the gold coin.
+--[[
+    RESTOCKER_OUT_OF_GOLD's line while the Gold Reserve is on, whole so each
+    locale joins its sentences its own way. %s is the reserve with the gold
+    coin. Nothing waits at this merchant: the next merchant visit buys whatever
+    fits above the reserve, which is what the second sentence says.
+]]
 L["RESTOCKER_OUT_OF_GOLD_RESERVE"] =
-	"Nachschub pausiert; nicht genug Gold. Er geht weiter, sobald er deine Nachschubaufträge abschließen kann, ohne deine Reserve (%s) anzugreifen."
+	"Einkauf bei deiner Goldreserve (%s) gestoppt. Der Rest wird bei deinem nächsten Besuch gekauft, wenn du genug Gold übrig hast."
 
 -- /crs help lines. The command literals stay in code; these are the descriptions, and the show line reuses RESTOCKER_COMMAND_DESCRIPTION.
+
 -- Stands for the list name the player types after a /crs profile subcommand.
 L["RESTOCKER_HELP_NAME_PLACEHOLDER"] = "[Name]"
 L["RESTOCKER_HELP_PROFILE_ADD"] = "Legt eine Liste mit diesem Namen an."
@@ -992,29 +1050,36 @@ L["RESTOCKER_HELP_PROFILE_USE"] = "Weist diesem Charakter die Liste mit diesem N
 --[[
     Starter List pop-up, the staples window: offers staples at login when the
     Restock List is empty, and on demand from the Restock List window's Pick
-    Staples button (Features/Restocker/Restocker-Starter-List.lua). The six
+    Staples button. The staples logic is in
+    Features/Restocker/Restocker-Starter-List.lua, the window in
+    Options/Options-Starter-List-Popup.lua. The six
     food staples reuse the DIET_ keys above, so each food row carries the
     client's own pet diet name.
 
-    The title is its own, and carries the add-on's name: at login this window
-    opens with nothing else of Connoisseur's on screen, so its title bar is
+    The title is its own, and the call site puts the add-on's full name in
+    front of it (ADDON_TITLE // STARTER_POPUP_TITLE): at login this window
+    opens with nothing else of the add-on's on screen, so its title bar is
     all that says whose it is.
 
     The intro is one paragraph: an opening sentence that answers to how the
-    window was reached (EMPTY over an empty list, STOCKED over one that has
-    items), then HOW, which says what a check does. The two are run together
-    with a space at the call site, so each has to stand as whole sentences.
+    window was reached (LOGIN when it opened by itself at login, which checks
+    a few staples before it opens; otherwise EMPTY over an empty list and
+    STOCKED over one that has items), then HOW, which says what a check
+    does. The two are run together with a space at the call site, so each
+    has to stand as whole sentences.
     The way back in (COMMAND_HINT) is a second paragraph, shown only when the
     window opened by itself at login; from the Pick Staples button the list it
     names is open right behind it.
 ]]
-L["STARTER_POPUP_TITLE"] = "Connoisseur-Grundvorräte"
+L["STARTER_POPUP_TITLE"] = "Grundvorräte"
+L["STARTER_POPUP_INTRO_LOGIN"] =
+	"Wir haben schon ein paar Grundvorräte für deine Klasse angehakt, damit du loslegen kannst."
 L["STARTER_POPUP_INTRO_EMPTY"] =
 	"Deine Nachschubliste ist leer, also lass uns ein paar Gegenstände hinzufügen, damit du loslegen kannst."
 -- Shown instead when the window is opened over a list that already has items on it.
 L["STARTER_POPUP_INTRO_STOCKED"] = "Wähle die Grundvorräte, die aufgefüllt bleiben sollen."
 L["STARTER_POPUP_INTRO_HOW"] =
-	"Alles, was du anhakst, wird automatisch aufgefüllt, sobald du einen Händler oder deine Bank öffnest. Standardwaren werten sich mit deiner Stufe von selbst auf, sodass du immer das Beste dabeihast."
+	"Alles, was du anhakst, wird automatisch aufgefüllt, sobald du einen Händler oder deine Bank öffnest. Die meisten Grundvorräte werten sich mit deiner Stufe von selbst auf, sodass du immer das Beste dabeihast."
 -- %s is the /crs slash command, colored at the call site.
 L["STARTER_POPUP_COMMAND_HINT"] =
 	"Du kannst diese Liste jederzeit anpassen oder später weitere Gegenstände hinzufügen, indem du %s eingibst."
@@ -1040,7 +1105,7 @@ L["STARTER_POPUP_REAGENTS_HEADER"] = "Reagenzien und Werkzeuge"
 L["STARTER_POPUP_POISONS_HEADER"] = "Gifte"
 -- %s is the client's name for the Rogue class, rogue-colored; the spaced colon is deliberate.
 L["STARTER_POPUP_POISONS_NOTE"] =
-	"%s : Setze das fertige Gift auf deine Liste, und Connoisseur kauft die Zutaten automatisch bei jedem Händler, der sie alle führt."
+	"%s : Setze das fertige Gift auf deine Liste, und Connoisseur & Restocker kauft die Zutaten automatisch bei jedem Händler, der sie alle führt."
 --[[
     Checkbox tooltips: { item name, amount }. The first is for ladder items;
     the second for single-tier reagents, which never upgrade.
@@ -1067,8 +1132,12 @@ L["STARTER_POPUP_DISMISS"] = "Für diesen Charakter nicht mehr anzeigen"
 L["STARTER_POPUP_DISMISS_DESCRIPTION"] =
 	"Verhindert, dass diese Vorschläge bei einer Anmeldung erneut erscheinen, bei der deine Nachschubliste leer ist."
 
--- Restock List window UI. The title names what the window holds; the feature that acts on it stays "Restocker".
-L["RESTOCKER_WINDOW_TITLE"] = "Connoisseur-Nachschubliste"
+--[[
+    Restock List window UI. The title names what the window holds, after the
+    add-on's full name (ADDON_TITLE // RESTOCKER_WINDOW_TITLE); the feature
+    that acts on it stays "Restocker".
+]]
+L["RESTOCKER_WINDOW_TITLE"] = "Nachschubliste"
 L["RESTOCKER_FILTER_PLACEHOLDER"] = "Gegenstände filtern..."
 L["RESTOCKER_FILTER_CLEAR_TOOLTIP"] = "Leeren"
 L["RESTOCKER_ADD_BUTTON"] = "Hinzufügen"
@@ -1096,6 +1165,8 @@ L["RESTOCKER_ADD_PLACEHOLDER"] = "Ziehen oder ID eingeben"
     item behind it, shows the same way.
 ]]
 L["RESTOCKER_ADD_NOT_FOUND"] = "Stattdessen ID eingeben."
+-- Written into the add box the same way, when the item dropped or typed is already on the list.
+L["RESTOCKER_ADD_DUPLICATE"] = "Schon auf dieser Liste."
 --[[
     The bag menu on the control row, between the filter and the add box. The
     caption is all the closed menu shows and is its tooltip's title; it has
@@ -1174,7 +1245,7 @@ L["RESTOCKER_DELETE_LIST_FINAL"] = "Das kann nicht rückgängig gemacht werden."
 ]]
 L["RESTOCKER_UPGRADE_TOOLTIP_TITLE"] = "Mit steigender Stufe aufwerten"
 L["RESTOCKER_UPGRADE_TOOLTIP_BODY"] =
-	"Erlaubt Connoisseur, Essen, Wasser, Munition, Gifte, Tränke und Klassenreagenzien mit steigender Stufe auf bessere Gegenstände aufzuwerten."
+	"Erlaubt Connoisseur & Restocker, Essen, Wasser, Munition, Gifte, Tränke und Klassenreagenzien mit steigender Stufe auf bessere Gegenstände aufzuwerten."
 
 --[[
     The band labels drawn over the Bank and Merchant column groups, and the
@@ -1325,7 +1396,7 @@ L["RESTOCKER_REPUTATION_TOOLTIP_TITLE"] = "Benötigter Ruf beim Händler"
     last sentence names the dash; "Any" is still the menu's first entry.
 ]]
 L["RESTOCKER_REPUTATION_TOOLTIP_DISCOUNTS"] =
-	"Klicke, um festzulegen, welchen Ruf ein Händler voraussetzt, bevor Connoisseur bei ihm kauft, was auch den Preis senkt: %s 5%%, %s 10%%, %s 15%%, %s 20%%. Mit einem Strich wird bei jedem Händler gekauft."
+	"Klicke, um festzulegen, welchen Ruf ein Händler voraussetzt, bevor Connoisseur & Restocker bei ihm kauft, was auch den Preis senkt: %s 5%%, %s 10%%, %s 15%%, %s 20%%. Mit einem Strich wird bei jedem Händler gekauft."
 
 --[[
     Why a cell cannot be set on its row: the tooltip a dimmed cell shows under

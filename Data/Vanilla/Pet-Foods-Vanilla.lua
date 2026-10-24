@@ -163,7 +163,7 @@ ns.PET_FOOD_DATA = {
 How We Got the Data
 
 Last Validated
-	2026-10-16, Classic Era 1.15.9.70003
+	2026-10-23, Classic Era 1.15.9.70003
 
 Notes
 	- The foods a hunter's pet eats, for Feed Pet support (Features/Macros/Tools-Hunters-Pet-Food.lua). Diet IDs follow ns.PET_DIET_MAP in Data/Data.lua: 1 Meat, 2 Fish, 3 Bread, 4 Cheese, 5 Fruit, 6 Fungus.

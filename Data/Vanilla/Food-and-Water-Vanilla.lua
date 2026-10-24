@@ -265,7 +265,7 @@ ns.FOOD_AND_WATER = {
 How We Got the Data
 
 Last Validated
-	2026-10-16, Classic Era 1.15.9.70003
+	2026-10-23, Classic Era 1.15.9.70003
 
 Notes
 	- Every food and drink this client knows that restores health or mana while seated, read by the item cache (Features/Item-Cache.lua) for the Food and Water macros and the buff-food choices.
@@ -274,6 +274,7 @@ Notes
 	- Arena (column 7) is a fixed per-item property: 1 = offered only inside a PvP Arena. 2 = a conjured item, so it also works inside an arena. Harvest Bread and Winter Veil Loaf say Conjured Item but carry no arena value, as on TBC, whose client doesn't flag them usable in arenas. Whether an item is actually offered is gated live on IsInInstance() at scan time (ns.CacheItemData and ns.ScanBags); no arena zone IDs are kept.
 	- Left out on purpose: Scorpid Surprise (5473) and Green Tea Leaf (1401), oddballs that share the food cooldown, and items that share it but restore nothing (alcohol, Deviate fish, holiday novelties, feasts that place a table).
 	- Blessed Sunfruit Juice (13813) and Bottled Alterac Spring Water (19318) are left out; their Well Fed buffs are still recognized through ns.WELL_FED_BUFF_IDS.
+	- Tasty Summer Treat (23175, an iCoke promotion) is left out: nothing drops, sells or rewards it, and no spell makes it. So are the placeholders the client names Deprecated or UNUSED (761, 1321, 2071, 3773, 4418, 21238).
 	- Season of Discovery items are left out even though this client knows their IDs: they live only in Data/Discovery/. Where a table would otherwise pick one up, a deliberately-absent line in the table says so.
 
 SQL (CMaNGOS)
@@ -295,5 +296,5 @@ wago.tools
 	https://wago.tools/db2/UiMapAssignment?build=1.15.9.70003
 
 QuestieDB
-	None.
+	https://raw.githubusercontent.com/Questie/QuestieDB/master/data/Classic/classicItemDB.lua
 ]]

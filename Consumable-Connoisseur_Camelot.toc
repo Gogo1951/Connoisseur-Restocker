@@ -118,8 +118,6 @@ Features/Inventory-Report.lua
 Features/Restocker/Restocker-List.lua
 Features/Restocker/Restocker-Saved-Lists.lua
 Features/Restocker/Restocker-Saved-Format.lua
-# MIGRATION (remove after 2026-10-18)
-Features/Restocker/Restocker-Saved-Migration.lua
 Features/Restocker/Restocker-Inventory-Model.lua
 Features/Restocker/Restocker-Bags.lua
 Features/Restocker/Restocker-Bank.lua
@@ -166,5 +164,5 @@ Diagnostics/Options-Diagnostics.lua
 Options/Options.lua
 
 # Feedback Welcome! (=
-# Connoisseur on GitHub // https://github.com/Gogo1951/Connoisseur-Restocker
-# Connoisseur on Discord // https://discord.gg/eh8hKq992Q
+# Connoisseur & Restocker on GitHub // https://github.com/Gogo1951/Connoisseur-Restocker
+# Connoisseur & Restocker on Discord // https://discord.gg/eh8hKq992Q

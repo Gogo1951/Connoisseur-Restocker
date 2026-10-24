@@ -68,9 +68,6 @@ function ns.SyncRestockItemInfoSubscription()
 		or ns.HasPendingStarterAdds()
 		or next(ns.restockColdRows) ~= nil
 
-	-- MIGRATION (remove after 2026-10-18): a repaired Blinding Powder row waiting for its name (Restocker-Saved-Migration.lua)
-	waiting = ns.NameBlindingPowderRows() or waiting
-
 	if waiting then
 		ns.RequestItemInfoEvents("restocker")
 	else
@@ -175,8 +172,9 @@ function ns.AddRestockItem(text)
 
 	local itemID = (itemInfo).itemID
 
-	-- Lists are keyed by itemID, so a duplicate is a simple lookup
+	-- Lists are keyed by itemID, so a duplicate is a simple lookup. Said, since the dropped item has already left the cursor.
 	if currentList[itemID] ~= nil then
+		ns.ShowRestockAddNotice(L["RESTOCKER_ADD_DUPLICATE"])
 		return
 	end
 

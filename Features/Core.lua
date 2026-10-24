@@ -93,28 +93,6 @@ local function InitializeSavedVariables()
 		ns.db = LibStub("AceDB-3.0"):New(ns.SAVED_VARIABLES_NAME, ns.DATABASE_DEFAULTS)
 		UseOwnProfileWhenUnnamed()
 
-		-- MIGRATION (remove after 2026-10-18)
-		--[[
-		    The Restocker's saved keys were renamed (profiles to lists, framePos
-		    to framePosition, and so on). This runs before anything reads the
-		    new names. Its section of
-		    Features/Restocker/Restocker-Saved-Migration.lua lists the pieces
-		    that come out together.
-		]]
-		ns.RenameRestockerSavedKeys()
-
-		-- MIGRATION (remove after 2026-10-18)
-		--[[
-		    A wrong itemID on the Blinding Powder ladder saved the Starter
-		    List's Blinding Powder as Infantry Gauntlets; this moves those rows
-		    onto the real item. After the rename, so a list still saved under
-		    an old name is repaired in the same login, and before
-		    ns.InitializeRestocker unpacks the lists, where the moved row gets
-		    its name or starts waiting for it. Its section of
-		    Features/Restocker/Restocker-Saved-Migration.lua has the rest.
-		]]
-		ns.RepairBlindingPowderRows()
-
 		-- MIGRATION (remove after 2026-10-30)
 		--[[
 		    A Forever character is keyed by its first name and surname now,

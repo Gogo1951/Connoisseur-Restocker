@@ -137,6 +137,29 @@ end
 
 local REMINDER_MODE_ORDER = { ns.REMINDER_SIMPLE, ns.REMINDER_VERBOSE }
 
+-- Hides a reminder's Example and the break above it while that reminder is off.
+local function ReminderOff(enabledKey)
+	return function()
+		local settings = GetRestockerSettings()
+		return not (settings and settings[enabledKey])
+	end
+end
+
+-- A reminder's Example: its headline, the line every reminder opens with.
+local function ReminderExample(order, enabledKey, headlineFunction)
+	return ns.OptionsExample(order, function()
+		return { headlineFunction() }
+	end, ReminderOff(enabledKey))
+end
+
+local function TownHeadline()
+	return L["RESTOCKER_TOWN_REMINDER"]
+end
+
+local function ClosingHeadline()
+	return ns.RestockShortfallHeadline(1)
+end
+
 -- The Gold Reserve amounts as the game writes money: the number and the gold coin.
 
 local function GoldReserveAmounts()
@@ -350,6 +373,8 @@ function ns.BuildRestockerOptions()
 					func = PlayAlert,
 				},
 			}),
+			exampleRestockerRemindSpace = Spacer(12.4, ReminderOff("restockReminderChat")),
+			exampleRestockerRemind = ReminderExample(12.5, "restockReminderChat", TownHeadline),
 
 			--[[
 			    Closing-window reminders. Peers of the in-town one, not children
@@ -367,6 +392,8 @@ function ns.BuildRestockerOptions()
 				Refresh
 			),
 			modeRestockerMerchantRemind = ReminderModeSelect("merchantReminderMode", "merchantReminder", 15),
+			exampleRestockerMerchantRemindSpace = Spacer(15.4, ReminderOff("merchantReminder")),
+			exampleRestockerMerchantRemind = ReminderExample(15.5, "merchantReminder", ClosingHeadline),
 
 			spaceBank0 = Spacer(16),
 			toggleRestockerBankRemind = ReminderToggle(
@@ -377,6 +404,8 @@ function ns.BuildRestockerOptions()
 				Refresh
 			),
 			modeRestockerBankRemind = ReminderModeSelect("bankReminderMode", "bankReminder", 18),
+			exampleRestockerBankRemindSpace = Spacer(18.4, ReminderOff("bankReminder")),
+			exampleRestockerBankRemind = ReminderExample(18.5, "bankReminder", ClosingHeadline),
 
 			-- Restocker Window
 			spaceWindow0 = Spacer(20),

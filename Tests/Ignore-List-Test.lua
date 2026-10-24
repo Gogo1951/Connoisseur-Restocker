@@ -194,6 +194,13 @@ local function login(name, saved, who)
 		OPTIONS_TREE_ROW_WIDTH = 2,
 		OPTIONS_PROMOTE_WIDTH = 0.5,
 	}
+	-- Class colors as a readable marker, and one recorded class: the Warrior's (the Druid's comes from UnitClass).
+	function ns.GetClassColor(classToken)
+		return classToken and ("<" .. classToken .. ">") or nil
+	end
+	function ns.GetClassesByProfileName()
+		return { ["Gogowarrior - Stitches"] = "WARRIOR" }
+	end
 	-- The macro rebuild every change ends in: the state wipe, then the forced update.
 	local stateWiped = false
 	function ns.ResetMacroState()
@@ -376,10 +383,11 @@ check(
 	"Ignored items are never picked by any macro. Food, water, potions, anything. The Global list covers every character; a character's list covers only that one. Right-Click the mini-map button to ignore your current best food."
 )
 check(
-	"the tree, a profile with nothing ignored left out",
+	"the tree, a blank row under Global, a profile with nothing ignored left out, recorded classes colored",
 	treeNames(panel),
-	"Global, Alt - Defias Pillager, Gogodruid - Stitches, Gogowarrior - Stitches, Raid"
+	"Global,  , Alt - Defias Pillager, <DRUID>Gogodruid - Stitches|r, <WARRIOR>Gogowarrior - Stitches|r, Raid"
 )
+check("the blank row can't be picked", panel.args.spacerCharacters.disabled, true)
 check("the character playing is listed with nothing ignored", items(ns.GetIgnoreList()), "")
 check("the tree's keys are the scope keys", panel.args[GLOBAL] ~= nil and panel.args[WARRIOR] ~= nil, true)
 
@@ -416,13 +424,13 @@ check("a remove on Global's pane", items(ns.GetGlobalIgnoreList()), "1179, 4536"
 check(
 	"a profile whose last item was removed leaves the tree, the one in use stays",
 	treeNames(ns.BuildIgnoreListOptions()),
-	"Global, Alt - Defias Pillager, Gogodruid - Stitches"
+	"Global,  , Alt - Defias Pillager, <DRUID>Gogodruid - Stitches|r"
 )
 
 print("8. A WoW Forever character's list is on the profile named for its whole name")
 saved = login("Gogodruid", nil, { surname = "Forever" })
 ns.IgnoreItem(BREAD)
-check("the tree shows the whole name", treeNames(ns.BuildIgnoreListOptions()), "Global, Gogodruid Forever")
+check("the tree shows the whole name", treeNames(ns.BuildIgnoreListOptions()), "Global,  , <DRUID>Gogodruid Forever|r")
 logout()
 check("and the list is saved there", items(saved.profiles["Gogodruid Forever"].ignoreList), "4601")
 
@@ -436,7 +444,7 @@ ns.ClearIgnoreList()
 ns.SetIgnoredInScope(GLOBAL, BREAD, true)
 ns.OnIgnoreListPlayerLogout()
 check("still nothing ignored", ns.IsIgnored(BREAD), false)
-check("a panel with Global alone", treeNames(ns.BuildIgnoreListOptions()), "Global")
+check("a panel with Global alone, and its blank row", treeNames(ns.BuildIgnoreListOptions()), "Global,  ")
 
 print("")
 if failures == 0 then

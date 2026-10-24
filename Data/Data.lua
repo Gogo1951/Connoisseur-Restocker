@@ -153,18 +153,18 @@ ns.OPTIONS_REMOVE_ICON_WIDTH = 0.25
 ns.OPTIONS_SUB_INDENT_WIDTH = 0.115
 
 -- The item lists' promote column, sized to hold its button caption.
-ns.OPTIONS_PROMOTE_WIDTH = 0.6
+ns.OPTIONS_PROMOTE_WIDTH = 0.9
 
 --[[
     A tree panel's sidebar eats into the pane its rows are laid out in, so rows
-    inside one spend a shorter budget than ns.OPTIONS_ROW_WIDTH. AceGUI's tree
-    defaults to 175px, which truncates the longer character names, a first name
-    and surname or a name shown with its realm;
-    widening it costs the item pane exactly what it gains, hence the paired
-    constant. The tree stays drag-resizable, and a drag wins over this seed.
+    inside one spend a shorter budget than ns.OPTIONS_ROW_WIDTH. Both match
+    Magic Eraser's list panels: AceGUI's tree defaults to 175px, and this is a
+    hair wider. Widening it costs the item pane exactly what it gains, hence the
+    paired constant. The tree stays drag-resizable, and a drag wins over this
+    seed.
 ]]
-ns.OPTIONS_TREE_WIDTH = 220
-ns.OPTIONS_TREE_ROW_WIDTH = 2.3
+ns.OPTIONS_TREE_WIDTH = 180
+ns.OPTIONS_TREE_ROW_WIDTH = 2.5
 
 --------------------------------------------------------------------------------
 -- Item List Widget

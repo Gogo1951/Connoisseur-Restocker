@@ -19,17 +19,27 @@ ns.currentEngineeringSkill = 0
 --------------------------------------------------------------------------------
 
 --[[
-    A profession's rank, read from the skill list by the name the client gives
-    its skill line ID (Game-IDs), so it matches in every locale. 0 while
-    unlearned. Never a spell's name: a profession's spell can be named apart
-    from its skill line (French First Aid is "Premiers soins" as a spell but
-    "Secourisme" as a skill line).
+    A profession's rank by its skill line ID (Game-IDs). 0 while unlearned.
 
-    The skill list leaves out the lines under a collapsed header, so a skill
-    not found while a header is collapsed answers nil, and the caller keeps the
-    last rank read rather than reading the profession as unlearned.
+    Forever answers by ID (C_SkillInfo.GetSkillLineInfoByID), so no name is
+    read and a collapsed header changes nothing. Era and TBC have no such call
+    and search the skill list by the name the client gives that skill line, so
+    it matches in every locale. Never a spell's name: a profession's spell can
+    be named apart from its skill line (French First Aid is "Premiers soins" as
+    a spell but "Secourisme" as a skill line).
+
+    That list leaves out the lines under a collapsed header, so a skill not
+    found while a header is collapsed answers nil, and the caller keeps the last
+    rank read rather than reading the profession as unlearned.
 ]]
+local GetSkillLineInfoByID = C_SkillInfo and C_SkillInfo.GetSkillLineInfoByID
+
 local function ReadSkillRank(skillLineID)
+	if GetSkillLineInfoByID then
+		local info = GetSkillLineInfoByID(skillLineID)
+		return info and info.rank or 0
+	end
+
 	local skillLineName = C_TradeSkillUI.GetTradeSkillDisplayName(skillLineID)
 	if not skillLineName or skillLineName == "" then
 		return 0

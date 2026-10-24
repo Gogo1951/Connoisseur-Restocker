@@ -4,23 +4,21 @@ local GetColor = ns.GetColor
 
 --[[
     Inventory Report -- the block item tooltips gain under the game's own lines:
-    how many of the item this character carries (against the Restock List's Keep
-    amount when the item is on it), how many sit in its bank, one line per other
-    character holding some, and the total across them all.
+    the total across every character on the realm, this character on top, then
+    one line per other character holding some, each with its bags and bank
+    apart.
 
-        Connoisseur & Restocker // Inventory Report
-         Bags                                  7/10
-         Bank                                    18
+        C & R // Inventory Report                 Total 82
+         Gogodruid                         Bag 7, Bank 18
 
-         Coinpurse                               30
-         Thornhoof                               27
+         Coinpurse                                Bank 30
+         Thornhoof                          Bag 7, Bank 20
 
-         Total                                   82
-
-    The shape is the house one for a branded block: the add-on's name, the
+    The shape is the house one for a branded block: the add-on's short name, the
     separator and a title in the chat prints' own colors (Announcements.lua),
-    then label-and-value pairs as double lines, each a space in from the header
-    so the rows read as the block's own.
+    then double lines, each a space in from the header so the rows read as the
+    block's own. The total rides on the header's right, so the block costs one
+    line per character and one spacer, and every name wears its class color.
 
     Two halves. The recording half keeps a snapshot of every character's bags
     and bank on ns.db.global.inventory, so an alt's counts can show while it is
@@ -31,8 +29,8 @@ local GetColor = ns.GetColor
 
     Snapshots, then, for everything but the current character's bags, which are
     read live: an alt's counts are as of its last logout, and a bank's as of its
-    last visit. That is why this character's bank reads Unknown until the bank
-    has been opened once.
+    last visit. A bank not seen yet, this character's or an alt's, counts as 0
+    until it has been opened once.
 
     Only characters on the current realm are listed, and only those holding the
     item. Items cannot be mailed across realms, so a count there answers nothing
@@ -161,8 +159,8 @@ local bagsChangedInCombat = false
 
 --[[
     This character's bank: the last visit's snapshot at login, then each scan
-    while the window is open. nil until the bank has been seen at all, which the
-    report says rather than printing a 0 it cannot vouch for.
+    while the window is open. nil until the bank has been seen at all: the
+    report counts that as 0, and a logout writes no bank line over it.
 ]]
 local bankCounts
 
@@ -347,13 +345,11 @@ local TEXT_COLOR = GetColor("TEXT")
 
 --[[
     The header line, built once: it says the same thing on every tooltip. It is
-    the chat prints' branded shape (ns.PrintMessage), with the add-on's full
-    name: both halves are proper nouns that stay as written in every locale,
-    so the name is composed from their keys, joined the way each locale's
-    INVENTORY_REPORT_BRAND joins them.
+    the chat prints' branded shape (ns.PrintMessage): tooltips carry the
+    add-on's short name.
 ]]
 local REPORT_HEADER = GetColor("INFO")
-	.. string.format(L["INVENTORY_REPORT_BRAND"], L["ADDON_TITLE"], L["TAB_RESTOCKER"])
+	.. L["ADDON_SHORT_NAME"]
 	.. "|r "
 	.. GetColor("SEPARATOR")
 	.. "//"
@@ -362,24 +358,55 @@ local REPORT_HEADER = GetColor("INFO")
 	.. L["INVENTORY_REPORT_TITLE"]
 	.. "|r"
 
--- A row of the block: its label one space in, its count at the right edge.
-local function Pair(label, value)
-	return { ROW_INDENT .. TEXT_COLOR .. label .. "|r", TEXT_COLOR .. value .. "|r" }
+--[[
+    The right-hand values put their words (Total, Bag, Bank) in the header's
+    separator gray and every count in white, so the numbers stand out. The gray
+    picks up again after each count, for a locale that puts more words behind
+    it.
+]]
+local LABEL_COLOR = GetColor("SEPARATOR")
+
+local function Count(value)
+	return TEXT_COLOR .. value .. "|r" .. LABEL_COLOR
+end
+
+-- Only the places holding some: "Bag 7, Bank 18", "Bag 7" or "Bank 18", and nil when both are 0.
+local function Counts(bags, bank)
+	if bags > 0 and bank > 0 then
+		return format(L["INVENTORY_REPORT_COUNTS"], Count(bags), Count(bank))
+	elseif bags > 0 then
+		return format(L["INVENTORY_REPORT_BAG"], Count(bags))
+	elseif bank > 0 then
+		return format(L["INVENTORY_REPORT_BANK"], Count(bank))
+	end
+end
+
+--[[
+    A character's row: its name one space in and in its class color, its
+    counts at the right edge. A character holding none (this one can lead the
+    block that way) is the name alone.
+]]
+local function CharacterRow(name, class, bags, bank)
+	local counts = Counts(bags, bank)
+	return {
+		ROW_INDENT .. (ns.GetClassColor(class) or TEXT_COLOR) .. name .. "|r",
+		counts and (LABEL_COLOR .. counts .. "|r"),
+	}
 end
 
 --[[
     The report's lines, ready to add, or nil when there is nothing to say: the
     report is off, or nobody on the realm holds the item and it is not on the
-    Restock List either. An item on the list always reports, because "Bags
-    0/20" is exactly what a list item's tooltip should be able to say.
+    Restock List either. An item on the list always reports, so a list item
+    nobody holds says so rather than saying nothing.
 
     Each line is { left, right }. A line with both goes in as a double line, a
     label with its count at the tooltip's right edge; one with only a left is a
-    plain line (the header, a spacer).
+    plain line (a spacer).
 
-    A character's line carries one number, its bags and bank together: how much
-    that character holds is the question, and where it keeps it only matters
-    once you are on it.
+    This character always leads, holding any or not, so the list reads top to
+    bottom against the total; the others follow under a spacer, and only those
+    holding some.
 
     Published for the tooltip hooks below and the headless test.
 ]]
@@ -394,10 +421,11 @@ function ns.GetInventoryReportLines(itemID)
 
 	local holders = {}
 	for _, other in ipairs(OtherCharacters()) do
-		local held = (other.bags[itemID] or 0) + (other.bank and other.bank[itemID] or 0)
-		if held > 0 then
-			holders[#holders + 1] = { character = other, held = held }
-			total = total + held
+		local otherBags = other.bags[itemID] or 0
+		local otherBank = other.bank and other.bank[itemID] or 0
+		if otherBags + otherBank > 0 then
+			holders[#holders + 1] = { character = other, bags = otherBags, bank = otherBank }
+			total = total + otherBags + otherBank
 		end
 	end
 
@@ -406,35 +434,16 @@ function ns.GetInventoryReportLines(itemID)
 		return nil
 	end
 
-	local text = TEXT_COLOR
-	local lines = { { REPORT_HEADER } }
+	local lines = { { REPORT_HEADER, LABEL_COLOR .. format(L["INVENTORY_REPORT_TOTAL"], Count(total)) .. "|r" } }
 
-	-- Against the Keep amount for a list item, the ratio the Restocker Report prints.
-	lines[#lines + 1] =
-		Pair(L["INVENTORY_REPORT_BAGS"], keep and format(L["MINIMAP_RESTOCKER_ITEM_COUNT"], bags, keep) or bags)
-
-	if bankCounts then
-		lines[#lines + 1] = Pair(L["INVENTORY_REPORT_BANK"], bank)
-	else
-		-- Muted, and a word rather than a 0 the add-on cannot vouch for.
-		lines[#lines + 1] = {
-			ROW_INDENT .. text .. L["INVENTORY_REPORT_BANK"] .. "|r",
-			GetColor("MUTED") .. L["INVENTORY_REPORT_BANK_UNKNOWN"] .. "|r",
-		}
-	end
+	lines[#lines + 1] = CharacterRow(record.name, record.class, bags, bank)
 
 	if #holders > 0 then
 		lines[#lines + 1] = { " " }
 		for _, holder in ipairs(holders) do
-			lines[#lines + 1] = {
-				ROW_INDENT .. (ns.GetClassColor(holder.character.class) or text) .. holder.character.name .. "|r",
-				text .. holder.held .. "|r",
-			}
+			lines[#lines + 1] = CharacterRow(holder.character.name, holder.character.class, holder.bags, holder.bank)
 		end
 	end
-
-	lines[#lines + 1] = { " " }
-	lines[#lines + 1] = Pair(L["INVENTORY_REPORT_TOTAL"], total)
 
 	return lines
 end

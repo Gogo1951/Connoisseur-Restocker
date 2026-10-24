@@ -12,7 +12,7 @@ local Spacer = ns.OptionsSpacer
 --------------------------------------------------------------------------------
 
 --[[
-    What Connoisseur says when a ready check starts. One master switch, then
+    What Connoisseur & Restocker says when a ready check starts. One master switch, then
     three sections matching the three lines the report prints, so the panel and
     the chat output read as the same feature: Missing Buffs, Missing Items,
     Character.
@@ -431,6 +431,12 @@ function ns.BuildReadinessReportOptions()
 		confirmText = L["OPTIONS_READINESS_RESET_CONFIRM"],
 		func = ResetReadinessSettings,
 	}
+	order = order + 1
+
+	-- The report as it prints, following the switches below.
+	args.spaceExample = Spacer(order, ReportsHidden)
+	order = order + 1
+	args.exampleReadiness = ns.OptionsExample(order, ns.BuildReadinessSampleLines, ReportsHidden)
 	order = order + 1
 
 	for index, section in ipairs(SECTIONS) do

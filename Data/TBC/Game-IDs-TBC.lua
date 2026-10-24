@@ -58,7 +58,7 @@ ns.GOBLIN_ENGINEER_SPELL_ID = 20222
 How We Got the Data
 
 Last Validated
-	2026-10-16, TBC Anniversary 2.5.6.70006
+	2026-10-23, TBC Anniversary 2.5.6.70006
 
 Notes
 	- Single spell, item, race and skill-line IDs the feature code reads by name, grouped by use. The client supplies every name the player sees from these IDs.
@@ -78,4 +78,7 @@ Wowhead
 wago.tools
 	https://wago.tools/db2/SpellName?build=2.5.6.70006
 	https://wago.tools/db2/ItemSparse?build=2.5.6.70006
+
+QuestieDB
+	None.
 ]]

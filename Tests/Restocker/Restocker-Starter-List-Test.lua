@@ -390,10 +390,6 @@ local function session(classToken, level, client, noStockCheckBox)
 	function ns.GetCharacterKey()
 		return "Tester - Realm"
 	end
-	-- MIGRATION (remove after 2026-10-18): the Blinding Powder name wait, which Restocker-Saved-Migration-Test covers.
-	function ns.NameBlindingPowderRows()
-		return false
-	end
 	ns.restockerLoaded = true
 	ns.restockerSwitchedOn = true
 	function ns.IsRestockerEnabled()
@@ -760,19 +756,19 @@ check("reads as the choice meanwhile", kings.get(), 3)
 s.resolve(21177)
 check("reads the entry once resolved", kings.get(), 2)
 
-print("11. The login route opens on the empty-list intro, even after its pre-ticks land")
+print("11. The login route opens on its own intro, which says the pre-ticks are already checked")
 s = session("PALADIN", 60)
 s.resolve(8950, 8766) -- the pre-ticked pie and dew resolve, so both land before the window opens
 s.ns.MaybeShowStarterListPopup()
 check("pre-ticks already on the list", s.amount(8950) ~= nil and s.amount(8766) ~= nil, true)
 check("the Restock List window opens behind it", s.restockWindowShown(), 1)
-check("login route leads with the empty-list intro", s.openedWithIntro("STARTER_POPUP_INTRO_EMPTY"), true)
+check("login route leads with the login intro", s.openedWithIntro("STARTER_POPUP_INTRO_LOGIN"), true)
 check(
 	"what a check does follows in the same paragraph, and the way back in is a second",
 	s.intro(),
-	"Your Restock List is empty, so let's add some items to get you started. "
+	"We've checked a few staples for your class to get you started. "
 		.. "Anything you check is automatically restocked whenever you open a merchant or your bank. "
-		.. "Commodity items upgrade themselves as you level, so you'll always have the best available."
+		.. "Most staples upgrade themselves as you level, so you'll always have the best available."
 		.. "\n\nYou can always adjust this list, or add more items later, by typing /crs|r.|r"
 )
 s.ns.ShowStarterListPopup()
@@ -783,7 +779,7 @@ check(
 	s.intro(),
 	"Pick the staples you want kept stocked. "
 		.. "Anything you check is automatically restocked whenever you open a merchant or your bank. "
-		.. "Commodity items upgrade themselves as you level, so you'll always have the best available.|r"
+		.. "Most staples upgrade themselves as you level, so you'll always have the best available.|r"
 )
 
 print("12. Poison and reagent rows are named by the client, and sort by that name")

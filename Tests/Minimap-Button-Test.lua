@@ -201,6 +201,7 @@ end
 local function session(opts)
 	opts = opts or {}
 	local calls = {}
+	local prints = {}
 	local shift = false
 	local itemInfoReads = 0
 	local button = {
@@ -365,8 +366,9 @@ local function session(opts)
 			return opts.groceries or {}
 		end,
 		-- Item-Cache.lua's three namers, as far as the tooltip uses them: a link for an ID, the bare name without one.
+		-- With no name given, the real one reads it from the item cache; a stand-in name does here.
 		GetItemHyperlink = function(itemID, itemName)
-			return itemID and link(itemID, itemName) or itemName
+			return itemID and link(itemID, itemName or ("Item " .. itemID)) or itemName
 		end,
 		UnbracketItemLink = function(itemLink)
 			return (itemLink:gsub("|h%[(.-)%]|h", "|h%1|h"))
@@ -384,11 +386,17 @@ local function session(opts)
 		IsRestockerEnabled = function()
 			return opts.restockerOff ~= true
 		end,
+		-- Like the real ones, these say what they changed: an item added, and how many were cleared.
 		IgnoreItem = function(itemID)
 			calls[#calls + 1] = "IgnoreItem " .. itemID
+			return true
 		end,
 		ClearIgnoreList = function()
 			calls[#calls + 1] = "ClearIgnoreList"
+			return 2
+		end,
+		PrintMessage = function(message)
+			prints[#prints + 1] = message
 		end,
 	}
 	-- The real setter flips the profile switch, or sets it to a value given; the tooltip must read the result.
@@ -420,7 +428,7 @@ local function session(opts)
 
 	assert(loadfile(ROOT .. "/Features/Minimap-Button.lua"))("Consumable-Connoisseur", ns)
 
-	local s = { ns = ns, calls = calls, button = button, profile = profile }
+	local s = { ns = ns, calls = calls, prints = prints, button = button, profile = profile }
 
 	function s.hover()
 		dataObject.OnEnter(button)
@@ -458,7 +466,7 @@ print("1. A class with no notes: the whole tooltip, in order")
 local s = session({ groceries = ONE_SHORT })
 local lines = s.hover()
 checkLines("every line", lines, 1, {
-	"Connoisseur | Dev",
+	"Connoisseur & Restocker | Dev",
 	" ",
 	" ",
 	"Current Food",
@@ -480,13 +488,13 @@ checkLines("every line", lines, 1, {
 	"Restocker Report",
 	"Freshly Baked Bread | 0/20",
 	" ",
-	"Connoisseur Options",
+	"C & R Options",
 	"Shift + Middle-Click",
 })
 check("and nothing after Options", #lines, 24)
 check("anchored under the button", GameTooltip.anchor, "ANCHOR_BOTTOMLEFT")
 check("shown", GameTooltip.shown, true)
-check("the title is gold", lines[1].left, "<TITLE>Connoisseur|r")
+check("the title is gold", lines[1].left, "<TITLE>Connoisseur & Restocker|r")
 check("the version is muted", lines[1].right, "<MUTED>Dev|r")
 check("the item row's left is blank", lines[5].left, " ")
 check(
@@ -531,7 +539,7 @@ checkLines("from the Restocker List down", lines, 16, {
 	"Restocker Report",
 	"Freshly Baked Bread | 0/20",
 	" ",
-	"Connoisseur Options",
+	"C & R Options",
 	"Shift + Middle-Click",
 })
 check("the header wears the hunter color", lines[20].left, "|cffAAD372Hunter|r")
@@ -600,7 +608,7 @@ checkLines("from the header down", lines, find(lines, "Rogue"), {
 	"Restocker Report",
 	"Freshly Baked Bread | 0/20",
 	" ",
-	"Connoisseur Options",
+	"C & R Options",
 	"Shift + Middle-Click",
 })
 check("the header wears the rogue color", lines[find(lines, "Rogue")].left, "|cffFFF468Rogue|r")
@@ -723,7 +731,7 @@ checkLines("a list with no rows is empty, not stocked", lines, find(lines, "Rest
 	"Restocker Report",
 	"Your list is empty.",
 	" ",
-	"Connoisseur Options",
+	"C & R Options",
 })
 check("the line is white", lines[find(lines, "Your list is empty.")].left, "<BODY>Your list is empty.|r")
 
@@ -738,7 +746,7 @@ checkLines(
 		" ",
 		"Congratulations, you're fully stocked up!",
 		" ",
-		"Connoisseur Options",
+		"C & R Options",
 	}
 )
 local stocked = lines[find(lines, "Congratulations, you're fully stocked up!")]
@@ -763,7 +771,7 @@ lines = s.hover()
 checkLines("nine become a count beside the header", lines, find(lines, "Restocker Report | 9 Orders Outstanding"), {
 	"Restocker Report | 9 Orders Outstanding",
 	" ",
-	"Connoisseur Options",
+	"C & R Options",
 })
 
 s = session({ groceries = { order("Mystery Meat", 1, 5, nil) } })
@@ -798,7 +806,7 @@ checkLines("after the notes and the report, A to Z, an uncached item last", line
 	"Loading ID: 7003",
 	"Middle-Click | Clear Ignore List",
 	" ",
-	"Connoisseur Options",
+	"C & R Options",
 	"Shift + Middle-Click",
 })
 check("the notes sit above the report", find(lines, "Mage") < find(lines, "Restocker Report"), true)
@@ -828,7 +836,7 @@ checkLines("nine become a count beside the title", lines, find(lines, "Ignore Li
 	"Ignore List | 9 Items",
 	"Middle-Click | Clear Ignore List",
 	" ",
-	"Connoisseur Options",
+	"C & R Options",
 })
 check("and no item is looked up to say so", s.itemInfoReads(), 0)
 
@@ -917,10 +925,16 @@ check(
 check("(it is on now)", s.ns.db.global.readinessReportEnabled, true)
 s.click("RightButton")
 check("Right-Click ignores the current food", s.lastCall(), "IgnoreItem " .. SKYWALL_SOUFFLE)
+check(
+	"and says so in chat",
+	s.prints[#s.prints],
+	L["MESSAGE_IGNORE_ADDED"]:format(s.ns.GetItemHyperlink(SKYWALL_SOUFFLE))
+)
 s.click("RightButton", true)
 check("Shift + Right-Click opens the Restock List", s.lastCall(), "ToggleRestockWindow")
 s.click("MiddleButton")
 check("Middle-Click clears the Ignore List", s.lastCall(), "ClearIgnoreList")
+check("and says how many it cleared", s.prints[#s.prints], L["MESSAGE_IGNORE_CLEARED_MANY"]:format(2))
 s.click("MiddleButton", true)
 check("Shift + Middle-Click opens the options", s.lastCall(), "OpenOptionsPanel")
 check("six clicks, eight calls", #s.calls, 8)

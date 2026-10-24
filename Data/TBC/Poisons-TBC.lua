@@ -43,10 +43,11 @@ ns.POISON_DATA = {
 How We Got the Data
 
 Last Validated
-	2026-10-16, TBC Anniversary 2.5.6.70006
+	2026-10-23, TBC Anniversary 2.5.6.70006
 
 Notes
 	- ns.POISON_DATA holds every rogue poison the Poisons macro can apply, read by Features/Macros/Tools-Rogues.lua: Required Level is the level the tooltip requires, and Poison Group is ns.POISON_GROUPS' numbering (Data/Data.lua), which carries no game IDs and so lives there.
+	- Bloodboil Poison (31535), a quest reward any class can apply, is not a rogue poison and is left out.
 	- ns.POISON_GROUP_BASE_ITEMS names the base (rank 1) item of each group. A group's display name is that item's name from C_Item.GetItemInfo, so the client's own localization does the work, with the options panels' loading text standing in until the item is cached (ns.GetPoisonGroupName).
 	- Season of Discovery items are left out; this client doesn't know them. They live only in Data/Discovery/.
 
@@ -60,4 +61,7 @@ wago.tools
 	https://wago.tools/db2/ItemSparse?build=2.5.6.70006
 	https://wago.tools/db2/SkillLineAbility?build=2.5.6.70006
 	https://wago.tools/db2/SpellEffect?build=2.5.6.70006
+
+QuestieDB
+	https://raw.githubusercontent.com/Questie/QuestieDB/master/data/TBC/tbcItemDB.lua
 ]]

@@ -137,10 +137,6 @@ local function session(level)
 	function ns.HasPendingStarterAdds()
 		return false
 	end
-	-- MIGRATION (remove after 2026-10-18): the Blinding Powder name wait, which Restocker-Saved-Migration-Test covers.
-	function ns.NameBlindingPowderRows()
-		return false
-	end
 
 	-- What Restocker-Window-Rows.lua takes from Restocker-Window-Columns.lua as it loads.
 	ns.RESTOCK_COLUMNS = {}

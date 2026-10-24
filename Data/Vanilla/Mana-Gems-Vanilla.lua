@@ -22,7 +22,7 @@ ns.MANA_RUNES = {
 How We Got the Data
 
 Last Validated
-	2026-10-16, Classic Era 1.15.9.70003
+	2026-10-23, Classic Era 1.15.9.70003
 
 Notes
 	- ns.MANA_GEMS holds the mage's mana gems, read by the item cache (Features/Item-Cache.lua) for the Mana Gem macro and by the Readiness Report. Mana Amount is the low end of the restore.

@@ -48,6 +48,32 @@ function ns.OptionsSpacer(order, hidden)
 end
 
 --[[
+    An Example line: the chat prints a feature makes, each built by
+    ns.BuildPrintLine, under a silver "Example:" label. linesFunction returns
+    the print bodies and runs at every draw, so the Example follows the
+    settings the moment they change. A blank line parts the lines so each
+    reads on its own. Silver opens again after the lines, for a locale whose
+    label continues past its %s.
+]]
+function ns.OptionsExample(order, linesFunction, hidden)
+	return {
+		type = "description",
+		name = function()
+			local lines = {}
+			for index, body in ipairs(linesFunction()) do
+				lines[index] = ns.BuildPrintLine(body)
+			end
+			return GetColor("HELP")
+				.. format(L["SAMPLE_EXAMPLE"], table.concat(lines, "\n\n") .. GetColor("HELP"))
+				.. "|r"
+		end,
+		fontSize = "medium",
+		order = order,
+		hidden = hidden,
+	}
+end
+
+--[[
     The left half of a label-beside-control row: this cell, then the control
     with name = "" ordered immediately after it. A caption left on the control
     would put the label back above the widget and break the row.
@@ -315,11 +341,15 @@ end
       startOrder: optional first order, so a panel can seat its own head above
       actionColumn: optional per-row button, { width, name, desc, func(itemID) }
         (the Ignore List's Global button)
+      addFromBags: optional true to put an Add from Bags picker above the add
+        box, listing what the player carries that isn't on the list yet
+        (labels then carry fromBagsName and fromBagsDesc)
+      onClear: optional function emptying the list, for a Clear List button
+        under the rows (labels then carry clearName, clearDesc, clearConfirm)
 
     Restore Defaults is deliberately absent: it belongs to lists that ship
-    defaults, and a list the player built from nothing has none to restore. A
-    panel whose list needs a clear-all seats that control in its own head, where
-    it can carry the confirm the guide requires of a destructive action.
+    defaults, and every list here starts empty, so Clear List is what returns
+    one to its default.
 ]]
 
 --[[
@@ -333,14 +363,97 @@ end
 local REMOVE_ICON = "Interface/Buttons/UI-GroupLoot-Pass-Up"
 local REMOVE_ICON_SIZE = 16
 
+--[[
+    The Add from Bags picker's choices: one entry per distinct item in the
+    carried bags that the list doesn't hold yet, as icon and link, sorted by
+    name. Built on every repaint, which the list panels get after each edit; an
+    item looted while the panel stays open shows up on the next one. The game
+    closes the bags when the options open, so this is the only way to pick an
+    item without knowing its id.
+]]
+local function GetCarriedItemChoices(sourceTable)
+	local values, sorting, seen = {}, {}, {}
+
+	for bag = 0, NUM_BAG_SLOTS do
+		for slot = 1, (C_Container.GetContainerNumSlots(bag) or 0) do
+			local info = C_Container.GetContainerItemInfo(bag, slot)
+			local itemID = info and info.itemID
+			if itemID and not seen[itemID] and not (sourceTable and sourceTable[itemID]) then
+				seen[itemID] = true
+				values[itemID] = ns.GetItemDisplayName(itemID)
+				sorting[#sorting + 1] = itemID
+			end
+		end
+	end
+
+	ns.SortItemIdentifiersByName(sorting)
+	return values, sorting
+end
+
 function ns.BuildItemListOptions(spec)
 	local labels = spec.labels
 	local rowWidth = spec.rowWidth or ns.OPTIONS_ROW_WIDTH
 	local args = {}
 	local order = spec.startOrder or 1
 
-	-- The add row spends the list's own row budget, so it ends where the item rows below it end.
-	local addLabelWidth = ns.OPTIONS_LABEL_WIDTH * (rowWidth / ns.OPTIONS_ROW_WIDTH)
+	--[[
+	    Clear List goes last, under the rows, at normal width: the top of a list
+	    is for finding and adding, and a rarely used reset shouldn't be the first
+	    thing there. Ordered far past any row so it lands last however long the
+	    list is, and shown only while the list holds something.
+	]]
+	if spec.onClear and next(spec.getSourceTable() or {}) ~= nil then
+		args.spacerClear = ns.OptionsSpacer(9998)
+		args.clearList = {
+			type = "execute",
+			name = labels.clearName,
+			desc = labels.clearDesc,
+			confirm = true,
+			confirmText = labels.clearConfirm,
+			order = 10000,
+			func = function()
+				spec.onClear()
+				AceConfigRegistry:NotifyChange(spec.notifyKey)
+			end,
+		}
+	end
+
+	--[[
+	    The add rows' controls keep the standard control width, as Magic Eraser's
+	    do, so a picked item's name has room; the label takes what the list's own
+	    row budget leaves, so each row still ends where the item rows below it end.
+	]]
+	local addLabelWidth = rowWidth - ns.OPTIONS_CONTROL_WIDTH
+
+	if spec.addFromBags then
+		local values, sorting = GetCarriedItemChoices(spec.getSourceTable())
+
+		args.addFromBagsLabel = ns.OptionsRowLabel(labels.fromBagsName, order, addLabelWidth)
+		order = order + 1
+
+		-- get returns nil so the picker reads empty again after each add.
+		args.addFromBagsSelect = {
+			type = "select",
+			name = "",
+			desc = labels.fromBagsDesc,
+			width = ns.OPTIONS_CONTROL_WIDTH,
+			order = order,
+			values = values,
+			sorting = sorting,
+			disabled = function()
+				return sorting[1] == nil
+			end,
+			get = function()
+				return nil
+			end,
+			set = function(_, itemID)
+				spec.onAdd(itemID)
+				AceConfigRegistry:NotifyChange(spec.notifyKey)
+			end,
+		}
+		order = order + 1
+	end
+
 	args.addItemLabel = ns.OptionsRowLabel(labels.addName, order, addLabelWidth)
 	order = order + 1
 
@@ -354,7 +467,7 @@ function ns.BuildItemListOptions(spec)
 		type = "input",
 		name = "",
 		desc = labels.addHelp,
-		width = rowWidth - addLabelWidth,
+		width = ns.OPTIONS_CONTROL_WIDTH,
 		order = order,
 		validate = function(_, value)
 			local itemID = ns.ParseItemInput(value)
