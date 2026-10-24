@@ -6,9 +6,11 @@ Macros that automatically use your best food, water, potions, healthstones, band
 
 ![Consumable-Connoisseur](https://github.com/user-attachments/assets/326eb93f-329f-4967-b750-909011a05b01)
 
-> **🔊 & Self:** C & R // Don't forget to restock while you're in town!
+### Example Messages
 
-> **Ready Check? + Self:** C & R // Missing Items : Healthstone, Mana Potion
+> **Hearth Home After Raid, 🔊 & Self:** C & R // Don't forget to restock while you're in town!
+
+> **Ready Check, Self:** C & R // Missing Items : Healthstone, Mana Potion
 
 ## Setup
 
