@@ -322,6 +322,24 @@ function ns.ProfileNameForCharacter(name, realm)
 	return name .. " - " .. realm
 end
 
+--[[
+    Every recorded character's class token, by the name AceDB keys the
+    character under (ns.ProfileNameForCharacter). Read off the records the
+    Inventory Report keeps (ns.db.global.inventory, refreshed at every login
+    by Features/Inventory-Report.lua), so a character's class is known from its
+    first login on a build that keeps that record. The Restock List and the
+    Ignore List color their character names by it.
+]]
+function ns.GetClassesByProfileName()
+	local classes = {}
+	for _, record in pairs(ns.db.global.inventory) do
+		if type(record) == "table" and record.name and record.realm then
+			classes[ns.ProfileNameForCharacter(record.name, record.realm)] = record.class
+		end
+	end
+	return classes
+end
+
 function ns.GetCharacterProfileName()
 	local name, surname = (UnitNameUnmodified or UnitName)("player")
 	if not name or name == UNKNOWNOBJECT then

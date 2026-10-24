@@ -79,7 +79,7 @@ ns.ELIXIR_BUFF_IDS = {
 How We Got the Data
 
 Last Validated
-	2026-10-16, Classic Era 1.15.9.70003
+	2026-10-23, Classic Era 1.15.9.70003
 
 Notes
 	- What counts as being flasked, for the Readiness Report's Flask or 2x Elixirs check (Features/Readiness-Report-Probes.lua): a flask, OR two different elixirs. Two different elixirs is the whole test, and it is enough because the client enforces the rest: from TBC on, a character may carry one battle and one guardian elixir at a time, so any two elixir auras up together are already one of each. Nothing here needs to know which kind an elixir is, which is why neither table carries that column; it can't be read off an aura at runtime.

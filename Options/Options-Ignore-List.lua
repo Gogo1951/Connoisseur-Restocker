@@ -26,8 +26,8 @@ local L = ns.L
 
     There is no drop target. The game closes the bags and the bank when the
     options interface opens, so there is no way to have an item on the cursor
-    and this panel in front of you at the same time; typing or shift-clicking an
-    id into the add box is the only path that can actually work.
+    and this panel in front of you at the same time. Add from Bags stands in
+    for the drag, and the add box takes a typed or shift-clicked id.
 ]]
 
 --[[
@@ -65,12 +65,32 @@ local function BuildScopeArgs(scopeKey)
 		onRemove = function(itemID)
 			ns.SetIgnoredInScope(scopeKey, itemID, false)
 		end,
+		onClear = function()
+			ns.ClearIgnoreListInScope(scopeKey)
+			--[[
+			    Clearing another character's list drops that character from the
+			    tree, since an empty list is left out of it, so the tree is
+			    pointed back at the character being played rather than a pane
+			    that no longer exists.
+			]]
+			if not isGlobalScope and scopeKey ~= ns.db:GetCurrentProfile() then
+				local status = LibStub("AceConfigDialog-3.0"):GetStatusTable(ns.OPTIONS_REGISTRY.IgnoreList)
+				status.groups = status.groups or {}
+				status.groups.selected = ns.db:GetCurrentProfile()
+			end
+		end,
+		addFromBags = true,
 		labels = {
+			fromBagsName = L["OPTIONS_IGNORE_ADD_FROM_BAGS"],
+			fromBagsDesc = L["OPTIONS_IGNORE_ADD_FROM_BAGS_DESCRIPTION"],
 			addName = L["OPTIONS_IGNORE_ADD_ID"],
 			addHelp = L["OPTIONS_IGNORE_ADD_ID_DESCRIPTION"],
 			addInvalid = L["OPTIONS_IGNORE_ADD_ID_INVALID"],
 			removeDesc = L["OPTIONS_IGNORE_REMOVE"],
 			empty = L["OPTIONS_IGNORE_EMPTY"],
+			clearName = L["OPTIONS_IGNORE_CLEAR"],
+			clearDesc = L["OPTIONS_IGNORE_CLEAR_DESCRIPTION"],
+			clearConfirm = L["OPTIONS_IGNORE_CLEAR_CONFIRM"],
 		},
 		--[[
 		    The Global pane has nowhere to promote to, so its item cell absorbs
@@ -112,11 +132,27 @@ function ns.BuildIgnoreListOptions()
 	]]
 	args[ns.IGNORE_SCOPE_GLOBAL] = ScopeGroup(L["OPTIONS_IGNORE_GLOBAL"], 3, ns.IGNORE_SCOPE_GLOBAL)
 
+	--[[
+	    A blank, unclickable row between Global and the characters, as Magic
+	    Eraser's lists have. Disabled tree rows take no mouse input, so it can
+	    never be selected.
+	]]
+	args.spacerCharacters = {
+		type = "group",
+		name = " ",
+		order = 4,
+		disabled = true,
+		args = {},
+	}
+
 	if ns.db then
 		local profiles = ns.db:GetProfiles()
 		table.sort(profiles)
 
 		local currentProfile = ns.db:GetCurrentProfile()
+		local classes = ns.GetClassesByProfileName()
+		local _, playerClass = UnitClass("player")
+		classes[currentProfile] = playerClass
 		local order = 10
 
 		for _, profileName in ipairs(profiles) do
@@ -126,12 +162,15 @@ function ns.BuildIgnoreListOptions()
 			    list has to be reachable to put a first item in it. A profile is
 			    named for its character ("Name - Realm", or the first name and
 			    surname on WoW Forever) unless the player typed the name, and
-			    neither is ever localized, so they are shown as-is and sorted as
-			    plain strings.
+			    neither is ever localized, so they are shown as-is, in the
+			    character's class color once the add-on has recorded it, and
+			    sorted as plain strings.
 			]]
 			local ignoreList = ns.GetIgnoreListForScope(profileName)
 			if profileName == currentProfile or (ignoreList and next(ignoreList) ~= nil) then
-				args[profileName] = ScopeGroup(profileName, order, profileName)
+				local classColor = ns.GetClassColor(classes[profileName])
+				local displayName = classColor and (classColor .. profileName .. "|r") or profileName
+				args[profileName] = ScopeGroup(displayName, order, profileName)
 				order = order + 1
 			end
 		end

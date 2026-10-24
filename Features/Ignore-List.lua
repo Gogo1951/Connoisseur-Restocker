@@ -76,28 +76,37 @@ end
     Right-Click only ever adds: in combat or with the Macro UI open the rebuild
     waits, so the tooltip still offers the same food, and a second click must not
     take it back off the list.
+
+    Each returns what it changed, true for an item added and the number of
+    items cleared, so the mini-map can say so in chat.
 ]]
 function ns.IgnoreItem(itemID)
 	if not itemID then
-		return
+		return false
 	end
 	local ignoreList = ns.GetIgnoreList()
 	if not ignoreList or ignoreList[itemID] then
-		return
+		return false
 	end
 	ignoreList[itemID] = true
 	RefreshMacros()
 	AceConfigRegistry:NotifyChange(ns.OPTIONS_REGISTRY.IgnoreList)
+	return true
 end
 
--- At once and with no confirmation: the mini-map's Middle-Click is a deliberate quick-clear, and the panel has no clear-all.
+-- At once and with no confirmation: the mini-map's Middle-Click is a deliberate quick-clear.
 function ns.ClearIgnoreList()
 	local ignoreList = ns.GetIgnoreList()
+	local cleared = 0
 	if ignoreList then
+		for _ in pairs(ignoreList) do
+			cleared = cleared + 1
+		end
 		wipe(ignoreList)
 	end
 	RefreshMacros()
 	AceConfigRegistry:NotifyChange(ns.OPTIONS_REGISTRY.IgnoreList)
+	return cleared
 end
 
 --------------------------------------------------------------------------------
@@ -210,6 +219,15 @@ function ns.SetIgnoredInScope(scopeKey, itemID, isIgnored)
 		ClearFromAllProfiles(itemID)
 	end
 
+	RefreshMacros()
+end
+
+-- The Ignore List panel's Clear List, which confirms first: empties one scope's list.
+function ns.ClearIgnoreListInScope(scopeKey)
+	local ignoreList = ns.GetIgnoreListForScope(scopeKey)
+	if ignoreList then
+		wipe(ignoreList)
+	end
 	RefreshMacros()
 end
 

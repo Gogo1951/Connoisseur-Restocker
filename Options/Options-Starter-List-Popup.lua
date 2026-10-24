@@ -379,7 +379,9 @@ function ns.BuildStarterListPopupOptions()
 	    the Restock window's Pick Staples button opens it over whatever the
 	    player already has. The login route is read from openedFromLogin rather than
 	    from the list, because the trigger writes the class's pre-ticked
-	    staples onto the list just before the window opens. Resolved per build
+	    staples onto the list just before the window opens, so its sentence says
+	    a few are already checked; from the button, an empty list gets the
+	    empty-list sentence and any other the stocked one. Resolved per build
 	    rather than once, since AceConfig re-invokes this builder on every open.
 	    It and the sentences on what a check does are run together with a
 	    space, the way the delete confirmation runs its own.
@@ -389,8 +391,12 @@ function ns.BuildStarterListPopupOptions()
 	    player already found their own way to it; at login it opened for them,
 	    and the command is how they get it back once both are closed.
 	]]
-	local introKey = (openedFromLogin or ns.IsRestockListEmpty()) and "STARTER_POPUP_INTRO_EMPTY"
-		or "STARTER_POPUP_INTRO_STOCKED"
+	local introKey = "STARTER_POPUP_INTRO_STOCKED"
+	if openedFromLogin then
+		introKey = "STARTER_POPUP_INTRO_LOGIN"
+	elseif ns.IsRestockListEmpty() then
+		introKey = "STARTER_POPUP_INTRO_EMPTY"
+	end
 	local paragraphs = { L[introKey] .. " " .. L["STARTER_POPUP_INTRO_HOW"] }
 	if openedFromLogin then
 		paragraphs[#paragraphs + 1] = string.format(
@@ -508,7 +514,7 @@ function ns.BuildStarterListPopupOptions()
 	]]
 	return {
 		type = "group",
-		name = L["STARTER_POPUP_TITLE"],
+		name = L["ADDON_TITLE"] .. " // " .. L["STARTER_POPUP_TITLE"],
 		args = args,
 	}
 end

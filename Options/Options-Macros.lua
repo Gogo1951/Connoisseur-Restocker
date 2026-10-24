@@ -21,7 +21,7 @@ local RowLabel = ns.OptionsRowLabel
     Settings live on the AceDB profile, which is the character's own unless
     the player put it on another. The exceptions on this panel are
     account-wide and read ns.db.global directly: the Macros master switch,
-    Macro Names on Buttons and the Enable Macros toggles (see Data/Default-Settings.lua for why each one
+    Macro Names on Buttons and the Which Macros to Create toggles (see Data/Default-Settings.lua for why each one
     stays there).
 ]]
 
@@ -149,7 +149,7 @@ end
     One pet food toggle per row of the flavor folder's ns.PET_BUFF_FOODS, best
     rank first. Each stands for an item, so it wears the item's icon on the
     icon checkbox (Options-Utilities.lua) and names it in its quality color,
-    as the Enable Macros rows do. A name still uncached shows as loading text
+    as the Which Macros to Create rows do. A name still uncached shows as loading text
     and is warmed so the panel repaints.
 ]]
 local function PetBuffTypeToggles()
@@ -182,7 +182,7 @@ local function PetBuffTypeToggles()
 end
 
 --[[
-    One factory for the Enable Macros toggles.
+    One factory for the Which Macros to Create toggles.
 
     macroName is the macro's own MACRO_* name, shown without the "- " every
     locale leads it with: the macros keep the dash, the panel drops it. The
@@ -219,6 +219,25 @@ local function MacroToggle(macroName, key, order)
 	}
 end
 
+--[[
+    The Open Macros Window button. The Settings window closes first, since the
+    Macros window would otherwise open behind it. MacroFrame_LoadUI is the
+    loader every client ships (Classic's UIParent and Forever's MacroUI
+    bootstrap; Classic has no ShowMacroFrame), and the window always opens on
+    its General tab (MacroFrameMixin:OnShow). The options panel cannot be open
+    in combat (ns.OpenOptionsPanel refuses), so nothing here meets combat
+    lockdown.
+]]
+local function OpenMacroWindow()
+	if SettingsPanel and SettingsPanel:IsShown() then
+		HideUIPanel(SettingsPanel)
+	end
+	MacroFrame_LoadUI()
+	if MacroFrame then
+		ShowUIPanel(MacroFrame)
+	end
+end
+
 --------------------------------------------------------------------------------
 -- Macros Panel
 --------------------------------------------------------------------------------
@@ -226,7 +245,8 @@ end
 --[[
     Everything that shapes the macros Connoisseur builds, in one page: which
     macros exist, then how each behaves. Page order is the Macros master
-    switch, Macro Names on Buttons, Enable Macros, Food & Water (Buff Food, Scroll Buffs, and conjured food
+    switch, Macro Names on Buttons, Which Macros to Create (with the Open Macros Window button),
+    Food & Water (Buff Food, Scroll Buffs, and conjured food
     and water first), Potions & Healthstones, Mana Gems & Runes, Buff
     Re-Application, Pet Food Buffs, then Explosives. The class and race
     sections (Options-Class-Race.lua) and the Ignore List
@@ -263,9 +283,9 @@ function ns.BuildMacrosOptions()
 			end,
 		},
 
-		-- Enable Macros
+		-- Which Macros to Create
 		spaceEnable0 = Spacer(10),
-		headerEnableMacros = Header(L["OPTIONS_ENABLE_MACROS_HEADER"], 11),
+		headerEnableMacros = Header(L["OPTIONS_MACROS_TO_CREATE_HEADER"], 11),
 		spaceEnable1 = Spacer(12),
 		descEnableMacros = Desc(GetColor("BODY") .. L["OPTIONS_ENABLE_MACROS_DESCRIPTION"] .. "|r", 13),
 		spaceEnable2 = Spacer(14),
@@ -287,6 +307,15 @@ function ns.BuildMacrosOptions()
 				enableSoulstone = MacroToggle(L["MACRO_SOULSTONE"], "Soulstone", 10),
 				enableWater = MacroToggle(L["MACRO_WATER"], "Water", 11),
 			},
+		},
+		spaceEnable3 = Spacer(16),
+		openMacroWindow = {
+			type = "execute",
+			name = L["OPTIONS_OPEN_MACRO_WINDOW"],
+			desc = L["OPTIONS_OPEN_MACRO_WINDOW_DESCRIPTION"],
+			order = 17,
+			width = ns.OPTIONS_CONTROL_WIDTH,
+			func = OpenMacroWindow,
 		},
 
 		--[[

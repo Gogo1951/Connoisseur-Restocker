@@ -387,7 +387,7 @@ ns.FOOD_AND_WATER = {
 How We Got the Data
 
 Last Validated
-	2026-10-16, TBC Anniversary 2.5.6.70006
+	2026-10-23, TBC Anniversary 2.5.6.70006
 
 Notes
 	- Every food and drink this client knows that restores health or mana while seated, read by the item cache (Features/Item-Cache.lua) for the Food and Water macros and the buff-food choices.
@@ -397,6 +397,7 @@ Notes
 	- Left out on purpose: Scorpid Surprise (5473) and Green Tea Leaf (1401), oddballs that share the food cooldown, and items that share it but restore nothing (alcohol, Deviate fish, holiday novelties, feasts that place a table).
 	- Blessed Sunfruit Juice (13813) and Bottled Alterac Spring Water (19318) are left out; their Well Fed buffs are still recognized through ns.WELL_FED_BUFF_IDS.
 	- Skullfish Soup (33825) is left out, an oddity of a buff drink.
+	- Tasty Summer Treat (23175, an iCoke promotion) and Filled Yellow Brewfest Stein (32915) are left out: nothing drops, sells or rewards them, and no spell makes them. So are the placeholders the client names Deprecated or UNUSED (761, 1321, 2071, 3773, 4418, 21238).
 	- Season of Discovery items are left out; this client doesn't know them. They live only in Data/Discovery/.
 
 SQL (CMaNGOS)
@@ -416,4 +417,7 @@ wago.tools
 	https://wago.tools/db2/SpellCastingRequirements?build=2.5.6.70006
 	https://wago.tools/db2/AreaGroupMember?build=2.5.6.70006
 	https://wago.tools/db2/UiMapAssignment?build=2.5.6.70006
+
+QuestieDB
+	https://raw.githubusercontent.com/Questie/QuestieDB/master/data/TBC/tbcItemDB.lua
 ]]

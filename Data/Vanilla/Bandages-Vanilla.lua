@@ -38,13 +38,14 @@ ns.BANDAGES = {
 How We Got the Data
 
 Last Validated
-	2026-10-16, Classic Era 1.15.9.70003
+	2026-10-23, Classic Era 1.15.9.70003
 
 Notes
 	- Every First Aid bandage on this client, read by the item cache (Features/Item-Cache.lua) to rank the Bandage macro's picks.
 	- Bandage Amount is the whole heal over the channel, the per-tick heal times the ticks. First Aid Skill is the rank the tooltip requires (0 when it names none). Vendor Value is the sell price in copper.
 	- Allowed Zones are uiMapIDs: 1459 Alterac Valley, 1460 Warsong Gulch, 1461 Arathi Basin. Each battleground bandage's tooltip says where it works ("Usable only inside Arathi Basin"; Alterac's says "May only be used in Alterac Valley"), and the item is offered nowhere else.
 	- Dense Frostweave Bandage (38640) and Dalaran Bandage (44646) are Wrath items, left out; the query below excludes them too.
+	- The Anti-Venoms (6452, 6453, 19440) share the bandage cooldown but cure poison and heal nothing, so they are left out.
 	- Season of Discovery items are left out even though this client knows their IDs: they live only in Data/Discovery/. Where a table would otherwise pick one up, a deliberately-absent line in the table says so.
 
 SQL (CMaNGOS)

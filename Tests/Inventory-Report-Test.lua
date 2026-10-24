@@ -12,18 +12,18 @@
 
     WHAT IS PINNED HERE.
 
-    The block's exact shape, as the maintainer specified it: the branded header,
-    then label-and-count pairs -- Bags (against the Restock List's Keep amount
-    when the item is on it), Bank, one line per other character holding the item
-    (class-colored, alphabetical, on this realm only, bags and bank as one
-    number), and Total last, with a spacer either side of the characters. Every
-    row under the header is led by one space, as Water Dispenser pads its own.
+    The block's exact shape, as the maintainer specified it (issue #67): the
+    branded header with the realm's Total at its right edge, then this character
+    on top, then a spacer and one line per other character holding the item
+    (alphabetical, on this realm only). Every name wears its class color, and
+    every count reads "Bag N, Bank N", plain numbers even for a Restock List
+    item. Every row under the header is led by one space, as Water Dispenser
+    pads its own.
 
     What it must NOT say: nothing at all for an item nobody holds that is not on
     the list, no second block when Era fires OnTooltipSetItem twice for one item,
-    nothing with the report switched off, and no bank count before the bank has
-    been seen (a 0 there would be a claim the add-on cannot back; it reads
-    Unknown, muted).
+    and nothing with the report switched off. A bank not seen yet, this
+    character's or an alt's, counts as 0.
 
     WHERE it sits: the hooks go in a few seconds after login, so the block lands
     under the lines of add-ons that hooked at load or at login.
@@ -79,15 +79,13 @@ end
 
 -- The keys the report reads carry their real English; any other key reads as itself.
 local STRINGS = {
-	ADDON_TITLE = "Connoisseur",
+	ADDON_SHORT_NAME = "C & R",
 	TAB_RESTOCKER = "Restocker",
-	INVENTORY_REPORT_BRAND = "%s & %s",
 	INVENTORY_REPORT_TITLE = "Inventory Report",
-	INVENTORY_REPORT_BAGS = "Bags",
-	INVENTORY_REPORT_BANK = "Bank",
-	INVENTORY_REPORT_BANK_UNKNOWN = "Unknown",
-	INVENTORY_REPORT_TOTAL = "Total",
-	MINIMAP_RESTOCKER_ITEM_COUNT = "%d/%d",
+	INVENTORY_REPORT_COUNTS = "Bag %s, Bank %s",
+	INVENTORY_REPORT_BAG = "Bag %s",
+	INVENTORY_REPORT_BANK = "Bank %s",
+	INVENTORY_REPORT_TOTAL = "Total %s",
 }
 
 local function NewTooltip(name)
@@ -343,7 +341,7 @@ local function realmInventory()
 	}
 end
 
-print("1. The block's shape: header, Bags against Keep, Bank, the realm's holders A to Z, then Total")
+print("1. The block's shape: header and Total, this character, then the realm's holders A to Z")
 local s = session({ inventory = realmInventory(), list = { [DEW] = { itemID = DEW, amount = 10 } } })
 s.put(0, { { DEW, 5 }, { HEARTHSTONE, 1 } })
 s.put(1, { { DEW, 2 } })
@@ -353,35 +351,41 @@ check(
 	plainLines(lines),
 	table.concat({
 		" ",
-		"Connoisseur & Restocker // Inventory Report",
-		" Bags | 7/10",
-		" Bank | 18",
+		"C & R // Inventory Report | Total 84",
+		" Mossbark | Bag 7, Bank 18",
 		" ",
-		" Aardvark | 2",
-		" Coinpurse | 30",
-		" Thornhoof | 27",
-		" ",
-		" Total | 84",
+		" Aardvark | Bag 2",
+		" Coinpurse | Bank 30",
+		" Thornhoof | Bag 7, Bank 20",
 	}, " / ")
 )
 check(
 	"the header wears the chat prints' branded colors",
 	lines[2].left,
-	"<INFO>Connoisseur & Restocker|r <SEPARATOR>//|r <TEXT>Inventory Report|r"
+	"<INFO>C & R|r <SEPARATOR>//|r <TEXT>Inventory Report|r"
 )
-check("the header is one plain line", lines[2].right, nil)
-check("and sits flush, with every row under it one space in", lines[3].left, " <TEXT>Bags|r")
-check("a hunter's name wears the hunter color", lines[6].left, " |cffAAD372Aardvark|r")
-check("a mage's name wears the mage color", lines[7].left, " |cff3FC7EBCoinpurse|r")
-check("a druid's name wears the druid color", lines[8].left, " |cffFF7C0AThornhoof|r")
-check("a character's count is white", lines[8].right, "<TEXT>27|r")
+check(
+	"the total sits at the header's right edge, the word gray and the count white",
+	lines[2].right,
+	"<SEPARATOR>Total <TEXT>84|r<SEPARATOR>|r"
+)
+check("this character leads, flush under the header one space in", lines[3].left, " |cffFF7C0AMossbark|r")
+check("a hunter's name wears the hunter color", lines[5].left, " |cffAAD372Aardvark|r")
+check("a mage's name wears the mage color", lines[6].left, " |cff3FC7EBCoinpurse|r")
+check("a druid's name wears the druid color", lines[7].left, " |cffFF7C0AThornhoof|r")
+check(
+	"a character's labels are gray and its counts white",
+	lines[7].right,
+	"<SEPARATOR>Bag <TEXT>7|r<SEPARATOR>, Bank <TEXT>20|r<SEPARATOR>|r"
+)
+check("an alt's bank never seen shows no Bank count", plainLine(lines[5]), " Aardvark | Bag 2")
 
-print("2. Off the list, Bags is a plain count; a list row keeping 0 has no target either")
+print("2. The bags are a plain count, off the list and on a list row keeping 0 alike")
 s = session({ inventory = realmInventory(), list = { [PIE] = { itemID = PIE, amount = 0 } } })
 s.put(0, { { DEW, 7 } })
-check("no Keep, no slash", plainLine(s.hover(DEW)[3]), " Bags | 7")
+check("off the list, no slash", plainLine(s.hover(DEW)[3]), " Mossbark | Bag 7, Bank 18")
 s.put(0, { { PIE, 3 } })
-check("Keep 0 (bank all of it) shows no slash", plainLine(s.hover(PIE)[3]), " Bags | 3")
+check("Keep 0 (bank all of it) shows no slash", plainLine(s.hover(PIE)[3]), " Mossbark | Bag 3")
 
 print("3. Silence: nothing for an item nobody on the realm holds and the list does not name")
 s = session({ inventory = realmInventory() })
@@ -391,52 +395,45 @@ check("an item only another realm's character holds says nothing", #s.hover(4242
 print("4. An item on the list reports even when this character holds none")
 s = session({ inventory = realmInventory(), list = { [PIE] = { itemID = PIE, amount = 20 } } })
 check(
-	"0/20, a counted bank's 0, Quickshot's 5, and the total",
+	"the total, this character holding none named alone, and Quickshot's 5",
 	plainLines(s.hover(PIE)),
 	table.concat({
 		" ",
-		"Connoisseur & Restocker // Inventory Report",
-		" Bags | 0/20",
-		" Bank | 0",
+		"C & R // Inventory Report | Total 5",
+		" Mossbark",
 		" ",
-		" Quickshot | 5",
-		" ",
-		" Total | 5",
+		" Quickshot | Bag 5",
 	}, " / ")
 )
 
-print("5. With nobody else holding it, one spacer sits between the bank and the total")
+print("5. With nobody else holding it, the block is the header and this character, no spacer")
 s = session({ name = "Newbie" })
 s.put(0, { { DEW, 4 } })
 lines = s.hover(DEW)
 check(
-	"header, Bags, Bank, spacer, Total",
+	"header and Total, then this character",
 	plainLines(lines),
 	table.concat({
 		" ",
-		"Connoisseur & Restocker // Inventory Report",
-		" Bags | 4",
-		" Bank | Unknown",
-		" ",
-		" Total | 4",
+		"C & R // Inventory Report | Total 4",
+		" Newbie | Bag 4",
 	}, " / ")
 )
-check("a bank never seen reads Unknown, muted", lines[4].right, "<MUTED>Unknown|r")
 
 print("6. The bank is counted while it is open, and only then")
 s.put(-1, { { DEW, 11 }, { PIE, 2 } })
 s.put(5, { { DEW, 9 } })
 s.fire("BANKFRAME_OPENED")
-check("the open bank is counted, main slots and bags", plainLine(s.hover(DEW)[4]), " Bank | 20")
-check("and the total follows", plainLine(s.hover(DEW)[6]), " Total | 24")
+check("the open bank is counted, main slots and bags", plainLine(s.hover(DEW)[3]), " Newbie | Bag 4, Bank 20")
+check("and the total follows", plainLine(s.hover(DEW)[2]), "C & R // Inventory Report | Total 24")
 s.put(-1, { { DEW, 1 } })
 s.fire("BAG_UPDATE_DELAYED")
-check("a bag update at the bank rescans it", plainLine(s.hover(DEW)[4]), " Bank | 10")
+check("a bag update at the bank rescans it", plainLine(s.hover(DEW)[3]), " Newbie | Bag 4, Bank 10")
 s.fire("BANKFRAME_CLOSED")
 s.put(-1, {})
 s.put(5, {})
 s.fire("BAG_UPDATE_DELAYED")
-check("away from it, the last scan stands", plainLine(s.hover(DEW)[4]), " Bank | 10")
+check("away from it, the last scan stands", plainLine(s.hover(DEW)[3]), " Newbie | Bag 4, Bank 10")
 
 print("7. Logout packs one sorted line per place, and the next character reads it back")
 local shared = {}
@@ -451,7 +448,7 @@ check("bags packed in itemID order", shared["Mossbark-Mankrik"].bags, "6948:1 87
 check("bank packed", shared["Mossbark-Mankrik"].bank, "8950:40")
 check("class recorded", shared["Mossbark-Mankrik"].class, "DRUID")
 local alt = session({ name = "Thornhoof", inventory = shared })
-check("the alt sees the druid's pie, bags and bank as one number", plainLine(alt.hover(PIE)[6]), " Mossbark | 40")
+check("the alt sees the druid's pie, bags and bank apart", plainLine(alt.hover(PIE)[5]), " Mossbark | Bank 40")
 
 print("8. A bank never opened is not written as empty")
 shared = {}
@@ -482,21 +479,17 @@ s.put(0, { { DEW, 7 } })
 s.put(6, { { DEW, 4 } })
 s.put(7, { { DEW, 5 } })
 s.fire("BANKFRAME_OPENED")
-check("the purchased tabs are the bank", plainLine(s.hover(DEW)[4]), " Bank | 9")
+check("the purchased tabs are the bank", plainLine(s.hover(DEW)[3]), " Mossbark | Bag 7, Bank 9")
 local comparison = NewTooltip("ShoppingTooltip1")
 check("a comparison tooltip gets nothing", #s.hover(DEW, comparison), 0)
-check(
-	"the Forever post-call path adds one block",
-	plainLine(s.hover(DEW)[2]),
-	"Connoisseur & Restocker // Inventory Report"
-)
+check("the Forever post-call path adds one block", plain(s.hover(DEW)[2].left), "C & R // Inventory Report")
 
 print("12. The bank's late arrivals are caught by the settle look")
 s = session({ name = "Latecomer" })
 s.fire("BANKFRAME_OPENED")
 s.put(-1, { { PIE, 6 } })
 s.settle()
-check("counted after the settle delay", plainLine(s.hover(PIE)[4]), " Bank | 6")
+check("counted after the settle delay", plainLine(s.hover(PIE)[3]), " Latecomer | Bank 6")
 
 print("13. The hooks go in after the login delay, so the block lands under other add-ons' lines")
 s = session({ inventory = realmInventory(), early = true })
@@ -504,11 +497,7 @@ s.put(0, { { DEW, 7 } })
 check("nothing is hooked at login itself", #s.hover(DEW), 0)
 check("the hook waits on a timer of several seconds", (s.pendingDelay() or 0) >= 3, true)
 s.settle()
-check(
-	"once it has passed, the report is there",
-	plainLine(s.hover(DEW)[2]),
-	"Connoisseur & Restocker // Inventory Report"
-)
+check("once it has passed, the report is there", plain(s.hover(DEW)[2].left), "C & R // Inventory Report")
 
 print("14. A Forever character is recorded, and listed, under its first name and surname")
 shared = {}
@@ -518,7 +507,8 @@ s.logout()
 check("keyed by the whole name", shared["Gogodruid Forever-Mankrik"] ~= nil, true)
 check("and named by it", shared["Gogodruid Forever-Mankrik"].name, "Gogodruid Forever")
 alt = session({ name = "Gogohunter", surname = "Classic", class = "HUNTER", forever = true, inventory = shared })
-check("which is how an alt lists it", plainLine(alt.hover(DEW)[6]), " Gogodruid Forever | 6")
+check("which is how an alt lists it", plainLine(alt.hover(DEW)[5]), " Gogodruid Forever | Bag 6")
+check("and how it lists itself, on top", plainLine(alt.hover(DEW)[3]), " Gogohunter Classic")
 
 print("15. The bags saved are the ones last read while playing, never a read made at logout")
 shared = {}

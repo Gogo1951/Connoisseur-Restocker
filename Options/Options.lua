@@ -39,7 +39,7 @@ function ns.RegisterOptionsPanels()
 	--[[
 	    Macros panel (Options-Macros.lua) -- every macro setting, led by the
 	    Macros master switch. Its tree label is TAB_MACROS rather than the
-	    "Enable Macros" section's header.
+	    Which Macros to Create section's header.
 	]]
 	local macrosCategoryID = RegisterChild(REGISTRY.Macros, ns.BuildMacrosOptions, L["TAB_MACROS"])
 
@@ -60,10 +60,10 @@ function ns.RegisterOptionsPanels()
 	RegisterChild(REGISTRY.IgnoreList, ns.BuildIgnoreListOptions, L["TAB_IGNORE_LIST"], macrosCategoryID)
 
 	--[[
-	    Widen the Ignore List tree. AceGUI defaults it to 175px, which truncates
-	    a long character name, and its SetStatusTable fills
-	    treewidth in only when the key is absent -- so seeding it here wins,
-	    while a player dragging the splitter still overwrites it from then on.
+	    Seed the Ignore List tree's width (ns.OPTIONS_TREE_WIDTH, Magic Eraser's).
+	    AceGUI's SetStatusTable fills treewidth in only when the key is absent --
+	    so seeding it here wins, while a player dragging the splitter still
+	    overwrites it from then on.
 	]]
 	local ignoreStatus = AceConfigDialog:GetStatusTable(REGISTRY.IgnoreList)
 	ignoreStatus.groups = ignoreStatus.groups or {}
@@ -84,8 +84,8 @@ function ns.RegisterOptionsPanels()
 	AceConfig:RegisterOptionsTable(REGISTRY.StarterListPopup, ns.BuildStarterListPopupOptions)
 
 	--[[
-	    Readiness Report panel (Options-Readiness-Report.lua) -- what Connoisseur
-	    says when a ready check starts.
+	    Readiness Report panel (Options-Readiness-Report.lua) -- what Connoisseur &
+	    Restocker says when a ready check starts.
 	]]
 	RegisterChild(REGISTRY.ReadinessReport, ns.BuildReadinessReportOptions, L["TAB_READINESS_REPORT"])
 

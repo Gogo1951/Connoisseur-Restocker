@@ -75,6 +75,7 @@ read_globals = {
 	"GetTime",
 	"GetWeaponEnchantInfo",
 	"GetZoneText",
+	"HideUIPanel",
 	"InCombatLockdown",
 	"issecretvalue",
 	"IsInGroup",
@@ -87,6 +88,7 @@ read_globals = {
 	"LibStub",
 	"LOCALIZED_CLASS_NAMES_MALE",
 	"MacroFrame",
+	"MacroFrame_LoadUI",
 	"MAINHANDSLOT",
 	"MAX_ACCOUNT_MACROS",
 	"NO",
@@ -98,6 +100,8 @@ read_globals = {
 	"SecureCmdOptionParse",
 	"SetCVar",
 	"Settings",
+	"SettingsPanel",
+	"ShowUIPanel",
 	"SOUNDKIT",
 	"SPELL_FAILED_TARGETS_DEAD",
 	"SPELL_STAT1_NAME",
@@ -145,9 +149,4 @@ globals = {
 	"SLASH_CONNOISSEUR1",
 	"SLASH_CONNOISSEURRESTOCKER1",
 	SlashCmdList = { fields = { "CONNOISSEUR", "CONNOISSEURRESTOCKER" } }, -- fields, so only the add-on's own slash entries are writable
-	-- MIGRATION (remove after 2026-10-18): the short macro globals an older build's saved macro bodies still call
-	"ConnFire",
-	"ConnTip",
-	"ConnIf",
-	"ConnNoItem",
 }

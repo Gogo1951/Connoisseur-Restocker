@@ -559,13 +559,22 @@ ns.dataBrokerObject = LibDataBroker:NewDataObject(ns.LOCALE_NAME, {
 		if button == "RightButton" and IsShiftKeyDown() then
 			ns.ToggleRestockWindow()
 		elseif button == "RightButton" and ns.bestFoodID then
-			ns.IgnoreItem(ns.bestFoodID)
+			-- Both Ignore List clicks change what the macros use, so each says what it did; neither asks first.
+			local foodID = ns.bestFoodID
+			if ns.IgnoreItem(foodID) then
+				ns.PrintMessage(string.format(L["MESSAGE_IGNORE_ADDED"], ns.GetItemHyperlink(foodID)))
+			end
 		elseif button == "LeftButton" and IsShiftKeyDown() then
 			ToggleReadinessReport()
 		elseif button == "LeftButton" then
 			ToggleBuffFoodAndScrolls()
 		elseif button == "MiddleButton" then
-			ns.ClearIgnoreList()
+			local cleared = ns.ClearIgnoreList()
+			if cleared == 1 then
+				ns.PrintMessage(L["MESSAGE_IGNORE_CLEARED_ONE"])
+			elseif cleared > 1 then
+				ns.PrintMessage(string.format(L["MESSAGE_IGNORE_CLEARED_MANY"], cleared))
+			end
 		end
 
 		ns.UpdateMinimapIcon()

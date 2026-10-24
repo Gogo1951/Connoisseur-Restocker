@@ -56,6 +56,8 @@ local function NewRestockState()
 	state.lockedTicks = 0
 	state.overshotItems = {}
 	state.amounts = {}
+	-- Set by the first stash or pull; a run that moved nothing finishes without a word (CompletionMessage).
+	state.movedAny = false
 
 	setmetatable(state, RestockState)
 
@@ -281,6 +283,7 @@ local function StashToBank()
 			if excess > 0 then
 				ns.RestockerDebug("TRACE_TOO_MANY", eachItem.itemName, haveInBag, wanted)
 				if ns.MoveRestockItemToBank(state.bankInventory, itemID, excess) then
+					state.movedAny = true
 					return true -- issued one move; caller yields and re-scans next step
 				end
 			end
@@ -315,6 +318,7 @@ local function RestockFromBank()
 				if
 					ns.MoveRestockItemFromBank(state.playerInventory, itemID, math.min(short, haveInBank), overshoot)
 				then
+					state.movedAny = true
 					if overshoot then
 						--[[
 						    The whole-stack pull may go past the target. That excess is the add-on's
@@ -423,6 +427,21 @@ end
 --------------------------------------------------------------------------------
 -- Restock Steps
 --------------------------------------------------------------------------------
+
+--[[
+    The line a finished run prints, or nil for a visit that took nothing out
+    and stored nothing: the same three sentences at every bank visit would turn
+    into noise and stop being read. Merging partial stacks alone does not count.
+]]
+local function CompletionMessage()
+	if not restockState.movedAny then
+		return nil
+	end
+	return string.format(
+		L["RESTOCKER_COMPLETE"],
+		GetColor("INFO") .. L["RESTOCKER_COMMAND"] .. "|r" .. GetColor("TEXT")
+	)
+end
 
 local function FinishRestocking(message)
 	currentlyRestocking = false
@@ -579,12 +598,7 @@ local function RunRestockLogic()
 	else
 		state.tidySteps = state.tidySteps + 1
 		if state.tidySteps >= MAX_STUCK_STEPS then
-			FinishRestocking(
-				string.format(
-					L["RESTOCKER_COMPLETE"],
-					GetColor("INFO") .. L["RESTOCKER_COMMAND"] .. "|r" .. GetColor("TEXT")
-				)
-			)
+			FinishRestocking(CompletionMessage())
 			return true
 		end
 	end
@@ -595,9 +609,7 @@ local function RunRestockLogic()
 	end
 
 	-- Nothing left to merge: genuinely done.
-	FinishRestocking(
-		string.format(L["RESTOCKER_COMPLETE"], GetColor("INFO") .. L["RESTOCKER_COMMAND"] .. "|r" .. GetColor("TEXT"))
-	)
+	FinishRestocking(CompletionMessage())
 	return true
 end
 

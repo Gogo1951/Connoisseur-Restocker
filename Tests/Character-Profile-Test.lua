@@ -261,8 +261,6 @@ local function login(who, saved, opts)
 		"Features/Ignore-List.lua",
 		"Features/Restocker/Restocker-Saved-Lists.lua",
 		"Features/Restocker/Restocker-Saved-Format.lua",
-		-- MIGRATION (remove after 2026-10-18)
-		"Features/Restocker/Restocker-Saved-Migration.lua",
 		"Features/Restocker/Restocker-Events.lua",
 	}) do
 		-- Add-on files are chunks taking (addonName, ns) as varargs, the way WoW loads them.
@@ -699,17 +697,7 @@ login(era("Ned", "Priest"), saved)
 check("until its character logs in", ns.restockSettings.currentList, "Bank")
 check("and the table goes with its last entry", rawget(ns.db.global.restocker, "listsByCharacter"), nil)
 
-print("M9. The saved-key rename runs first, so a file two releases old is carried in one login")
-saved = login(era("Olga", "Shaman"), {
-	profileKeys = { ["Olga - Stitches"] = "Default" },
-	profiles = { Default = { useScrolls = true } },
-	global = { restocker = { profiles = { Totems = {} }, profileKeys = { ["Olga-Stitches"] = "Totems" } } },
-})
-check("on its own profile", ns.db:GetCurrentProfile(), "Olga - Stitches")
-check("on the list it was using", ns.restockSettings.currentList, "Totems")
-check("with none made", keysOf(saved.global.restocker.lists), "Totems")
-
-print("M10. A brand-new install has nothing to carry")
+print("M9. A brand-new install has nothing to carry")
 saved = login(era("Sam", "Warlock"))
 check("its own profile", ns.db:GetCurrentProfile(), "Sam - Stitches")
 check("one profile", keysOf(saved.profiles), "Sam - Stitches")

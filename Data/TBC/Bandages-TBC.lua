@@ -36,13 +36,14 @@ ns.BANDAGES = {
 How We Got the Data
 
 Last Validated
-	2026-10-16, TBC Anniversary 2.5.6.70006
+	2026-10-23, TBC Anniversary 2.5.6.70006
 
 Notes
 	- Every First Aid bandage on this client, read by the item cache (Features/Item-Cache.lua) to rank the Bandage macro's picks.
 	- Bandage Amount is the whole heal over the channel, the per-tick heal times the ticks. First Aid Skill is the rank the tooltip requires (0 when it names none). Vendor Value is the sell price in copper.
 	- Allowed Zones are uiMapIDs: 1459 Alterac Valley, 1460 Warsong Gulch, 1461 Arathi Basin. Each battleground bandage's tooltip says where it works ("Usable only inside Arathi Basin"; Alterac's says "May only be used in Alterac Valley"), and the item is offered nowhere else.
 	- Dense Frostweave Bandage (38640) and Dalaran Bandage (44646) are Wrath items, left out; the query below excludes them too.
+	- The Anti-Venoms (6452, 6453, 19440), Medicinal Drake Essence (31437) and Amani Hex Stick (33865) share the bandage cooldown but heal nothing, so they are left out.
 	- Season of Discovery items are left out; this client doesn't know them. They live only in Data/Discovery/.
 
 SQL (CMaNGOS)
@@ -99,4 +100,7 @@ wago.tools
 	https://wago.tools/db2/SpellCastingRequirements?build=2.5.6.70006
 	https://wago.tools/db2/AreaGroupMember?build=2.5.6.70006
 	https://wago.tools/db2/UiMapAssignment?build=2.5.6.70006
+
+QuestieDB
+	None.
 ]]

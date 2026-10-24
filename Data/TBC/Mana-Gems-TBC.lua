@@ -20,7 +20,7 @@ ns.MANA_RUNES = {
 How We Got the Data
 
 Last Validated
-	2026-10-16, TBC Anniversary 2.5.6.70006
+	2026-10-23, TBC Anniversary 2.5.6.70006
 
 Notes
 	- ns.MANA_GEMS holds the mage's mana gems, read by the item cache (Features/Item-Cache.lua) for the Mana Gem macro and by the Readiness Report. Mana Amount is the low end of the restore.
@@ -70,4 +70,7 @@ wago.tools
 	https://wago.tools/db2/SpellEffect?build=2.5.6.70006
 	https://wago.tools/db2/SpellMisc?build=2.5.6.70006
 	https://wago.tools/db2/SpellDuration?build=2.5.6.70006
+
+QuestieDB
+	None.
 ]]

@@ -204,7 +204,7 @@ ns.PET_FOOD_DATA = {
 How We Got the Data
 
 Last Validated
-	2026-10-16, TBC Anniversary 2.5.6.70006
+	2026-10-23, TBC Anniversary 2.5.6.70006
 
 Notes
 	- The foods a hunter's pet eats, for Feed Pet support (Features/Macros/Tools-Hunters-Pet-Food.lua). Diet IDs follow ns.PET_DIET_MAP in Data/Data.lua: 1 Meat, 2 Fish, 3 Bread, 4 Cheese, 5 Fruit, 6 Fungus.
@@ -235,4 +235,7 @@ wago.tools
 	https://wago.tools/db2/SpellEffect?build=2.5.6.70006
 	https://wago.tools/db2/SpellMisc?build=2.5.6.70006
 	https://wago.tools/db2/SpellDuration?build=2.5.6.70006
+
+QuestieDB
+	None.
 ]]

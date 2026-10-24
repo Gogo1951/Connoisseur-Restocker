@@ -140,7 +140,7 @@ ns.DiagnosticsStrings = {
 	RESTOCKER_TITLE = "Restocker Context",
 	RESTOCKER_DESCRIPTION = "Shows where the Restocker and the Inventory Report stand: their switches, the list in use, what a merchant would buy now, your gold and bag space, open windows, the reminders and the tooltip hook.",
 	READINESS_TITLE = "Readiness Report",
-	READINESS_DESCRIPTION = "Shows what the Readiness Report would print right now, without waiting for a ready check, and which of its switches are on.",
+	READINESS_DESCRIPTION = "Shows what the Readiness Report would print right now, without waiting for a ready check, which of its switches are on, and its durability and expiring thresholds.",
 	VALIDATE_TITLE = "Validate Data: %s",
 	VALIDATE_DESCRIPTION = "Checks every id in this data file against this client and exports the results as tab-separated text.",
 	VALIDATE_PROGRESS = "%s / %s IDs",
@@ -160,12 +160,12 @@ ns.DiagnosticsStrings = {
 	NAMES_DESCRIPTION = "Shows the name your client gives every game string " .. TITLE .. " shows or matches.",
 	NAMES_ALL_FOUND = "all found",
 	NAMES_SOME_NIL = "%d NIL",
-	LENGTH_TITLE = "Message Length",
-	LENGTH_DESCRIPTION = "Builds every macro "
+	MESSAGES_TITLE = "Message Length",
+	MESSAGES_DESCRIPTION = "Builds every macro "
 		.. TITLE
 		.. " writes at its longest, with your client's spell names, and checks each against the 255-byte limit. Nothing is written.",
-	LENGTH_ALL_FIT = "all fit",
-	LENGTH_SOME_OVER = "%d over",
+	MESSAGES_ALL_FIT = "all fit",
+	MESSAGES_SOME_OVER = "%d over",
 
 	STATUS_WAITING = "Waiting",
 	STATUS_RUNNING = "Running",

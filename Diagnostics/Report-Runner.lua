@@ -34,12 +34,12 @@ local function EventsNote(text)
 end
 
 -- Message Length's status note: how many macros came out over the ceiling.
-local function LengthNote(text)
+local function MessagesNote(text)
 	local _, over = string.gsub(text, "%[OVER%]", "")
 	if over == 0 then
-		return D.LENGTH_ALL_FIT
+		return D.MESSAGES_ALL_FIT
 	end
-	return string.format(D.LENGTH_SOME_OVER, over)
+	return string.format(D.MESSAGES_SOME_OVER, over)
 end
 
 -- A data report's status note: OK first, then every other STATUS alphabetically, each with its count.
@@ -140,13 +140,13 @@ ns.DIAGNOSTIC_REPORTS = {
 			return ns:BuildLocaleContextReport()
 		end,
 	},
-	length = {
-		title = D.LENGTH_TITLE,
-		description = D.LENGTH_DESCRIPTION,
+	messages = {
+		title = D.MESSAGES_TITLE,
+		description = D.MESSAGES_DESCRIPTION,
 		build = function()
 			return ns:BuildMessageLengthReport()
 		end,
-		note = LengthNote,
+		note = MessagesNote,
 	},
 	names = {
 		title = D.NAMES_TITLE,
@@ -168,7 +168,7 @@ ns.DIAGNOSTIC_SECTIONS = {
 	},
 	{ key = "code", label = D.SECTION_CODE, reports = { "events", "api", "libs" } },
 	{ key = "data", label = D.SECTION_DATA, reports = {} },
-	{ key = "localization", label = D.SECTION_LOCALIZATION, reports = { "locale", "names", "length" } },
+	{ key = "localization", label = D.SECTION_LOCALIZATION, reports = { "locale", "names", "messages" } },
 }
 
 function ns:GetDiagnosticSection(key)

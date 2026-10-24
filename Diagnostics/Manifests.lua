@@ -254,6 +254,13 @@ ns.DIAGNOSTIC_API_CHECKS = {
 			return type(GetNumMacros) == "function"
 		end,
 	},
+	-- The Macros panel's Open Macros Window button calls it unguarded.
+	{
+		"MacroFrame_LoadUI",
+		function()
+			return type(MacroFrame_LoadUI) == "function"
+		end,
+	},
 	--[[
 	    The shims in Utilities that Forever needs: each client should PASS
 	    exactly one side of every pair -- the namespaced reader on Forever, the
@@ -283,6 +290,13 @@ ns.DIAGNOSTIC_API_CHECKS = {
 			return type(C_SkillInfo) == "table" and type(C_SkillInfo.GetSkillLineInfo) == "function"
 		end,
 	},
+	-- Forever reads a profession's rank by ID (Scanner-Character.lua); where this FAILs, the skill list is read by name.
+	{
+		"C_SkillInfo.GetSkillLineInfoByID",
+		function()
+			return type(C_SkillInfo) == "table" and type(C_SkillInfo.GetSkillLineInfoByID) == "function"
+		end,
+	},
 	{
 		"GetNumSkillLines (legacy)",
 		function()
@@ -295,7 +309,7 @@ ns.DIAGNOSTIC_API_CHECKS = {
 			return type(GetSkillLineInfo) == "function"
 		end,
 	},
-	-- The profession readers name their skill lines through this, on every client.
+	-- The First Aid labels name their skill line through this on every client, and Era and TBC find a rank by it.
 	{
 		"C_TradeSkillUI.GetTradeSkillDisplayName",
 		function()
@@ -756,7 +770,6 @@ ns.DIAGNOSTIC_SPELLS = {
 	{ ns.CANNIBALIZE_SPELL_ID, "Cannibalize" },
 	{ ns.POISONS_SPELL_ID, "Poisons" },
 	{ ns.STEALTH_SPELL_ID, "Stealth" },
-	{ ns.GOBLIN_ENGINEER_SPELL_ID, "Goblin Engineer" },
 	{ ns.DRUID_BEAR_FORM_SPELL_ID, "Bear Form" },
 	{ ns.DRUID_DIRE_BEAR_FORM_SPELL_ID, "Dire Bear Form" },
 	{ ns.DRUID_CAT_FORM_SPELL_ID, "Cat Form" },
@@ -857,12 +870,18 @@ local function AppendCharacter(lines)
 		YesNo(ns.HasFriendlyPlayerTarget())
 	)
 
-	-- The profession ranks the scanner's usability gates read (0 = unlearned).
+	--[[
+	    The profession ranks the scanner's usability gates read (0 = unlearned).
+	    Where they are read from the skill list by name, a rank under a
+	    collapsed header keeps its last reading.
+	]]
+	local byID = C_SkillInfo and C_SkillInfo.GetSkillLineInfoByID
 	lines[#lines + 1] = string.format(
-		"Skills: First Aid %s // Alchemy %s // Engineering %s",
+		"Skills: First Aid %s // Alchemy %s // Engineering %s // read %s",
 		tostring(ns.currentFirstAidSkill),
 		tostring(ns.currentAlchemySkill),
-		tostring(ns.currentEngineeringSkill)
+		tostring(ns.currentEngineeringSkill),
+		byID and "by ID" or "from the skill list by name"
 	)
 end
 
@@ -958,11 +977,13 @@ local function AppendChoices(lines)
 		EnabledKeys(profile.scrollTypes),
 		(ns.scrollOverrideIDs and #ns.scrollOverrideIDs > 0) and table.concat(ns.scrollOverrideIDs, ", ") or "(none)"
 	)
+	-- Tracked means every gate passes: the switch, its mode, the level the food needs, and a live pet of any class.
 	lines[#lines + 1] = string.format(
-		"Pet buff food: %s (%s) // types: %s // picked now: %s",
+		"Pet buff food: %s (%s) // types: %s // tracked now: %s // picked now: %s",
 		OnOff(profile.usePetBuffFood),
 		tostring(profile.petBuffFoodMode),
 		EnabledKeys(profile.petBuffTypes),
+		YesNo(ns.ShouldTrackPetFood()),
 		tostring(ns.petBuffOverrideID)
 	)
 	lines[#lines + 1] = string.format(
@@ -1203,9 +1224,10 @@ end
 --[[
     The probe for "the Restocker did nothing" and "the tooltip shows no counts"
     reports: the switches, the list this character shops from, the gold and
-    bag space a purchase needs, the windows open now, the staples offer's
-    gates, what a merchant would buy now, the reminders and their gates, and
-    the Inventory Report's hook. Read-only.
+    bag space a purchase needs, the windows open now, the open vendor's
+    standing, the reagents the list's crafts need, the staples offer's gates,
+    what a merchant would buy now, the reminders and their gates, and the
+    Inventory Report's hook and records. Read-only.
 ]]
 local function MoneyText(copper)
 	copper = copper or 0
@@ -1263,6 +1285,35 @@ function ns:BuildRestockerContextReport()
 		YesNo(ns.merchantBuyingSkipped),
 		YesNo(ns.bankIsOpen)
 	)
+
+	--[[
+	    What the vendor itself decides (Restocker-Merchant.lua): a row needing a
+	    better standing than this vendor's is skipped in silence, and a vendor
+	    missing any reagent a craft needs sells none of them.
+	]]
+	if ns.merchantIsOpen then
+		local reaction = UnitReaction("npc", "player") or UnitReaction("target", "player") or 0
+		lines[#lines + 1] = string.format(
+			"Vendor standing: %d (%s) // items it lists: %d",
+			reaction,
+			tostring(ns.GetStandingLabel(reaction)),
+			GetMerchantNumItems() or 0
+		)
+	end
+	local reagents = {}
+	if ns.restockerLoaded and list then
+		for reagentID, count in pairs(ns.BuildCraftingPurchaseOrder()) do
+			if count > 0 then
+				reagents[#reagents + 1] = string.format("%s x%d", ItemText(reagentID), count)
+			end
+		end
+		table.sort(reagents)
+	end
+	lines[#lines + 1] = string.format(
+		"Reagents the list's crafts need now: %s",
+		#reagents > 0 and table.concat(reagents, ", ") or "(none)"
+	)
+
 	lines[#lines + 1] = string.format(
 		"Town reminder: chat %s, sound %s, %s // resting: %s, on a flight: %s",
 		OnOff(settings.restockReminderChat),
@@ -1316,12 +1367,25 @@ function ns:BuildRestockerContextReport()
 		(TooltipDataProcessor and TooltipDataProcessor.AddTooltipPostCall) and "TooltipDataProcessor post-call"
 			or "OnTooltipSetItem"
 	)
+	--[[
+	    Only characters on this realm are listed, and a bank never opened yet
+	    counts as 0 (Inventory-Report.lua).
+	]]
+	local realm = GetRealmName()
+	local onRealm = 0
+	for _, entry in pairs(inventory) do
+		if entry.realm == realm and entry.name then
+			onRealm = onRealm + 1
+		end
+	end
+	local own = inventory[characterKey]
 	lines[#lines + 1] = string.format(
-		"This character recorded: %s (%s) // characters recorded: %d",
-		YesNo(inventory[characterKey]),
+		"This character recorded: %s (%s) // bank saved by an earlier session: %s",
+		YesNo(own),
 		characterKey,
-		CountKeys(inventory)
+		YesNo(own and own.bank)
 	)
+	lines[#lines + 1] = string.format("Characters recorded: %d // on this realm: %d", CountKeys(inventory), onRealm)
 
 	lines[#lines + 1] = ""
 	lines[#lines + 1] = "-- Account --"
@@ -1539,6 +1603,12 @@ function ns:BuildReadinessDiagnosticReport()
 	for _, key in ipairs(READINESS_SWITCHES) do
 		lines[#lines + 1] = string.format("[%s] %s", reports[key] and "ON " or "   ", key)
 	end
+	-- Damaged Gear names a slot only under the durability percent, Expiring a buff only inside the window.
+	lines[#lines + 1] = string.format(
+		"Thresholds: durability under %s%% // expiring within %s s",
+		tostring(reports.readinessDurabilityThreshold),
+		tostring(reports.readinessExpiringThreshold)
+	)
 
 	local text = table.concat(lines, "\n")
 	-- Item links (Damaged / Non-Combat Gear) survive the color strip; escaping them makes the paste plain text.
@@ -1653,7 +1723,7 @@ for _, listName in ipairs(SortedKeys(ns.CONJURE_SPELLS)) do
 end
 
 --[[
-    The skill lines the profession gates find in the skill list
+    The skill lines the profession gates find in the skill list on Era and TBC
     (Scanner-Character.lua), First Aid through the accessor the options read.
 ]]
 AddLookup("FIRST_AID_SKILL_LINE_ID", "skillLine", ns.FIRST_AID_SKILL_LINE_ID, ns.GetFirstAidName)
@@ -1664,7 +1734,7 @@ for _, constant in ipairs({ "ALCHEMY_SKILL_LINE_ID", "ENGINEERING_SKILL_LINE_ID"
 	end)
 end
 
--- The Macros panel's headers.
+-- The Class & Race panel's headers.
 AddLookup("NIGHT_ELF_RACE_ID", "race", ns.NIGHT_ELF_RACE_ID, function()
 	local info = C_CreatureInfo.GetRaceInfo(ns.NIGHT_ELF_RACE_ID)
 	return info and info.raceName
@@ -1746,289 +1816,9 @@ end
 
 ns.DIAGNOSTIC_NAME_LOOKUPS = nameLookups
 
---------------------------------------------------------------------------------
--- Message Length
---------------------------------------------------------------------------------
-
---[[
-    Connoisseur sends no chat, so Message Length is the macros alone, against
-    ns.MACRO_BODY_MAX_LENGTH in bytes. First every macro as it stands in the
-    General tab now. Then each standard macro built through
-    ns.BuildStandardBody at its longest, nothing written: the longest item ID
-    this data folder holds in every /use line, every ranked and stacked line,
-    each shape its conjure clicks can take, and the stealth, Cannibalize and
-    out-of-combat food or water lines, all with this client's spell names. The
-    longest of three characters wins: a Mage or Warlock (conjures), a Rogue
-    (Stealth) and a Night Elf (Shadowmeld), the first two Forsaken
-    (Cannibalize). The builder trims its own body, so a length over the
-    ceiling is one the trim could not fit, and every line it shed is counted.
-    Feed Pet, Poisons and the Druid Macro Helper bodies come from builders that
-    read the character's own state, so they show only as written.
-]]
-
--- Each macro's conjure clicks: the right- and middle-click ladders and their not-yet-learned tips.
-local CONJURE_SHAPES = {
-	["Food"] = {
-		right = "MageCreateFood",
-		rightMiss = "noConjureFood",
-		middle = "MageCreateTable",
-		middleMiss = "noRitualOfRefreshment",
-	},
-	["Water"] = {
-		right = "MageCreateWater",
-		rightMiss = "noConjureWater",
-		middle = "MageCreateTable",
-		middleMiss = "noRitualOfRefreshment",
-	},
-	["Mana Gem"] = { right = "MageCreateManaGem", rightMiss = "noConjureManaGem" },
-	["Healthstone"] = {
-		right = "WarlockCreateHealthstone",
-		rightMiss = "noCreateHealthstone",
-		middle = "WarlockCreateSoulwell",
-		middleMiss = "noRitualOfSouls",
-	},
-	["Soulstone"] = { right = "WarlockCreateSoulstone", rightMiss = "noCreateSoulstone" },
-}
-
--- Which stealths each macro's own appended line can cast (Food's Stealth Eating, Water's Shadowmeld Drinking).
-local STEALTHS_BY_TYPE = {
-	["Food"] = { STEALTH_SPELL_ID = true, SHADOWMELD_SPELL_ID = true },
-	["Water"] = { SHADOWMELD_SPELL_ID = true },
-}
-
--- Which macros cast Cannibalize (Water only where it restores mana).
-local function CastsCannibalize(typeName)
-	return typeName == "Food" or (typeName == "Water" and ns.CANNIBALIZE_RESTORES_MANA)
-end
-
-local LENGTH_CHARACTERS = {
-	{ label = "Mage or Warlock, Forsaken", conjure = true, corpse = true },
-	{ label = "Rogue, Forsaken", stealth = "STEALTH_SPELL_ID", corpse = true },
-	{ label = "Night Elf", stealth = "SHADOWMELD_SPELL_ID" },
-}
-
--- The item ID with the most digits among every item the data folder holds.
-local function LongestItemID()
-	local longest
-	local function Consider(id)
-		if type(id) == "number" and (not longest or #tostring(id) > #tostring(longest)) then
-			longest = id
-		end
-	end
-	for _, entry in ipairs(ns.DIAGNOSTIC_DATA_SOURCES) do
-		for _, source in ipairs(entry.sources) do
-			local tbl = ns[source.table]
-			if source.kind == "item" and type(tbl) == "table" then
-				if source.collect then
-					for _, found in ipairs(source.collect(tbl)) do
-						Consider(found.id)
-					end
-				else
-					for key, row in pairs(tbl) do
-						Consider(source.rowId(key, row))
-					end
-				end
-			end
-		end
-	end
-	return longest
-end
-
-local function LongestCastName(listName)
-	local longest
-	for _, row in ipairs(ns.CONJURE_SPELLS[listName] or {}) do
-		local name = ConjureCastName(row)
-		if name and (not longest or #name > #longest) then
-			longest = name
-		end
-	end
-	return longest
-end
-
--- Every conjure info the macro's resolver can return for a character who conjures, longest names in.
-local function ConjureVariants(typeName)
-	local shape = CONJURE_SHAPES[typeName]
-	if not shape then
-		return { false }
-	end
-	local rights = { { miss = shape.rightMiss } }
-	local rightName = LongestCastName(shape.right)
-	if rightName then
-		rights[#rights + 1] = { name = rightName, id = 0 }
-	end
-	local middles = { {} }
-	if shape.middle and #(ns.CONJURE_SPELLS[shape.middle] or {}) > 0 then
-		middles = { { miss = shape.middleMiss } }
-		local middleName = LongestCastName(shape.middle)
-		if middleName then
-			middles[#middles + 1] = { name = middleName, id = 0 }
-		end
-	end
-	local variants = {}
-	for _, right in ipairs(rights) do
-		for _, middle in ipairs(middles) do
-			variants[#variants + 1] = {
-				rightName = right.name,
-				rightID = right.id,
-				rightMiss = right.miss,
-				middleName = middle.name,
-				middleID = middle.id,
-				middleMiss = middle.miss,
-			}
-		end
-	end
-	return variants
-end
-
-local function StealthName(typeName, character)
-	local constant = character.stealth
-	if constant and STEALTHS_BY_TYPE[typeName] and STEALTHS_BY_TYPE[typeName][constant] and ns[constant] then
-		return C_Spell.GetSpellName(ns[constant])
-	end
-	return nil
-end
-
-local function CorpseName(typeName, character)
-	if character.corpse and CastsCannibalize(typeName) and ns.CANNIBALIZE_SPELL_ID then
-		return C_Spell.GetSpellName(ns.CANNIBALIZE_SPELL_ID)
-	end
-	return nil
-end
-
-local function Repeat(value, count)
-	local list = {}
-	for index = 1, count do
-		list[index] = value
-	end
-	return list
-end
-
-local function CountUseLines(body)
-	local _, count = string.gsub(body, "/use item:", "")
-	return count
-end
-
---[[
-    One macro's longest body for one character, as (body, shed): shed counts
-    the /use lines the trim dropped, plus one when it dropped Cannibalize.
-]]
-local function LongestBodyFor(definition, character, itemID)
-	local typeName = definition.typeName
-	local useIDs = ns.MULTI_USE_MACRO_TYPES[typeName] and Repeat(itemID, ns.MULTI_USE_MAX_ITEMS) or nil
-	local stackIDs = definition.getStackIDs and Repeat(itemID, ns.MULTI_USE_MAX_ITEMS) or nil
-	local stealth = StealthName(typeName, character)
-	local appendText = stealth and ("\n/cast [nostealth] " .. stealth) or nil
-	local corpse = CorpseName(typeName, character)
-
-	local outOfCombatID, outOfCombatStealth, outOfCombatCorpse
-	local source = definition.outOfCombatTypeName
-	if source then
-		outOfCombatID = itemID
-		outOfCombatStealth = StealthName(source, character)
-		outOfCombatCorpse = CorpseName(source, character)
-	end
-
-	local wantedUses = (useIDs and #useIDs or 1) + (stackIDs and #stackIDs or 0)
-	local best, bestShed
-	local variants = character.conjure and ConjureVariants(typeName) or { false }
-	for _, conjureInfo in ipairs(variants) do
-		local body = ns.BuildStandardBody(
-			definition,
-			itemID,
-			useIDs,
-			stackIDs,
-			conjureInfo or nil,
-			appendText,
-			outOfCombatID,
-			outOfCombatStealth,
-			corpse,
-			outOfCombatCorpse
-		)
-		local shed = wantedUses - CountUseLines(body)
-		if (corpse or outOfCombatCorpse) and not string.find(body, "dead]", 1, true) then
-			shed = shed + 1
-		end
-		if not best or #body > #best then
-			best, bestShed = body, shed
-		end
-	end
-	return best, bestShed
-end
-
-local function AppendWrittenMacros(lines)
-	lines[#lines + 1] = "-- As written now --"
-	for _, typeName in ipairs(SortedKeys(ns.MACRO_CONFIG)) do
-		local macroName = ns.MACRO_CONFIG[typeName].macro
-		if (GetMacroIndexByName(macroName) or 0) > 0 then
-			local length = #(GetMacroBody(macroName) or "")
-			lines[#lines + 1] = string.format(
-				"[%s] %s: %d / %d bytes",
-				length > ns.MACRO_BODY_MAX_LENGTH and "OVER" or "OK  ",
-				typeName,
-				length,
-				ns.MACRO_BODY_MAX_LENGTH
-			)
-		else
-			lines[#lines + 1] = string.format("[--  ] %s: not written", typeName)
-		end
-	end
-end
-
-function ns:BuildMessageLengthReport()
-	local lines = { GetClientHeader(), "" }
-	AppendWrittenMacros(lines)
-
-	lines[#lines + 1] = ""
-	lines[#lines + 1] = "-- Longest build in this locale --"
-	local itemID = LongestItemID()
-	if not itemID then
-		lines[#lines + 1] = "(this data folder holds no items)"
-		return table.concat(lines, "\n")
-	end
-	lines[#lines + 1] = string.format("Longest item ID: %d", itemID)
-
-	local definitions = {}
-	for _, definition in ipairs(ns.REGISTERED_MACRO_DEFINITIONS) do
-		definitions[#definitions + 1] = definition
-	end
-	table.sort(definitions, function(a, b)
-		return a.typeName < b.typeName
-	end)
-	--[[
-	    The worst character is the one whose body sheds the most, then the
-	    longest: a trimmed body always fits, so its length alone hides the trim.
-	]]
-	for _, definition in ipairs(definitions) do
-		local longest, longestShed, longestLabel
-		local differs = false
-		for _, character in ipairs(LENGTH_CHARACTERS) do
-			local body, shed = LongestBodyFor(definition, character, itemID)
-			if longest and #body ~= #longest then
-				differs = true
-			end
-			if not longest or shed > longestShed or (shed == longestShed and #body > #longest) then
-				longest, longestShed, longestLabel = body, shed, character.label
-			end
-		end
-		if not differs then
-			longestLabel = "any character"
-		end
-		lines[#lines + 1] = string.format(
-			"[%s] %s: %d / %d bytes (%s)%s",
-			#longest > ns.MACRO_BODY_MAX_LENGTH and "OVER" or "OK  ",
-			definition.typeName,
-			#longest,
-			ns.MACRO_BODY_MAX_LENGTH,
-			longestLabel,
-			longestShed > 0 and string.format(", trim shed %d line(s)", longestShed) or ""
-		)
-	end
-
-	lines[#lines + 1] = ""
-	lines[#lines + 1] =
-		"Feed Pet, Poisons and Druid Macro Helper bodies read this character's state; see them as written above."
-	return table.concat(lines, "\n")
-end
+-- Shared with Message Length (Localization-Reports.lua), which writes the same /cast names.
+ns.DiagnosticConjureCastName = ConjureCastName
+ns.DiagnosticSortedKeys = SortedKeys
 
 --------------------------------------------------------------------------------
 -- Validate Data Sources

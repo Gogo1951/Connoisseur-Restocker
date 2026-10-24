@@ -600,10 +600,6 @@ local function session(opts)
 	function ns.HasPendingStarterAdds()
 		return false
 	end
-	-- MIGRATION (remove after 2026-10-18): the Blinding Powder name wait, which Restocker-Saved-Migration-Test covers.
-	function ns.NameBlindingPowderRows()
-		return false
-	end
 	function ns.ShowStarterListPopup()
 		staplesOpened = staplesOpened + 1
 	end
@@ -943,7 +939,7 @@ check(
 	table.concat(keepTip, "|")
 )
 check("and hangs off the header's own first column", anchor(header.amountCaption, 1), header.cells.withdraw)
-check("the title bar names the list", text(s.window.title), "Connoisseur Restock List")
+check("the title bar names the list", text(s.window.title), "Connoisseur & Restocker // Restock List")
 
 print("2. The Keep number is yellow while the bags hold fewer, and follows the bags")
 check("22 of 40 pies is short", s.keepIsMarked(8950), true)
@@ -1306,6 +1302,8 @@ s.pickUp(8950)
 fire(s.rowOf(8766).nameButton, "OnReceiveDrag")
 check("an item already listed is left as it was", s.list()[8950].amount, 40)
 check("and still leaves the cursor", s.holding(), nil)
+check("and the add box says it is already there", text(s.window.addPlaceholder), s.L["RESTOCKER_ADD_DUPLICATE"])
+s.ns.ClearRestockAddNotice()
 fire(s.rowOf(8950).removeButton, "OnReceiveDrag")
 check("a drag that carried no item removes nothing", s.list()[8950] ~= nil, true)
 -- Every other control takes a drop the same way, and a click that brought one does nothing else.

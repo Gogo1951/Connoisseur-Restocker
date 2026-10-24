@@ -360,8 +360,13 @@ end
 
     New List and Copy both land here: each makes a list under a generated name
     and opens the rename over it, so the real name is one line of typing away.
+    They pass the list the character was on, and Escape or Cancel then takes
+    the made list back off and returns there, so backing out of a new list
+    leaves nothing behind. Clicking away only ends the rename and keeps the
+    list under its generated name, the way it keeps a plain rename's old name.
 ]]
 local isRenaming = false
+local madeFromList
 
 local function SetRenameShown(bar, shown)
 	bar.selector:SetShown(not shown)
@@ -376,15 +381,27 @@ local function EndRename()
 		return
 	end
 	isRenaming = false
+	madeFromList = nil
 	SetRenameShown(ns.restockWindow.listBar, false)
 end
 
 ns.EndRestockListRename = EndRename
 
-function ns.BeginRestockListRename()
+-- Escape and Cancel: a list New List or Copy just made goes again, and the character returns to its list.
+local function CancelRename()
+	local previousList = madeFromList
+	EndRename()
+	if previousList then
+		ns.DiscardMadeRestockList(previousList)
+	end
+end
+
+-- previousList is the list the character was on when New List or Copy made the current one; nil for a plain rename.
+function ns.BeginRestockListRename(previousList)
 	local bar = ns.restockWindow.listBar
 	ns.CloseRestockMenus()
 	isRenaming = true
+	madeFromList = previousList
 	SetRenameShown(bar, true)
 	bar.renameBox:SetText(ns.restockSettings.currentList or "")
 	bar.renameBox:SetFocus()
@@ -456,7 +473,7 @@ local function CreateRenameControls(bar)
 	box:SetHeight(20)
 	box:SetAutoFocus(false)
 	box:SetScript("OnEnterPressed", CommitRename)
-	box:SetScript("OnEscapePressed", EndRename)
+	box:SetScript("OnEscapePressed", CancelRename)
 	box:SetScript("OnEditFocusLost", EndRename)
 
 	local renameButton = CreateFrame("Button", nil, bar, "UIPanelButtonTemplate")
@@ -472,7 +489,7 @@ local function CreateRenameControls(bar)
 	cancelButton:SetPoint("LEFT", renameButton, "RIGHT", BUTTON_GAP, 0)
 	cancelButton:SetText(CANCEL)
 	ns.FitRestockButton(cancelButton)
-	ns.SetRestockControlClick(cancelButton, EndRename)
+	ns.SetRestockControlClick(cancelButton, CancelRename)
 
 	bar.renameBox = box
 	bar.renameButton = renameButton

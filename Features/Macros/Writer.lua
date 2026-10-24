@@ -1,4 +1,5 @@
 local _, ns = ...
+local GetColor = ns.GetColor
 local L = ns.L
 
 --------------------------------------------------------------------------------
@@ -39,6 +40,27 @@ local function WarnMacroSlots()
 	end
 end
 
+--[[
+    Nothing in the game tells a player the macros exist: they appear silently
+    in a macro tab most players never open. So every creation says where they
+    are, once per update pass however many it made, which in practice is the
+    first login and a macro switched back on. A timer rather than the end of
+    the pass, because the pass is spread across the engine and the custom
+    definitions with no single place that knows it is over.
+]]
+local readyMessagePending = false
+
+local function AnnounceMacrosReady()
+	if readyMessagePending then
+		return
+	end
+	readyMessagePending = true
+	C_Timer.After(1, function()
+		readyMessagePending = false
+		ns.PrintMessage(string.format(L["MESSAGE_MACROS_READY"], GetColor("INFO") .. "/m|r" .. GetColor("TEXT")))
+	end)
+end
+
 function ns.TryCreateMacro(macroName, icon, body)
 	local numGeneral = GetNumMacros()
 	local cap = MAX_ACCOUNT_MACROS or 120
@@ -49,6 +71,7 @@ function ns.TryCreateMacro(macroName, icon, body)
 
 	local ok, newIndex = pcall(CreateMacro, macroName, icon, body)
 	if ok and newIndex then
+		AnnounceMacrosReady()
 		return true
 	end
 	WarnMacroSlots()

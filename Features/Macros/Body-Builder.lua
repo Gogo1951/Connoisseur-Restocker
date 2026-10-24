@@ -200,7 +200,8 @@ end
       <appended block>        -- definition.appendBlock text (Water's Shadowmeld line)
 
     With no item in bags the action line becomes /run ConnoisseurTip("<noItemMiss>")
-    when the class can learn the conjure, else /run ConnoisseurNoItem("<typeName>");
+    when the class can learn the conjure, /run ConnoisseurNoItem("<typeName>",1)
+    when it already knows it, else /run ConnoisseurNoItem("<typeName>");
     an out-of-combat item still goes above it, so that line is only reached in
     combat.
     Ends with the macro-length trim, which sheds the Cannibalize lines first,
@@ -260,7 +261,15 @@ function ns.BuildStandardBody(
 		actionBlock = actionHead .. NoItemStop(corpseCast) .. '/run ConnoisseurTip("' .. conjureInfo.noItemMiss .. '")'
 	else
 		tooltipLine = "#showtooltip item:" .. ns.MACRO_DEFAULT_ITEM_IDS[definition.typeName] .. "\n"
-		actionBlock = actionHead .. NoItemStop(corpseCast) .. '/run ConnoisseurNoItem("' .. definition.typeName .. '")'
+		-- A class that knows the spell that makes this item is told to Right-Click for more (the ",1").
+		local canMake = conjureInfo and conjureInfo.rightName and ",1" or ""
+		actionBlock = actionHead
+			.. NoItemStop(corpseCast)
+			.. '/run ConnoisseurNoItem("'
+			.. definition.typeName
+			.. '"'
+			.. canMake
+			.. ")"
 	end
 
 	if outOfCombatID then

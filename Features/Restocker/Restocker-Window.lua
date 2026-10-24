@@ -502,7 +502,7 @@ local function CreateTitle(addonFrame)
 	local title = addonFrame:CreateFontString(nil, "OVERLAY")
 	title:SetFontObject("GameFontHighlightLarge")
 	title:SetPoint("CENTER", addonFrame.TitleBg, "CENTER", 0, 0)
-	title:SetText(L["RESTOCKER_WINDOW_TITLE"])
+	title:SetText(L["ADDON_TITLE"] .. " // " .. L["RESTOCKER_WINDOW_TITLE"])
 	addonFrame.title = title
 	return title
 end

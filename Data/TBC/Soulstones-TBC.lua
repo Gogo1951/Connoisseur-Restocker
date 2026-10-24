@@ -24,7 +24,7 @@ ns.SOULSTONE_BUFF_SPELL_IDS = {
 How We Got the Data
 
 Last Validated
-	2026-10-16, TBC Anniversary 2.5.6.70006
+	2026-10-23, TBC Anniversary 2.5.6.70006
 
 Notes
 	- ns.SOULSTONES holds the warlock's soulstones, read by the item cache and the Readiness Report. Rank Value is the stone's resurrection health, used as a sortable preference score (Minor < Lesser < Soulstone < Greater < Major < Master).
@@ -45,4 +45,7 @@ wago.tools
 	https://wago.tools/db2/SpellEffect?build=2.5.6.70006
 	https://wago.tools/db2/SpellMisc?build=2.5.6.70006
 	https://wago.tools/db2/SpellDuration?build=2.5.6.70006
+
+QuestieDB
+	None.
 ]]

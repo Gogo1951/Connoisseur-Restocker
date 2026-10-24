@@ -7,22 +7,26 @@ local GetColor = ns.GetColor
 --------------------------------------------------------------------------------
 
 --[[
-    Player-only chat print: branded add-on name, separator, then the message
-    body. This add-on sends no cross-player chat, so there is no whisper/group
-    announce path here.
+    Player-only chat print: the add-on's short name, separator, then the
+    message body ("C & R // ..."). BuildPrintLine returns the line without
+    printing it, so the options panels' Example lines draw exactly what chat
+    shows. This add-on sends no cross-player chat, so there is no
+    whisper/group announce path here.
 ]]
+function ns.BuildPrintLine(text)
+	return GetColor("INFO")
+		.. L["ADDON_SHORT_NAME"]
+		.. "|r "
+		.. GetColor("SEPARATOR")
+		.. "//"
+		.. "|r "
+		.. GetColor("TEXT")
+		.. text
+		.. "|r"
+end
+
 function ns.PrintMessage(text)
-	print(
-		GetColor("INFO")
-			.. L["ADDON_TITLE"]
-			.. "|r "
-			.. GetColor("SEPARATOR")
-			.. "//"
-			.. "|r "
-			.. GetColor("TEXT")
-			.. text
-			.. "|r"
-	)
+	print(ns.BuildPrintLine(text))
 end
 
 --------------------------------------------------------------------------------

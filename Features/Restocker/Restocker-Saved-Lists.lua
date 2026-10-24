@@ -37,23 +37,6 @@ function ns.GetCharacterKey()
 	return (ns.GetPlayerFullName() or "Unknown") .. RealmSuffix()
 end
 
---[[
-    Every recorded character's class token, by the name AceDB keys the
-    character under (ns.ProfileNameForCharacter). Read off the records the
-    Inventory Report keeps (ns.db.global.inventory, refreshed at every login
-    by Features/Inventory-Report.lua), so a character's class is known from its
-    first login on a build that keeps that record.
-]]
-local function ClassesByProfileName()
-	local classes = {}
-	for _, record in pairs(ns.db.global.inventory) do
-		if type(record) == "table" and record.name and record.realm then
-			classes[ns.ProfileNameForCharacter(record.name, record.realm)] = record.class
-		end
-	end
-	return classes
-end
-
 --------------------------------------------------------------------------------
 -- Add List
 --------------------------------------------------------------------------------
@@ -170,7 +153,7 @@ end
     character whose profile uses it. name is what to show: the bare name for a
     character on this realm, Name-Realm for one elsewhere. class is the token
     its name is colored by, or nil when the add-on has not recorded it
-    (ClassesByProfileName above). othersOnly leaves this character out, for the
+    (ns.GetClassesByProfileName in Utilities). othersOnly leaves this character out, for the
     delete confirm, which names who else loses the list.
 
     Read from AceDB's own record of which profile each character is on
@@ -193,7 +176,7 @@ function ns.GetRestockListUsers(listName, othersOnly)
 	local ownProfileKey = ns.GetCharacterProfileName() or ns.db.keys.char
 	local ownRealm = GetRealmName()
 	local profiles = ns.db.sv.profiles
-	local classes = ClassesByProfileName()
+	local classes = ns.GetClassesByProfileName()
 	for profileKey, profileName in pairs(ns.db.sv.profileKeys) do
 		local name, realm = ns.SplitCharacterProfileName(profileKey)
 		local profile = profiles[profileName]
@@ -354,17 +337,20 @@ end
     The "New List" entry, on the list selector's menu and the Manage Lists menu. Starts a
     fresh list seeded with the class name (numbered on collision, like every
     new list), switches to it, then opens the rename over it so a different
-    name is one line of typing away.
+    name is one line of typing away. The rename is told the list the character
+    left, so Cancel can take the new one back (ns.DiscardMadeRestockList).
 ]]
 function ns.CreateRestockList()
+	local previousList = ns.restockSettings.currentList
 	ns.AddRestockList(FreeClassListName(ns.restockSettings))
-	ns.BeginRestockListRename()
+	ns.BeginRestockListRename(previousList)
 end
 
 --[[
     The Manage Lists menu's Copy entry. Clones the active list into a new, uniquely named one
     ("<name> Copy", then "<name> Copy 2", ...), switches to the clone, and opens
-    the rename over it so the real name can be typed immediately.
+    the rename over it so the real name can be typed immediately, told the
+    source list so Cancel can take the clone back as it does a new list.
 ]]
 function ns.CloneCurrentRestockList()
 	local settings = ns.restockSettings
@@ -389,12 +375,29 @@ function ns.CloneCurrentRestockList()
 	menu:Show()
 	ns.UpdateRestockList()
 	ns.UpdateRestockListWidgets()
-	ns.BeginRestockListRename()
+	ns.BeginRestockListRename(sourceName)
 
 	-- A bank run in progress works from the list in use, so it starts over on the new one.
 	if ns.bankIsOpen then
 		ns.OnRestockerBankOpen()
 	end
+end
+
+--[[
+    Backing out of the name a new list was given (Escape or Cancel in the
+    rename that New List and Copy open): the list they just made goes, with no
+    confirm since nothing was put on it but what Copy took from the list it
+    came from, and the character returns to previousList, which reruns a bank or
+    merchant restock the way any switch does.
+]]
+function ns.DiscardMadeRestockList(previousList)
+	local settings = ns.restockSettings
+	local madeList = settings.currentList
+	if madeList == previousList or settings.lists[previousList] == nil then
+		return
+	end
+	settings.lists[madeList] = nil
+	ns.SwitchRestockList(previousList)
 end
 
 --------------------------------------------------------------------------------
