@@ -7,7 +7,15 @@ end
 -- Brand
 --------------------------------------------------------------------------------
 
-L["ADDON_TITLE"] = "Connoisseur"
+--[[
+    The add-on has two names. ADDON_TITLE, the full name, is for window
+    titles and anywhere the add-on is talked about; ADDON_SHORT_NAME is for
+    tooltips and the chat prints ("C & R // ..."). Both are proper nouns and
+    stay as written in every locale, as does the full name inside any
+    sentence below.
+]]
+L["ADDON_TITLE"] = "Connoisseur & Restocker"
+L["ADDON_SHORT_NAME"] = "C & R"
 
 --------------------------------------------------------------------------------
 -- Macro Names
@@ -74,10 +82,25 @@ L["MESSAGE_BUG_REPORT"] =
 	"看来你发现了一个错误！%s (%s) 无法在 %s > %s (%s) 使用。请将此问题报告给我们，以便修复。谢谢！%s"
 L["MESSAGE_NO_ITEM"] = "背包中未找到合适的%s。"
 L["MESSAGE_MACRO_SLOTS_FULL"] =
-	"由于你的宏栏位已满，部分 Connoisseur 宏未能创建。请删除不再使用的宏以腾出栏位，或在 设置选项 > 插件 > Connoisseur > 宏 中关闭不需要的 Connoisseur 宏。"
+	"由于你的宏栏位已满，部分 Connoisseur & Restocker 宏未能创建。请删除不再使用的宏以腾出栏位，或在 设置选项 > 插件 > Connoisseur & Restocker > 宏 中关闭不需要的 Connoisseur & Restocker 宏。"
+--[[
+    Printed once after the add-on creates one or more of its macros, so a new
+    player learns they exist. %s is "/m", the game's own macro command, colored
+    at the call site. "General" is the macro window's tab for account-wide
+    macros; use the client's own name for that tab. The macro names are this
+    locale's own MACRO_FOOD and MACRO_WATER values, written exactly as this
+    locale ships them.
+]]
+L["MESSAGE_MACROS_READY"] =
+	'你的宏已准备就绪。输入 %s，打开"通用宏"标签页，然后把 - 食物、- 水 等宏拖到你的动作条上。'
+-- The mini-map button's Right-Click and Middle-Click. %s is the item's link.
+L["MESSAGE_IGNORE_ADDED"] = "%s 已加入此角色的忽略列表。"
+-- %d is how many items the Middle-Click took off the list: exactly one, or two or more.
+L["MESSAGE_IGNORE_CLEARED_ONE"] = "已从此角色的忽略列表中清除 1 件物品。"
+L["MESSAGE_IGNORE_CLEARED_MANY"] = "已从此角色的忽略列表中清除 %d 件物品。"
 
 L["CHAT_LOADED"] =
-	"版本 %s。设置（包括禁用此消息的选项）位于 设置选项 > 插件 > Connoisseur。喜欢这个插件吗？告诉朋友，在 CurseForge 上收藏它，或在它的 GitHub 页面上点击 Star。(="
+	"版本 %s。设置（包括禁用此消息的选项）位于 设置选项 > 插件 > Connoisseur & Restocker。喜欢这个插件吗？告诉朋友，在 CurseForge 上收藏它，或在它的 GitHub 页面上点击 Star。(="
 
 L["CHAT_OPTIONS_IN_COMBAT"] = "出于安全考虑，战斗中无法打开选项界面。"
 
@@ -150,7 +173,7 @@ L["READINESS_UNSPENT_TALENTS_MANY"] = "%d 个未使用的天赋点"
 -- ConnoisseurTip Messages
 --------------------------------------------------------------------------------
 
--- Printed in chat by macro bodies via /run ConnoisseurTip("key") or ConnoisseurTipIf. See Features/Macros/Runtime.lua.
+-- Printed in chat by macro bodies via /run ConnoisseurTip("key") or ConnoisseurTipIf, and TIP_EMPTY_* via ConnoisseurNoItem. See Features/Macros/Runtime.lua.
 
 L["TIP_PET_NO_FOOD"] = "你目前没有任何对宠物有用的食物。"
 -- The four %s are the client's names for Call Pet, Dismiss Pet, Feed Pet and Revive Pet, in that order.
@@ -160,6 +183,16 @@ L["TIP_NO_HAND_POISON"] = "这把武器所选的毒药已用完。"
 
 -- %s is the localized spell name, resolved at print time.
 L["TIP_DONT_KNOW_SPELL"] = "你目前还没有学会%s。"
+
+--[[
+    A Mage's Food, Water or Mana Gem macro, or a Warlock's Healthstone or
+    Soulstone macro, pressed with none in the bags by a character who knows the
+    spell that makes it. { LABEL_* name, MACRO_* name }: "No Water in your
+    bags. Right-Click - Water to conjure more." Mages conjure, warlocks create,
+    the same verbs as NOTE_CONJURE and NOTE_CREATE.
+]]
+L["TIP_EMPTY_CONJURE"] = "你的背包里没有%s了。右键点击 %s 制造更多。"
+L["TIP_EMPTY_CREATE"] = "你的背包里没有%s了。右键点击 %s 制造一颗。"
 
 --------------------------------------------------------------------------------
 -- Minimap Tooltip
@@ -240,7 +273,7 @@ L["MINIMAP_RESTOCKER_EMPTY"] = "你的清单是空的。"
 L["MENU_RESTOCKER"] = "Restocker 清单"
 L["MENU_RESTOCKER_DESCRIPTION"] = "购买你清单上的物品，并在银行存取。"
 L["MENU_RESTOCKER_KEYBIND"] = "Shift + 右键点击"
-L["MENU_OPTIONS"] = "Connoisseur 选项"
+L["MENU_OPTIONS"] = "C & R 选项"
 L["MENU_OPTIONS_KEYBIND"] = "Shift + 中键点击"
 
 --------------------------------------------------------------------------------
@@ -366,25 +399,23 @@ L["MODE_MAX_LEVEL"] = "满级时"
 
 --[[
     The block Features/Inventory-Report.lua adds under an item's own tooltip
-    lines. Its header is "Connoisseur & Restocker // Inventory Report": the
-    brand below, filled with ADDON_TITLE and TAB_RESTOCKER, then the title, in
-    the chat prints' branded colors. Under it, each line is a label on the left
-    with its count at the right edge: Bags, Bank, one line per other character
-    (the client's own character names, so no keys here), then Total.
+    lines. Its header is "C & R // Inventory Report": ADDON_SHORT_NAME, then the
+    title, in the chat prints' branded colors, with the total at its right
+    edge. Under it, one line per character, this one first: the name on the
+    left (the client's own character names, so no keys here), its counts at
+    the right edge.
 
-    Keep the labels to a word: they share a line with a number, and the tooltip
-    is as wide as its longest line. The Bags count of a Restock List item is the
-    have/keep ratio MINIMAP_RESTOCKER_ITEM_COUNT prints.
+    Keep the counts short: they share a line with a name, and the tooltip is
+    as wide as its longest line.
 ]]
--- { add-on name, feature name }
-L["INVENTORY_REPORT_BRAND"] = "%s & %s"
 L["INVENTORY_REPORT_TITLE"] = "库存报告"
-L["INVENTORY_REPORT_BAGS"] = "背包"
-L["INVENTORY_REPORT_BANK"] = "银行"
--- In place of the Bank count, muted, until this character's bank has been opened once with the add-on running.
-L["INVENTORY_REPORT_BANK_UNKNOWN"] = "未知"
--- Everything above it added up: this character and every other one on the realm.
-L["INVENTORY_REPORT_TOTAL"] = "总计"
+-- A character's bags, then its bank: "Bag 39, Bank 1". The words show gray and each count white.
+L["INVENTORY_REPORT_COUNTS"] = "背包 %s，银行 %s"
+-- The same row when only one of the two holds some; a place holding none is left out.
+L["INVENTORY_REPORT_BAG"] = "背包 %s"
+L["INVENTORY_REPORT_BANK"] = "银行 %s"
+-- On the header's right: every character on the realm added up, the word gray and the count white.
+L["INVENTORY_REPORT_TOTAL"] = "总计 %s"
 
 --------------------------------------------------------------------------------
 -- Options Panel
@@ -401,14 +432,20 @@ L["OPTIONS_WELCOME_MESSAGE_DESCRIPTION"] = "登录时在聊天框中输出欢迎
 L["OPTIONS_MINIMAP_BUTTON"] = "启用小地图按钮"
 L["OPTIONS_MINIMAP_BUTTON_DESCRIPTION"] = "显示小地图按钮。"
 
--- Features: each feature's master switch, also atop its own panel.
+-- Features: each feature's master switch, also on the panel that configures it.
 L["OPTIONS_FEATURES_HEADER"] = "功能"
 L["OPTIONS_MACROS_ENABLE"] = "启用宏更新"
 L["OPTIONS_MACROS_ENABLE_DESCRIPTION"] =
-	"随着背包变化，让你的 Connoisseur 宏始终指向你最好的物品。关闭后，每个宏都保持最后的状态。"
+	"随着背包变化，让你的 Connoisseur & Restocker 宏始终指向你最好的物品。关闭后，每个宏都保持最后的状态。"
 L["OPTIONS_RESTOCKER_ENABLE"] = "启用 Restocker"
 L["OPTIONS_RESTOCKER_ENABLE_DESCRIPTION"] =
 	"根据你的补货清单购买物品并存入银行，并在存货不足时提醒你。关闭后会停用全部功能，包括补货清单窗口。"
+-- Mirrors Thanks for the Buff's OPTIONS_FEATURES_NOTE.
+L["OPTIONS_FEATURES_NOTE"] =
+	'WoW Forever 的改动可能会促使我们重新调整"Connoisseur & Restocker"的结构。它与我们的另一个插件"Thanks for the Buff"已经有不少可能重叠的地方，所以有些功能可能会调整位置，或者全部合并成一个更大的插件，也许叫"Buttons, Buffs, & Bags"。欢迎在 Discord、CurseForge 或 GitHub 上告诉我们你的想法。谢谢！'
+
+-- The label before a panel's Example line, which shows a chat print as it will arrive.
+L["SAMPLE_EXAMPLE"] = "示例：%s"
 
 --[[
     /Commands. Both halves of each line are locale keys: the literal, which
@@ -422,7 +459,7 @@ L["RESTOCKER_COMMAND"] = "/crs"
 L["RESTOCKER_COMMAND_DESCRIPTION"] = "打开你的补货清单。"
 
 -- Options: Feedback & Support Panel
-L["OPTIONS_LEVEL_UP_TITLE"] = "帮助 Connoisseur 升级"
+L["OPTIONS_LEVEL_UP_TITLE"] = "帮助 Connoisseur & Restocker 升级"
 L["OPTIONS_LEVEL_UP_INTRO"] =
 	"这个插件由热爱这款游戏、希望让每个人都尽可能玩得开心的玩家打造。我们永远不会请求捐款。真正让我们满足的，是知道我们的工作让你的游戏体验更好了一点。如果确实如此，我们很想听你说说！"
 L["OPTIONS_LEVEL_UP_WAYS"] = "以下是你可以帮助我们触达更多玩家的几种方式。"
@@ -434,7 +471,7 @@ L["OPTIONS_LEVEL_UP_CURSEFORGE"] =
 	"• 在 CurseForge 上收藏：打开下方的 CurseForge 链接，登录后点击 Download 按钮下方的星标。收藏能帮助更多玩家发现这个插件。"
 L["OPTIONS_LEVEL_UP_GITHUB"] =
 	"• 在 GitHub 上点 Star：打开下方的 GitHub 链接，登录后点击右上角的 Star。星标能帮助项目获得更多免费开发者工具的资格。"
-L["OPTIONS_LEVEL_UP_THANKS"] = "感谢你选择 Connoisseur！"
+L["OPTIONS_LEVEL_UP_THANKS"] = "感谢你选择 Connoisseur & Restocker！"
 
 L["OPTIONS_FEEDBACK"] = "反馈与支持"
 L["OPTIONS_FEEDBACK_LINKS_HEADER"] = "反馈与支持链接"
@@ -449,27 +486,34 @@ L["OPTIONS_VERSION"] = "版本 %s"
     Macros panel. TAB_MACROS is the panel's label in the settings tree and the
     title on the page; OPTIONS_MACROS_DESCRIPTION is the intro beneath it, which
     orients the player to the page's two halves -- which macros exist, then how
-    each one behaves. The Enable Macros header below titles the first section,
-    after the page's two headerless toggles, Enable Macro Updates and Macro
-    Names on Buttons.
+    each one behaves. The Which Macros to Create header below titles the first
+    section, after the page's two headerless toggles, Enable Macro Updates and
+    Macro Names on Buttons.
 ]]
 L["TAB_MACROS"] = "宏"
 L["OPTIONS_MACROS_DESCRIPTION"] =
-	"Connoisseur 会为每种消耗品各建立一个宏，并随着背包变化保持更新，让你动作条上的按钮始终取用你身上最好的物品。请在下方选择要创建哪些宏，然后设置每个宏如何挑选物品。"
+	"Connoisseur & Restocker 会为每种消耗品各建立一个宏，并随着背包变化保持更新，让你动作条上的按钮始终取用你身上最好的物品。请在下方选择要创建哪些宏，然后设置每个宏如何挑选物品。"
 
 -- Macro Names on Buttons
 L["OPTIONS_MACRO_NAMES"] = "在按钮上显示宏名称"
 L["OPTIONS_MACRO_NAMES_DESCRIPTION"] =
-	"在你的动作条按钮上显示宏名称文字，Connoisseur 默认会隐藏这些文字。"
+	"在你的动作条按钮上显示宏名称文字，Connoisseur & Restocker 默认会隐藏这些文字。"
 
--- Enable Macros
-L["OPTIONS_ENABLE_MACROS_HEADER"] = "启用宏"
-L["OPTIONS_ENABLE_MACROS_DESCRIPTION"] =
-	"选择 Connoisseur 要创建并维护哪些宏。关闭某个宏也会将其移除。"
 --[[
-    Hover text on each Enable Macros toggle, whose own label names the macro.
-    It says "this macro" because a LABEL_* is not every macro's name: Feed Pet's
-    label is Pet Food.
+    Which Macros to Create. "General" in the description is the Macros
+    window's tab for account-wide macros; use the client's own name for it. The
+    button under the checkboxes opens that window.
+]]
+L["OPTIONS_MACROS_TO_CREATE_HEADER"] = "要创建的宏"
+L["OPTIONS_ENABLE_MACROS_DESCRIPTION"] =
+	'选择 Connoisseur & Restocker 要创建并维护哪些宏。关闭某个宏也会将其移除。它们位于宏界面的"通用宏"标签页中，可直接拖到你的动作条上。'
+L["OPTIONS_OPEN_MACRO_WINDOW"] = "打开宏界面"
+L["OPTIONS_OPEN_MACRO_WINDOW_DESCRIPTION"] =
+	'打开游戏的宏界面并切换到"通用宏"标签页，这些宏就在那里。'
+--[[
+    Hover text on each Which Macros to Create toggle, whose own label names
+    the macro. It says "this macro" because a LABEL_* is not every macro's
+    name: Feed Pet's label is Pet Food.
 ]]
 L["OPTIONS_MACRO_TOGGLE_DESCRIPTION"] = "创建并维护此宏，取消勾选时会将其移除。"
 
@@ -650,12 +694,19 @@ L["OPTIONS_IGNORE_LIST_DESCRIPTION"] =
 	"被忽略的物品永远不会被任何宏选用。食物、水、药水，任何东西都一样。全局列表对所有角色生效；角色列表只对该角色生效。右键点击小地图按钮可忽略你当前的最佳食物。"
 L["OPTIONS_IGNORE_GLOBAL"] = "全局"
 L["OPTIONS_IGNORE_PROMOTE_DESCRIPTION"] = "将此物品移至全局列表，使其在所有角色上都被忽略。"
+L["OPTIONS_IGNORE_ADD_FROM_BAGS"] = "从背包添加"
+L["OPTIONS_IGNORE_ADD_FROM_BAGS_DESCRIPTION"] =
+	"从你携带的物品中任选一件。打开选项界面时背包会关闭，所以这里代替了把物品拖到此处的操作。"
 L["OPTIONS_IGNORE_ADD_ID"] = "按物品 ID 添加"
 L["OPTIONS_IGNORE_ADD_ID_DESCRIPTION"] =
 	"输入物品 ID，或在此输入框处于焦点时按住 Shift + 点击聊天中的物品链接。"
 L["OPTIONS_IGNORE_ADD_ID_INVALID"] = "输入物品 ID，或按住 Shift + 点击聊天中的物品链接。"
 L["OPTIONS_IGNORE_REMOVE"] = "移除"
 L["OPTIONS_IGNORE_EMPTY"] = "此列表为空。"
+L["OPTIONS_IGNORE_CLEAR"] = "清空列表"
+L["OPTIONS_IGNORE_CLEAR_DESCRIPTION"] =
+	"移除此列表中的所有物品。列表为空的角色会从左侧列表中消失，除非是你当前正在玩的角色。"
+L["OPTIONS_IGNORE_CLEAR_CONFIRM"] = "移除此列表中的所有物品？此操作无法撤销。"
 -- %d is the item ID, shown while the client is still resolving the item.
 L["LOADING_ITEM"] = "正在载入 ID：%d"
 
@@ -735,7 +786,7 @@ L["OPTIONS_INVENTORY_REPORT_DESCRIPTION"] =
 ]]
 L["OPTIONS_RESTOCKER_PRAISE_HEADER"] = "致谢"
 L["OPTIONS_RESTOCKER_PRAISE"] =
-	"我一直很喜欢 Restocker，很感激能有机会让它在 Connoisseur 中延续下去。非常感谢编写最初 Auto Restocker 的 ChiliFajita，以及在经典怀旧服与熊猫人之谜期间一直维护它的 kvakvs 和 guardycmw。"
+	"我一直很喜欢 Restocker，很感激能有机会让它在 Connoisseur & Restocker 中延续下去。非常感谢编写最初 Auto Restocker 的 ChiliFajita，以及在经典怀旧服与熊猫人之谜期间一直维护它的 kvakvs 和 guardycmw。"
 
 -- Readiness Report
 L["TAB_READINESS_REPORT"] = "就绪报告"
@@ -806,7 +857,7 @@ L["OPTIONS_READINESS_OFF_HAND_DESCRIPTION"] =
 ]]
 L["OPTIONS_READINESS_EXPIRING"] = "增益到期时间少于"
 L["OPTIONS_READINESS_EXPIRING_DESCRIPTION"] =
-	"列出你身上所有即将到期的增益，而不仅是 Connoisseur 施加的那些；此设置与宏页面中的增益重新应用相互独立。"
+	"列出你身上所有即将到期的增益，而不仅是 Connoisseur & Restocker 施加的那些；此设置与宏页面中的增益重新应用相互独立。"
 -- %s is a whole or half number of minutes.
 L["OPTIONS_READINESS_EXPIRING_MINUTES"] = "%s 分钟"
 -- The one-minute entry alone; one plural template cannot render it grammatically.
@@ -856,11 +907,11 @@ L["RESTOCKER_PROFILE_EXISTS"] = '已存在名为"%s"的清单。'
 ]]
 L["RESTOCKER_UNKNOWN_ITEM"] = "没有 ID 为 %d 的物品。"
 L["RESTOCKER_BANK_NOT_OPEN"] = "银行未打开。"
-L["RESTOCKER_DISABLED"] = "Restocker 已关闭。请在 设置选项 > 插件 > Connoisseur 中开启。"
+L["RESTOCKER_DISABLED"] = "Restocker 已关闭。请在 设置选项 > 插件 > Connoisseur & Restocker 中开启。"
 --[[
     %s is the /crs slash command, colored at the call site. Only the bank flow
     prints this, so the Shift hint names the bank; Shift is read as the window
-    opens (ns.OnRestockerBankOpen), not stored as a preference.
+    opens (ns.OnRestockerBankFrameOpened), not stored as a preference.
 ]]
 L["RESTOCKER_COMPLETE"] =
 	"补货完成。打开银行时按住 Shift 可跳过补货。输入 %s 编辑你的补货清单。"
@@ -956,13 +1007,19 @@ L["RESTOCKER_RESTOCKED_PARTIAL_ONE"] = "有 1 项补货订单仅部分完成。"
 L["RESTOCKER_RESTOCKED_PARTIAL_MANY"] = "有 %d 项补货订单仅部分完成。"
 -- Printed after the counts above when the bags ran out of room before every order was bought.
 L["RESTOCKER_BAGS_FULL_PARTIAL"] = "背包在全部购买完成前就已装满。"
--- Printed after the counts above when gold ran out, or the Gold Reserve was reached, before every order was bought.
+-- Printed after the counts above when gold ran out before every order was bought, while the Gold Reserve is off.
 L["RESTOCKER_OUT_OF_GOLD"] = "金币不足，无法完成补货。"
--- RESTOCKER_OUT_OF_GOLD's line while the Gold Reserve is on, whole so each locale joins its sentences its own way. %s is the reserve with the gold coin.
+--[[
+    RESTOCKER_OUT_OF_GOLD's line while the Gold Reserve is on, whole so each
+    locale joins its sentences its own way. %s is the reserve with the gold
+    coin. Nothing waits at this merchant: the next merchant visit buys whatever
+    fits above the reserve, which is what the second sentence says.
+]]
 L["RESTOCKER_OUT_OF_GOLD_RESERVE"] =
-	"补货已暂停；金币不足。一旦能在不动用你的储备（%s）的情况下完成补货订单，补货就会继续。"
+	"已在你的金币储备（%s）处停止购买。剩下的会在你下次来访、有多余金币时购买。"
 
 -- /crs help lines. The command literals stay in code; these are the descriptions, and the show line reuses RESTOCKER_COMMAND_DESCRIPTION.
+
 -- Stands for the list name the player types after a /crs profile subcommand.
 L["RESTOCKER_HELP_NAME_PLACEHOLDER"] = "[名称]"
 L["RESTOCKER_HELP_PROFILE_ADD"] = "添加一个以该名称命名的清单。"
@@ -974,28 +1031,34 @@ L["RESTOCKER_HELP_PROFILE_USE"] = "将此角色切换到该名称的清单。"
 --[[
     Starter List pop-up, the staples window: offers staples at login when the
     Restock List is empty, and on demand from the Restock List window's Pick
-    Staples button (Features/Restocker/Restocker-Starter-List.lua). The six
+    Staples button. The staples logic is in
+    Features/Restocker/Restocker-Starter-List.lua, the window in
+    Options/Options-Starter-List-Popup.lua. The six
     food staples reuse the DIET_ keys above, so each food row carries the
     client's own pet diet name.
 
-    The title is its own, and carries the add-on's name: at login this window
-    opens with nothing else of Connoisseur's on screen, so its title bar is
+    The title is its own, and the call site puts the add-on's full name in
+    front of it (ADDON_TITLE // STARTER_POPUP_TITLE): at login this window
+    opens with nothing else of the add-on's on screen, so its title bar is
     all that says whose it is.
 
     The intro is one paragraph: an opening sentence that answers to how the
-    window was reached (EMPTY over an empty list, STOCKED over one that has
-    items), then HOW, which says what a check does. The two are run together
-    with a space at the call site, so each has to stand as whole sentences.
+    window was reached (LOGIN when it opened by itself at login, which checks
+    a few staples before it opens; otherwise EMPTY over an empty list and
+    STOCKED over one that has items), then HOW, which says what a check
+    does. The two are run together with a space at the call site, so each
+    has to stand as whole sentences.
     The way back in (COMMAND_HINT) is a second paragraph, shown only when the
     window opened by itself at login; from the Pick Staples button the list it
     names is open right behind it.
 ]]
-L["STARTER_POPUP_TITLE"] = "Connoisseur 基础物资"
+L["STARTER_POPUP_TITLE"] = "基础物资"
+L["STARTER_POPUP_INTRO_LOGIN"] = "我们已为你的职业勾选了一些基础物资，帮你快速上手。"
 L["STARTER_POPUP_INTRO_EMPTY"] = "你的补货清单是空的，我们来添加一些物品好让你上手。"
 -- Shown instead when the window is opened over a list that already has items on it.
 L["STARTER_POPUP_INTRO_STOCKED"] = "挑选你想保持备足的基础物资。"
 L["STARTER_POPUP_INTRO_HOW"] =
-	"你勾选的一切都会在你打开商人或银行时自动补足。常规物资会随着等级提升自动升级，所以你手上永远是当前最好的。"
+	"你勾选的一切都会在你打开商人或银行时自动补足。大多数基础物资会随着等级提升自动升级，所以你手上永远是当前最好的。"
 -- %s is the /crs slash command, colored at the call site.
 L["STARTER_POPUP_COMMAND_HINT"] = "你随时可以输入 %s 来调整这份清单，或稍后添加更多物品。"
 --[[
@@ -1020,7 +1083,7 @@ L["STARTER_POPUP_REAGENTS_HEADER"] = "材料与工具"
 L["STARTER_POPUP_POISONS_HEADER"] = "毒药"
 -- %s is the client's name for the Rogue class, rogue-colored; the spaced colon is deliberate.
 L["STARTER_POPUP_POISONS_NOTE"] =
-	"%s ：将成品毒药加入你的清单，Connoisseur 会在任何出售全部所需材料的商人处自动购买这些材料。"
+	"%s ：将成品毒药加入你的清单，Connoisseur & Restocker 会在任何出售全部所需材料的商人处自动购买这些材料。"
 --[[
     Checkbox tooltips: { item name, amount }. The first is for ladder items;
     the second for single-tier reagents, which never upgrade.
@@ -1045,8 +1108,12 @@ L["STARTER_POPUP_COUNT_DESCRIPTION"] =
 L["STARTER_POPUP_DISMISS"] = "不再为此角色显示"
 L["STARTER_POPUP_DISMISS_DESCRIPTION"] = "登录时即使补货清单为空，也不再显示这些建议。"
 
--- Restock List window UI. The title names what the window holds; the feature that acts on it stays "Restocker".
-L["RESTOCKER_WINDOW_TITLE"] = "Connoisseur 补货清单"
+--[[
+    Restock List window UI. The title names what the window holds, after the
+    add-on's full name (ADDON_TITLE // RESTOCKER_WINDOW_TITLE); the feature
+    that acts on it stays "Restocker".
+]]
+L["RESTOCKER_WINDOW_TITLE"] = "补货清单"
 L["RESTOCKER_FILTER_PLACEHOLDER"] = "筛选物品……"
 L["RESTOCKER_FILTER_CLEAR_TOOLTIP"] = "清除"
 L["RESTOCKER_ADD_BUTTON"] = "添加"
@@ -1074,6 +1141,8 @@ L["RESTOCKER_ADD_PLACEHOLDER"] = "拖入物品或输入物品 ID"
     item behind it, shows the same way.
 ]]
 L["RESTOCKER_ADD_NOT_FOUND"] = "请改为输入物品 ID。"
+-- Written into the add box the same way, when the item dropped or typed is already on the list.
+L["RESTOCKER_ADD_DUPLICATE"] = "已在此清单中。"
 --[[
     The bag menu on the control row, between the filter and the add box. The
     caption is all the closed menu shows and is its tooltip's title; it has
@@ -1150,7 +1219,7 @@ L["RESTOCKER_DELETE_LIST_FINAL"] = "此操作无法撤销。"
 ]]
 L["RESTOCKER_UPGRADE_TOOLTIP_TITLE"] = "随等级升级"
 L["RESTOCKER_UPGRADE_TOOLTIP_BODY"] =
-	"允许 Connoisseur 在你升级时，将食物、水、弹药、毒药、药水和职业施法材料升级为更好的物品。"
+	"允许 Connoisseur & Restocker 在你升级时，将食物、水、弹药、毒药、药水和职业施法材料升级为更好的物品。"
 
 --[[
     The band labels drawn over the Bank and Merchant column groups, and the
@@ -1301,7 +1370,7 @@ L["RESTOCKER_REPUTATION_TOOLTIP_TITLE"] = "所需商人声望"
     last sentence names the dash; "Any" is still the menu's first entry.
 ]]
 L["RESTOCKER_REPUTATION_TOOLTIP_DISCOUNTS"] =
-	"点击设置 Connoisseur 向商人购买前所需的声望等级；声望还会降低价格：%s 5%%，%s 10%%，%s 15%%，%s 20%%。短横线表示向任何商人购买。"
+	"点击设置 Connoisseur & Restocker 向商人购买前所需的声望等级；声望还会降低价格：%s 5%%，%s 10%%，%s 15%%，%s 20%%。短横线表示向任何商人购买。"
 
 --[[
     Why a cell cannot be set on its row: the tooltip a dimmed cell shows under
