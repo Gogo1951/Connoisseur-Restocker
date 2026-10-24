@@ -34,6 +34,18 @@ Macros that automatically use your best food, water, potions, healthstones, band
 
 ## Tips & Tricks
 
+### Restocker
+
+* **Build your list in seconds, stay supplied forever.** From level 6, the Staples window pops up at login while your Restock List is empty. Tick the staples you carry (food, water, ammo, poisons, class reagents, even your Hearthstone), pick how many stacks of each, and you're done. `/crs` opens the list any time, and you can drop in anything else from your bags.
+* **Your list levels with you.** Food, water, ammo, poisons, potions, and class reagents climb their upgrade paths as you level, and every swap is announced in chat. Refreshing Spring Water becomes Ice Cold Milk at 5, Melon Juice at 15, Sweet Nectar at 25, and so on.
+* **Rogues get a bonus.** Put the finished poison on your list and its ingredients buy themselves at any merchant that stocks them all.
+* **Reminders** speak up when you reach an inn or a city short of something, or leave a merchant or the bank with orders still outstanding.
+* **Named lists** let a character switch loadouts or share one with an alt.
+* **A Gold Reserve** keeps restocking from spending your last gold.
+* **Hold Shift** while opening a merchant or the bank to skip restocking for that visit.
+
+<img width="800" src="https://github.com/user-attachments/assets/62a9acfb-6c3d-4443-bf73-3af49ae3a5ec" />
+
 ### Mini-Map Button
 
 | Action | Effect |
