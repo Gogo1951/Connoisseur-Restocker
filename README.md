@@ -75,6 +75,19 @@ Macro names are hidden on your action buttons; Enable Macro Names on Buttons bri
 * **Rogues** // Left-Click `- Poisons` for your Off Hand, Right-Click for your Main Hand, or Middle-Click for the Poisons window.
 * **Warlocks** // Right-Click Healthstone or Soulstone to create one, or Middle-Click Healthstone for Ritual of Souls.
 
+### Restocker
+
+* **Build your list in ten seconds.** From level 6, the Staples window pops up at login while your Restock List is empty. Tick the staples you carry (food, water, ammo, poisons, class reagents, even your Hearthstone), pick how many stacks of each, and you're done. `/crs` opens the list any time, and you can drop in anything else from your bags.
+* **Your list levels with you.** Food, water, ammo, poisons, potions, and class reagents climb their upgrade paths as you level, and every swap is announced in chat. Refreshing Spring Water becomes Ice Cold Milk at 5, Melon Juice at 15, Sweet Nectar at 25, and so on.
+* **Rogues get a bonus.** Put the finished poison on your list and its ingredients buy themselves at any merchant that stocks them all.
+* **Reminders** speak up when you reach an inn or a city short of something, or leave a merchant or the bank with orders still outstanding.
+* **Named lists** let a character switch loadouts or share one with an alt.
+* **A Gold Reserve** keeps restocking from spending your last gold.
+* **The Inventory Report** shows on item tooltips how many of that item you have in your bags, your bank, and on your other characters on the realm.
+* **Hold Shift** while opening a merchant or the bank to skip restocking for that visit.
+
+<img width="800" src="https://github.com/user-attachments/assets/62a9acfb-6c3d-4443-bf73-3af49ae3a5ec" />
+
 ## Testing & Localization Status
 
 🔴 World of Warcraft // 12.1.0
