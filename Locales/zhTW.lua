@@ -102,6 +102,9 @@ L["MESSAGE_IGNORE_CLEARED_MANY"] = "已從此角色的忽略列表中清除 %d �
 L["CHAT_LOADED"] =
 	"版本 %s。設定（包括停用此訊息的選項）位於 選項 > 插件 > Connoisseur & Restocker。喜歡這個插件嗎？告訴朋友，在 CurseForge 上收藏它，或在它的 GitHub 頁面上點擊 Star。(="
 
+L["CHAT_END_OF_SUPPORT"] =
+	"停止支援：本插件現已成為 Good to Go 的一部分，這是它的最後一個版本。安裝 Good to Go 即可繼續獲得更新，之後你就可以移除 Connoisseur & Restocker 了。"
+
 L["CHAT_OPTIONS_IN_COMBAT"] = "基於安全考量，戰鬥中無法開啟選項介面。"
 
 --------------------------------------------------------------------------------

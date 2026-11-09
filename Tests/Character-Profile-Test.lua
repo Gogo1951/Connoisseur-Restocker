@@ -30,9 +30,9 @@
     reset) keeps the list in use, and neither Reset Profile nor a copy ever
     touches the lists themselves.
 
-    A login where AceDB loaded before the client had named the character still
-    lands on the character's own profile, or the one it chose, and the choice
-    it leaves with is saved under its real name.
+    On Era and TBC, a login where AceDB loaded before the client had named the
+    character still lands on the character's own profile, or the one it chose,
+    and the choice it leaves with is saved under its real name.
 
     The last block is the migration that carries older saved files into this
     shape, and retires with it.
@@ -407,35 +407,35 @@ ns.db:SetProfile("Alice - Stitches")
 check("made again", ns.restockSettings.lists.Gone ~= nil and next(ns.restockSettings.lists.Gone) == nil, true)
 check("and in use", ns.restockSettings.currentList, "Gone")
 
-print("8. A login AceDB could not name still lands on the character's own profile")
-saved = login(forever("Gogomage", "Classic"), nil, { unnamedAtLoad = true })
-check("AceDB read the client's placeholder", ns.db.keys.char, "Unknown")
-check("the character is on its own profile all the same", ns.db:GetCurrentProfile(), "Gogomage Classic")
+print("8. On Era and TBC, a login AceDB could not name still lands on the character's own profile")
+--[[
+    Era and TBC only: AceDB builds a WoW Forever key from the first name and
+    surname, so it cannot load on a Forever client that has not named the
+    character yet.
+]]
+saved = login(era("Gogomage", "Mage"), nil, { unnamedAtLoad = true })
+check("AceDB read the client's placeholder, with the realm", ns.db.keys.char, "Unknown - Stitches")
+check("the character is on its own profile all the same", ns.db:GetCurrentProfile(), "Gogomage - Stitches")
 ns.db.profile.useScrolls = true
-check("and is named on its list", usersOf("Mage"), "Gogomage Classic")
+check("and is named on its list", usersOf("Mage"), "Gogomage")
 logout()
-check("its choice is saved under its real name", saved.profileKeys["Gogomage Classic"], "Gogomage Classic")
-check("and the placeholder is gone", saved.profileKeys.Unknown, nil)
-saved = login(forever("Gogodruid", "Forever", "Druid"), saved, { unnamedAtLoad = true })
-check("the next unnamed login is another character's own", ns.db:GetCurrentProfile(), "Gogodruid Forever")
+check("its choice is saved under its real name", saved.profileKeys["Gogomage - Stitches"], "Gogomage - Stitches")
+check("and the placeholder is gone", saved.profileKeys["Unknown - Stitches"], nil)
+saved = login(era("Gogodruid", "Druid"), saved, { unnamedAtLoad = true })
+check("the next unnamed login is another character's own", ns.db:GetCurrentProfile(), "Gogodruid - Stitches")
 check("with none of the first one's settings", ns.db.profile.useScrolls, false)
 check("and a list of its own", ns.restockSettings.currentList, "Druid")
 ns.db:SetProfile("Raid")
 logout()
-check("a profile picked in that session is saved for the character", saved.profileKeys["Gogodruid Forever"], "Raid")
-check("with no placeholder left", keysOf(saved.profileKeys), "Gogodruid Forever, Gogomage Classic")
-login(forever("Gogodruid", "Forever", "Druid"), saved, { unnamedAtLoad = true })
+check("a profile picked in that session is saved for the character", saved.profileKeys["Gogodruid - Stitches"], "Raid")
+check("with no placeholder left", keysOf(saved.profileKeys), "Gogodruid - Stitches, Gogomage - Stitches")
+login(era("Gogodruid", "Druid"), saved, { unnamedAtLoad = true })
 check("and an unnamed login honors it", ns.db:GetCurrentProfile(), "Raid")
-check("naming the character once on its list", usersOf(ns.restockSettings.currentList), "Gogodruid Forever")
+check("naming the character once on its list", usersOf(ns.restockSettings.currentList), "Gogodruid")
 logout()
-login(forever("Gogomage", "Classic"), saved)
-check("a named login is left to AceDB", ns.db:GetCurrentProfile(), "Gogomage Classic")
+login(era("Gogomage", "Mage"), saved)
+check("a named login is left to AceDB", ns.db:GetCurrentProfile(), "Gogomage - Stitches")
 check("with the settings saved while unnamed", ns.db.profile.useScrolls, true)
-saved = login(era("Alice", "Mage"), nil, { unnamedAtLoad = true })
-check("Era and TBC: the placeholder carries the realm", ns.db.keys.char, "Unknown - Stitches")
-check("and the character still gets its own profile", ns.db:GetCurrentProfile(), "Alice - Stitches")
-logout()
-check("saved under its real name", keysOf(saved.profileKeys), "Alice - Stitches")
 
 --------------------------------------------------------------------------------
 -- MIGRATION (remove after 2026-10-30)

@@ -15,7 +15,9 @@ ns.SCROLL_DATA = {
 			{ 3012, 8115, 10, 5 }, -- Scroll of Agility
 		},
 		-- [spellID] = amount, -- Name
-		conflictSpells = {},
+		conflictSpells = {
+			[17538] = 25, -- Elixir of the Mongoose
+		},
 	},
 	Intellect = {
 		-- {itemID, buffID, requiredLevel, amount}, -- Name
@@ -111,7 +113,7 @@ Last Validated
 
 Notes
 	- The stat scrolls, read by Features/Scanner-Auras.lua (FindBestScroll) to pick a scroll whose buff the player lacks. Each type lists its scrolls as { itemID, buffID, requiredLevel, amount }: the buff is the aura the scroll leaves, requiredLevel the level the tooltip requires, amount the stat it grants.
-	- conflictSpells lists the class buffs a scroll can't stack with, keyed by spell ID, with the amount each grants; a scroll is skipped while the player has a conflicting buff at least as strong. Agility, Protection and Strength list none: Agility stacks with everything on the Classic and TBC clients, and Protection with Devotion Aura, Stoneskin and the like.
+	- conflictSpells lists the buffs a scroll can't stack with, keyed by spell ID, with the amount each grants; a scroll is skipped while the player has a conflicting buff at least as strong. Agility lists only Elixir of the Mongoose, confirmed in game to block Scroll of Agility (Good to Go issue #3); Protection and Strength list none.
 	- Conflict spells 13326, 364161, 16876, 16875, 13864, 23947 and 23948 are Classic Era spells the Classic Era report confirms, copied in.
 
 SQL (CMaNGOS)

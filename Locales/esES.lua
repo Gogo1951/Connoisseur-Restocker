@@ -102,6 +102,9 @@ L["MESSAGE_IGNORE_CLEARED_MANY"] = "Se han quitado %d objetos de la lista de ign
 L["CHAT_LOADED"] =
 	"Versión %s. Los ajustes (incluida la opción de desactivar este mensaje) están en Opciones > Addons > Connoisseur & Restocker. ¿Te gusta este addon? Cuéntaselo a un amigo, márcalo como favorito en CurseForge o pulsa Star en su página de GitHub. (="
 
+L["CHAT_END_OF_SUPPORT"] =
+	"Fin del soporte: este add-on ahora forma parte de Good to Go y esta es su última versión. Instala Good to Go para seguir recibiendo actualizaciones y luego podrás desinstalar Connoisseur & Restocker."
+
 L["CHAT_OPTIONS_IN_COMBAT"] = "Como medida de seguridad, la interfaz de opciones no se puede abrir durante el combate."
 
 --------------------------------------------------------------------------------

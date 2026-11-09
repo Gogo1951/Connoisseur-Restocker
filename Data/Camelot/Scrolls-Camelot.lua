@@ -11,7 +11,9 @@ ns.SCROLL_DATA = {
 			{ 3012, 8115, 10, 5 }, -- Scroll of Agility
 		},
 		-- [spellID] = amount, -- Name
-		conflictSpells = {},
+		conflictSpells = {
+			[17538] = 25, -- Elixir of the Mongoose
+		},
 	},
 	Intellect = {
 		-- {itemID, buffID, requiredLevel, amount, class token or nil}, -- Name
@@ -103,7 +105,7 @@ Last Validated
 
 Notes
 	- The stat scrolls, read by Features/Scanner-Auras.lua (FindBestScroll) to pick a scroll whose buff the player lacks. Each type lists its scrolls as { itemID, buffID, requiredLevel, amount }: the buff is the aura the scroll leaves, requiredLevel the level the tooltip requires, amount the stat it grants.
-	- conflictSpells lists the class buffs a scroll can't stack with, keyed by spell ID, with the amount each grants; a scroll is skipped while the player has a conflicting buff at least as strong. Agility, Protection and Strength list none: Agility stacks with everything on the Classic and TBC clients, and Protection with Devotion Aura, Stoneskin and the like.
+	- conflictSpells lists the buffs a scroll can't stack with, keyed by spell ID, with the amount each grants; a scroll is skipped while the player has a conflicting buff at least as strong. Agility lists only Elixir of the Mongoose, confirmed in game to block Scroll of Agility (Good to Go issue #3); Protection and Strength list none.
 	- The three Mage familiar scrolls carry a fifth column, the class that can use them (MAGE), because they don't bind and another class could carry one. Each one's buff is its use spell, which summons the familiar and puts the Intellect aura on the caster. Whether that aura stacks with Scroll of Intellect or Arcane Intellect is unchecked in game; counting them as one Intellect buff never builds a line that fails.
 	- WoW Forever raised Power Word: Fortitude and Prayer of Fortitude (4/10/26/42/56/70 by rank); the conflict amounts follow.
 

@@ -4,7 +4,13 @@
 
 ## Exceptions
 
-### Profiles panel without suggested profiles (remove after 2026-10-30)
+### Migrations kept in the final release
+
+- **Departs from:** SAVED VARIABLES → Migration Windows, "the next pass that touches the add-on deletes everything so tagged".
+- **Instead:** The migrations that move characters off the shared Default profile and re-key WoW Forever characters by first name and surname, and everything tagged with them, stay past their remove-after date.
+- **Why:** The add-on's final release is the last build any player installs, so a player returning after any break still needs the bridge to reach their own profile and settings.
+
+### Profiles panel without suggested profiles
 
 - **Departs from:** OPTIONS PANEL → Profiles Panel, "returns the stock AceDBOptions-3.0 table unmodified".
 - **Instead:** The Profiles panel is built with AceDBOptions' `noDefaultProfiles` flag, so its pickers list only profiles that exist, never the suggested Default, realm and class profiles.

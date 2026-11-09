@@ -546,9 +546,9 @@ world.offHandMissing = true
 ns.OnReadyCheck()
 check("no output", #printed, 0)
 
-say("12a. A Shaman in the group satisfies the MAIN HAND, so it goes quiet")
+say("12a. A Shaman in the party satisfies the MAIN HAND, so it goes quiet")
 ResetWorld()
-world.classes = { raid2 = "SHAMAN" }
+world.classes = { party2 = "SHAMAN" }
 settings({ readinessMainHandBuff = true, readinessOffHandBuff = true })
 world.mainHandMissing = true
 ns.OnReadyCheck()
@@ -556,7 +556,7 @@ check("no output", #printed, 0)
 
 say("12b. That exemption is the main hand's alone: the off hand still reports")
 ResetWorld()
-world.classes = { raid2 = "SHAMAN" }
+world.classes = { party2 = "SHAMAN" }
 settings({ readinessMainHandBuff = true, readinessOffHandBuff = true })
 world.mainHandMissing = true
 world.offHandMissing = true
@@ -570,6 +570,15 @@ settings({ readinessMainHandBuff = true })
 world.mainHandMissing = true
 ns.OnReadyCheck()
 check("no output", #printed, 0)
+
+say("12d. A Shaman in another raid group doesn't reach this party: main hand still reports")
+ResetWorld()
+world.inGroup, world.inRaid, world.members = true, true, 10
+world.classes = { raid7 = "SHAMAN" }
+settings({ readinessMainHandBuff = true })
+world.mainHandMissing = true
+ns.OnReadyCheck()
+check("main hand reported", report(), "READINESS_TITLE ~ READINESS_MISSING_BUFFS MAINHANDSLOT")
 
 say("")
 say("EXPIRING SOON")
