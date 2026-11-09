@@ -36,6 +36,14 @@ local MAX_STUCK_STEPS = 5
 ]]
 local MAX_INFLIGHT_STEPS = 3
 
+--[[
+    The bank's contents can still be arriving when BANKFRAME_OPENED fires, and a
+    scan taken then reads an empty bank: no work owed, so the run would finish
+    with nothing moved. A run may not finish this soon after it starts, so a bank
+    that reads empty on the first step is read again.
+]]
+local BANK_SETTLE_DELAY = 0.5
+
 --------------------------------------------------------------------------------
 -- Restock State
 --------------------------------------------------------------------------------
@@ -58,6 +66,7 @@ local function NewRestockState()
 	state.amounts = {}
 	-- Set by the first stash or pull; a run that moved nothing finishes without a word (CompletionMessage).
 	state.movedAny = false
+	state.startedAt = GetTime()
 
 	setmetatable(state, RestockState)
 
@@ -572,6 +581,11 @@ local function RunRestockLogic()
 		elseif not RestockFromBank() then
 			StashToBank()
 		end
+		return false
+	end
+
+	-- Too soon to trust an empty reading: see BANK_SETTLE_DELAY.
+	if GetTime() - state.startedAt < BANK_SETTLE_DELAY then
 		return false
 	end
 

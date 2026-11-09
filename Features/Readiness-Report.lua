@@ -106,14 +106,32 @@ end
     Whether anyone present is of a class, the player included -- AnyGroupMember
     tests "player" first, so "in the group" always covers "is you".
 
-    Two entries ask this. A Warlock is who produces a Healthstone, so with none
-    present it is not actionable. A Shaman is who makes the weapon-buff line
-    moot; see its caller.
+    A Warlock is who produces a Healthstone, so with none present it is not
+    actionable.
 ]]
 local function GroupHasClass(classToken)
 	return AnyGroupMember(function(unit)
 		return select(2, UnitClass(unit)) == classToken
 	end)
+end
+
+--[[
+    Whether the player or anyone in their own party is of a class. In a raid,
+    party1-4 are the player's own subgroup. A Shaman's weapon totems reach only
+    their own party, so a Shaman elsewhere in the raid does not make the
+    weapon-buff line moot; see its caller.
+]]
+local function PartyHasClass(classToken)
+	if select(2, UnitClass("player")) == classToken then
+		return true
+	end
+	for index = 1, 4 do
+		local unit = "party" .. index
+		if UnitExists(unit) and select(2, UnitClass(unit)) == classToken then
+			return true
+		end
+	end
+	return false
 end
 
 local SOULSTONE_BUFF_LOOKUP = {}
@@ -259,7 +277,7 @@ local function BuildMissingBuffs(settings, reports)
 	    imbue -- because GetWeaponEnchantInfo answers whether the slot carries
 	    one without caring which.
 
-	    A SHAMAN IN THE GROUP SATISFIES THE MAIN HAND, and only the main hand:
+	    A SHAMAN IN THE PARTY SATISFIES THE MAIN HAND, and only the main hand:
 	    that is the slot their buff answers for, so with one present the line
 	    stops being a thing the player has to act on. The off hand asks the
 	    same question with no such exemption. Resolved once for the pair rather
@@ -267,7 +285,7 @@ local function BuildMissingBuffs(settings, reports)
 	]]
 	if reports.readinessMainHandBuff or reports.readinessOffHandBuff then
 		local mainHandMissing, offHandMissing = ns.GetMissingWeaponBuffs()
-		if reports.readinessMainHandBuff and mainHandMissing and not GroupHasClass("SHAMAN") then
+		if reports.readinessMainHandBuff and mainHandMissing and not PartyHasClass("SHAMAN") then
 			missing[#missing + 1] = MAINHANDSLOT
 		end
 		if reports.readinessOffHandBuff and offHandMissing then

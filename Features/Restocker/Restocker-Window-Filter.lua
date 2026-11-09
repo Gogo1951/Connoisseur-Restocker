@@ -16,6 +16,30 @@ local L = ns.L
     keystroke in the filter box, on a path that already runs on every keystroke.
 ]]
 
+--[[
+    Case folding for the filter. string.lower folds ASCII only, so the capital
+    letters of the supported Latin and Cyrillic locales (2-byte UTF-8: U+00C0 to
+    U+00DE, U+0401 and U+0410 to U+042F) are mapped to their lowercase forms here.
+    Built once; gsub leaves any sequence the table doesn't name as it is.
+]]
+local FOLD_UPPER = {}
+for code = 0xC0, 0xDE do
+	if code ~= 0xD7 then
+		FOLD_UPPER[string.char(0xC3, code - 0x40)] = string.char(0xC3, code - 0x20)
+	end
+end
+for code = 0x10, 0x1F do
+	FOLD_UPPER[string.char(0xD0, 0x80 + code)] = string.char(0xD0, 0xA0 + code)
+end
+for code = 0x20, 0x2F do
+	FOLD_UPPER[string.char(0xD0, 0x80 + code)] = string.char(0xD1, 0x60 + code)
+end
+FOLD_UPPER[string.char(0xD0, 0x81)] = string.char(0xD1, 0x91)
+
+local function Fold(text)
+	return (text:lower():gsub("[\195\208][\128-\191]", FOLD_UPPER))
+end
+
 -- Was this item added during the current viewing of the window? See ns.restockNewItems.
 local function IsNewItem(item)
 	return (item.itemID ~= nil) and (ns.restockNewItems[item.itemID] == true)
@@ -59,7 +83,7 @@ function ns.BuildRestockView(items)
 	local filter = ns.restockListFilter
 	local view = {
 		groups = {},
-		filter = (filter and #filter >= 2) and filter:lower() or nil,
+		filter = (filter and #filter >= 2) and Fold(filter) or nil,
 	}
 	for _, item in ipairs(items) do
 		view.groups[item] = ItemGroupOf(item)
@@ -75,8 +99,8 @@ local function PassesTextFilter(view, item)
 	if not view.filter or view.groups[item] == L["RESTOCKER_GROUP_NEW"] then
 		return true
 	end
-	return ((item.itemName or ""):lower():find(view.filter, 1, true) ~= nil)
-		or (view.groups[item]:lower():find(view.filter, 1, true) ~= nil)
+	return (Fold(item.itemName or ""):find(view.filter, 1, true) ~= nil)
+		or (Fold(view.groups[item]):find(view.filter, 1, true) ~= nil)
 		or (tostring(item.itemID or ""):find(view.filter, 1, true) ~= nil)
 end
 

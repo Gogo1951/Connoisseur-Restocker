@@ -50,3 +50,24 @@ function ns.PrintWelcome()
 	welcomePrinted = true
 	ns.PrintMessage(L["CHAT_LOADED"]:format(ns.Version))
 end
+
+--------------------------------------------------------------------------------
+-- End of Support
+--------------------------------------------------------------------------------
+
+--[[
+    Printed once per session, straight after the welcome, with no setting of
+    its own: it never reads showWelcome, so a player who turned the welcome
+    off still learns that Connoisseur & Restocker now lives on inside Good to
+    Go. Its own flag, because the welcome's flag stays unset while the
+    welcome is off.
+]]
+local endOfSupportPrinted = false
+
+function ns.PrintEndOfSupport()
+	if endOfSupportPrinted then
+		return
+	end
+	endOfSupportPrinted = true
+	ns.PrintMessage(L["CHAT_END_OF_SUPPORT"])
+end

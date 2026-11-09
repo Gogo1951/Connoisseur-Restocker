@@ -483,6 +483,20 @@ frame:SetScript("OnEvent", function(_, event, ...)
 		return
 	end
 
+	--[[
+	    A login or /reload in combat would otherwise wait out the guard below:
+	    the action bars' fresh macro-name text would show until the next
+	    loading screen, and the welcome and End of Support lines would wait for
+	    one too. None of the three touches anything protected (the names only
+	    take a font-string alpha), so they run here, and the event then falls
+	    through to the guard like any other.
+	]]
+	if event == "PLAYER_ENTERING_WORLD" then
+		ns.ApplyMacroNameVisibility()
+		ns.PrintWelcome()
+		ns.PrintEndOfSupport()
+	end
+
 	if InCombatLockdown() then
 		isUpdatePending = true
 		return
@@ -527,9 +541,7 @@ frame:SetScript("OnEvent", function(_, event, ...)
 		ns.RequestUpdate()
 	elseif event == "PLAYER_ENTERING_WORLD" then
 		RefreshArrivalState()
-		ns.PrintWelcome()
 		ns.UpdateAuraTracking()
-		ns.ApplyMacroNameVisibility()
 		ns.RequestUpdate()
 		C_Timer.After(3, function()
 			ns.RequestUpdate()

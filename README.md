@@ -1,3 +1,14 @@
+# 😎 Connoisseur & Restocker Is Now Part of Good to Go 🔥
+
+This is the final release of Connoisseur & Restocker. All of its features have been merged into Good to Go.
+
+You will need to install Good to Go to keep receiving updates. Once it's installed, you can safely remove Connoisseur & Restocker.
+
+### Download Good to Go
+
+* [Good to Go on CurseForge](https://www.curseforge.com/wow/addons/good-to-go)
+* [Good to Go on Wago](https://addons.wago.io/addons/good-to-go)
+
 # Connoisseur & Restocker (C & R)
 
 Macros that automatically use your best food, water, potions, healthstones, bandages, poisons, and pet food, plus a Restock List that auto-buys and banks your consumables and upgrades them as you level. Quality-of-life automation for peak performance.

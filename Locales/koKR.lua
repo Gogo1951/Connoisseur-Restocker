@@ -102,6 +102,9 @@ L["MESSAGE_IGNORE_CLEARED_MANY"] = "이 캐릭터의 차단 목록에서 아이�
 L["CHAT_LOADED"] =
 	"버전 %s. 설정(이 메시지 비활성화 옵션 포함)은 설정 > 애드온 > Connoisseur & Restocker에 있습니다. 이 애드온이 마음에 드시나요? 친구에게 알려 주거나, CurseForge에서 즐겨찾기에 추가하거나, GitHub 페이지에서 Star를 눌러 주세요. (="
 
+L["CHAT_END_OF_SUPPORT"] =
+	"지원 종료: 이 애드온은 이제 Good to Go의 일부가 되었으며, 이번이 마지막 버전입니다. 업데이트를 계속 받으려면 Good to Go를 설치하세요. 그 후에는 Connoisseur & Restocker를 삭제해도 됩니다."
+
 L["CHAT_OPTIONS_IN_COMBAT"] = "안전을 위해 전투 중에는 설정 인터페이스를 열 수 없습니다."
 
 --------------------------------------------------------------------------------
